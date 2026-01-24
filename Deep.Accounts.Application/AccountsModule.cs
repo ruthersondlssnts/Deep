@@ -1,4 +1,4 @@
-﻿using Deep.Accounts.Data;
+﻿using Deep.Accounts.Application.Data;
 using Deep.Common.Api.Endpoints;
 using Deep.Common.Database;
 using Deep.Common.Messaging;
@@ -8,7 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
-namespace Deep.Accounts;
+namespace Deep.Accounts.Application;
+
 public static class AccountsModule
 {
     public static IHostApplicationBuilder AddAccountsModule(

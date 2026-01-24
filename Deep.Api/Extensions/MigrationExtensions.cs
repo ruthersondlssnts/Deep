@@ -1,4 +1,4 @@
-﻿using Deep.Accounts.Data;
+﻿using Deep.Accounts.Application.Data;
 using Deep.Programs.Application.Data;
 using Deep.Transactions.Application.Data;
 using Microsoft.EntityFrameworkCore;

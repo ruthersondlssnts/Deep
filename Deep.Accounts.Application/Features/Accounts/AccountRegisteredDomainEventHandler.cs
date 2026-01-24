@@ -1,5 +1,3 @@
-
-
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.EventBus;
 using Deep.Common.Exceptions;
@@ -7,7 +5,7 @@ using Deep.Common.Messaging;
 using Deep.Common.SimpleMediatR;
 using Deep.Accounts.IntegrationEvents;
 
-namespace Deep.Accounts.Features.Accounts;
+namespace Deep.Accounts.Application.Features.Accounts;
 
 internal sealed class AccountRegisteredDomainEventHandler(
     IRequestHandler<GetAccount.Query, GetAccount.Response> getAccountHandler,

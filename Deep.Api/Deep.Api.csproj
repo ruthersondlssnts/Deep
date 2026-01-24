@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Deep.Accounts\Deep.Accounts.csproj" />
+    <ProjectReference Include="..\Deep.Accounts.Application\Deep.Accounts.Application.csproj" />
     <ProjectReference Include="..\Deep.Programs.Application\Deep.Programs.Application.csproj" />
     <ProjectReference Include="..\Deep.ServiceDefaults\Deep.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Deep.Transactions.Application\Deep.Transactions.Application.csproj" />

@@ -15,8 +15,9 @@
   </Folder>
   <Folder Name="/src/modules/" />
   <Folder Name="/src/modules/Accounts/">
+    <Project Path="Deep.Accounts.Application/Deep.Accounts.Application.csproj" Id="c24ece8d-00fd-4474-98cf-747a78a58f33" />
+    <Project Path="Deep.Accounts.Domain/Deep.Accounts.Domain.csproj" Id="0716c7bb-324c-48ec-926d-fd0720143a39" />
     <Project Path="Deep.Accounts.IntegrationEvents/Deep.Accounts.IntegrationEvents.csproj" />
-    <Project Path="Deep.Accounts/Deep.Accounts.csproj" />
   </Folder>
   <Folder Name="/src/modules/Programs/">
     <Project Path="Deep.Programs.Application/Deep.Programs.Application.csproj" />

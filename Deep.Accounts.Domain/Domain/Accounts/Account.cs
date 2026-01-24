@@ -2,7 +2,7 @@
 
 namespace Deep.Accounts.Domain.Accounts;
 
-internal sealed class Account : Entity
+public sealed class Account : Entity
 {
     public Guid Id { get; private set; }
     public string FirstName { get; private set; } = string.Empty;

@@ -2,10 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Deep.Accounts.Domain.Accounts;
 
-namespace Deep.Accounts.Data;
+namespace Deep.Accounts.Application.Data;
 
 public class AccountsDbContext(DbContextOptions<AccountsDbContext> options)
-: DbContext(options)
+    : DbContext(options)
 {
     internal DbSet<Account> Accounts => Set<Account>();
 

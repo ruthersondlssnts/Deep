@@ -1,4 +1,4 @@
-﻿using Deep.Accounts.Data;
+﻿using Deep.Accounts.Application.Data;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Api.ApiResults;
 using Deep.Common.Api.Endpoints;
@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
-namespace Deep.Accounts.Features.Accounts;
+namespace Deep.Accounts.Application.Features.Accounts;
 
 public static class CreateAccount
 {
@@ -37,8 +37,7 @@ public static class CreateAccount
                 .MaximumLength(100);
 
             RuleFor(x => x.Email)
-                .NotEmpty()
-                .EmailAddress();
+                .NotEmpty();
         }
     }
 
