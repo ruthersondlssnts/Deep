@@ -8,6 +8,7 @@ using Deep.Common.Messaging;
 using Deep.Common.SimpleMediatR;
 using Deep.Programs;
 using Deep.Transactions.Application;
+using Deep.Programs.Application;
 using FluentValidation;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -45,7 +46,7 @@ builder.AddProgramsModule();
 builder.AddAccountsModule();
 builder.AddTransactionsModule();
 builder.Services.AddValidatorsFromAssemblies([
-    Deep.Programs.AssemblyReference.Assembly, 
+    Deep.Programs.Application.AssemblyReference.Assembly, 
     Deep.Accounts.AssemblyReference.Assembly,
     Deep.Transactions.Application.AssemblyReference.Assembly], 
     includeInternalTypes: true);
@@ -54,7 +55,7 @@ builder.Services.AddScoped<IRequestBus, RequestBus>();
 
 //Simple custom MediatR registrations
 builder.Services.AddRequestHandlers([
-    Deep.Programs.AssemblyReference.Assembly, 
+    Deep.Programs.Application.AssemblyReference.Assembly, 
     Deep.Accounts.AssemblyReference.Assembly,
     Deep.Transactions.Application.AssemblyReference.Assembly]);
 builder.Services.AddRequestPipelines(

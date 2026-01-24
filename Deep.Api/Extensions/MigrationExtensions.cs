@@ -1,5 +1,5 @@
 ﻿using Deep.Accounts.Data;
-using Deep.Programs.Data;
+using Deep.Programs.Application.Data;
 using Deep.Transactions.Application.Data;
 using Microsoft.EntityFrameworkCore;
 

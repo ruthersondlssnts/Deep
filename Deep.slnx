@@ -19,7 +19,8 @@
     <Project Path="Deep.Accounts/Deep.Accounts.csproj" />
   </Folder>
   <Folder Name="/src/modules/Programs/">
-    <Project Path="Deep.Programs/Deep.Programs.csproj" />
+    <Project Path="Deep.Programs.Application/Deep.Programs.Application.csproj" />
+    <Project Path="Deep.Programs.Domain/Deep.Programs.Domain.csproj" />
   </Folder>
   <Folder Name="/src/modules/Transactions/">
     <Project Path="Deep.Transactions.Application/Deep.Transactions.Application.csproj" Id="b55fb6b9-5923-4177-8fb7-27cc51b0f7c2" />

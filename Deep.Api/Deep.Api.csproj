@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Deep.Accounts\Deep.Accounts.csproj" />
-    <ProjectReference Include="..\Deep.Programs\Deep.Programs.csproj" />
+    <ProjectReference Include="..\Deep.Programs.Application\Deep.Programs.Application.csproj" />
     <ProjectReference Include="..\Deep.ServiceDefaults\Deep.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Deep.Transactions.Application\Deep.Transactions.Application.csproj" />
   </ItemGroup>
