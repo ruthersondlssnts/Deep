@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <None Include="Features\Accounts\CreateAccount.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Deep.Common\Deep.Common.csproj" />
+    <ProjectReference Include="..\Deep.Accounts.IntegrationEvents\Deep.Accounts.IntegrationEvents.csproj" />
+  </ItemGroup>
+
+</Project>

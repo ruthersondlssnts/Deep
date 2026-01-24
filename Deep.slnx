@@ -1,0 +1,29 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/api/">
+    <Project Path="Deep.Api/Deep.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/aspire/">
+    <Project Path="Deep.AppHost/Deep.AppHost.csproj" />
+    <Project Path="Deep.ServiceDefaults/Deep.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/src/common/">
+    <Project Path="Deep.Common/Deep.Common.csproj" />
+  </Folder>
+  <Folder Name="/src/modules/" />
+  <Folder Name="/src/modules/Accounts/">
+    <Project Path="Deep.Accounts.IntegrationEvents/Deep.Accounts.IntegrationEvents.csproj" />
+    <Project Path="Deep.Accounts/Deep.Accounts.csproj" />
+  </Folder>
+  <Folder Name="/src/modules/Programs/">
+    <Project Path="Deep.Programs/Deep.Programs.csproj" />
+  </Folder>
+  <Folder Name="/src/modules/Transactions/">
+    <Project Path="Deep.Transactions.Application/Deep.Transactions.Application.csproj" Id="b55fb6b9-5923-4177-8fb7-27cc51b0f7c2" />
+    <Project Path="Deep.Transactions.Domain/Deep.Transactions.Domain.csproj" Id="edc25060-a3c8-4416-8af5-f45aa96ac9d5" />
+    <Project Path="Deep.Transactions.IntegrationEvents/Deep.Transactions.IntegrationEvents.csproj" Id="b15cc768-2dba-47b8-8a6a-702dcad895ca" />
+  </Folder>
+</Solution>

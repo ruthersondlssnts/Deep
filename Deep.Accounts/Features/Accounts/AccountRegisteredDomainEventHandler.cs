@@ -1,0 +1,43 @@
+
+
+using Deep.Accounts.Domain.Accounts;
+using Deep.Common.EventBus;
+using Deep.Common.Exceptions;
+using Deep.Common.Messaging;
+using Deep.Common.SimpleMediatR;
+using Deep.Accounts.IntegrationEvents;
+
+namespace Deep.Accounts.Features.Accounts;
+
+internal sealed class AccountRegisteredDomainEventHandler(
+    IRequestHandler<GetAccount.Query, GetAccount.Response> getAccountHandler,
+    IEventBus eventBus)
+    : DomainEventHandler<AccountRegisteredDomainEvent>
+{
+    public override async Task Handle(
+        AccountRegisteredDomainEvent notification,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await getAccountHandler.Handle(
+            new GetAccount.Query(notification.AccountId),
+            cancellationToken);
+
+        if (result.IsFailure)
+            throw new DeepException(
+                nameof(GetAccount),
+                result.Error);
+
+        var account = result.Value;
+
+        await eventBus.PublishAsync(
+           new AccountRegisteredIntegrationEvent(
+               notification.Id,
+               notification.OccurredAtUtc,
+               account.Id,
+               account.Email,
+               account.FirstName,
+               account.LastName,
+               account.Role),
+           cancellationToken);
+    }
+}
