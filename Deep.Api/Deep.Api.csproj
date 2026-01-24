@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
+    <Compile Include="..\Deep.Transactions.Application\Data\TransactionsDbContext.cs" Link="TransactionsDbContext.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.1">
       <PrivateAssets>all</PrivateAssets>
@@ -14,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Deep.Accounts.Application\Deep.Accounts.Application.csproj" />
+    <ProjectReference Include="..\Deep.Common.Application\Deep.Common.Application.csproj" />
     <ProjectReference Include="..\Deep.Programs.Application\Deep.Programs.Application.csproj" />
     <ProjectReference Include="..\Deep.ServiceDefaults\Deep.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Deep.Transactions.Application\Deep.Transactions.Application.csproj" />

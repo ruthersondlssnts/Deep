@@ -1,18 +1,17 @@
 using Deep.Accounts;
 using Deep.Api.Extensions;
-using Deep.Common.Api.Endpoints;
-using Deep.Common.Api.Middleware;
-using Deep.Common.Dapper;
-using Deep.Common.EventBus;
-using Deep.Common.Messaging;
-using Deep.Common.SimpleMediatR;
-using Deep.Programs;
 using Deep.Transactions.Application;
+using Deep.Accounts.Application;
 using Deep.Programs.Application;
 using FluentValidation;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
+using Deep.Common.Application.Dapper;
+using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Application.EventBus;
+using Deep.Common.Api.Middleware;
+using Deep.Common.Application.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,7 +46,7 @@ builder.AddAccountsModule();
 builder.AddTransactionsModule();
 builder.Services.AddValidatorsFromAssemblies([
     Deep.Programs.Application.AssemblyReference.Assembly, 
-    Deep.Accounts.AssemblyReference.Assembly,
+    Deep.Accounts.Application.AssemblyReference.Assembly,
     Deep.Transactions.Application.AssemblyReference.Assembly], 
     includeInternalTypes: true);
 
@@ -56,7 +55,7 @@ builder.Services.AddScoped<IRequestBus, RequestBus>();
 //Simple custom MediatR registrations
 builder.Services.AddRequestHandlers([
     Deep.Programs.Application.AssemblyReference.Assembly, 
-    Deep.Accounts.AssemblyReference.Assembly,
+    Deep.Accounts.Application.AssemblyReference.Assembly,
     Deep.Transactions.Application.AssemblyReference.Assembly]);
 builder.Services.AddRequestPipelines(
     typeof(ValidationPipelineBehavior<,>),

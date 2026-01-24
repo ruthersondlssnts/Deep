@@ -1,4 +1,4 @@
-﻿using Deep.Common.Database;
+﻿using Deep.Common.Application.Database;
 using Microsoft.EntityFrameworkCore;
 using Deep.Accounts.Domain.Accounts;
 

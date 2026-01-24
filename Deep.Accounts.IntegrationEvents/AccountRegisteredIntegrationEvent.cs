@@ -1,5 +1,5 @@
 ﻿using Deep.Common.Domain;
-using Deep.Common.EventBus;
+using Deep.Common.Application.EventBus;
 
 namespace Deep.Accounts.IntegrationEvents;
 

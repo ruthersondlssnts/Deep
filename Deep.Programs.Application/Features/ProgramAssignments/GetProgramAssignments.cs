@@ -1,14 +1,13 @@
 ﻿using Dapper;
-using Deep.Common.Api.ApiResults;
-using Deep.Common.Api.Endpoints;
-using Deep.Common.Dapper;
 using Deep.Common.Domain;
-using Deep.Common.SimpleMediatR;
-using Deep.Programs.Domain.ProgramAssignments;
+using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Application.Api.ApiResults;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using System.Text;
+using Deep.Common.Application.Dapper;
+using Deep.Common.Application.Api.Endpoints;
 
 namespace Deep.Programs.Application.Features.ProgramAssignments;
 

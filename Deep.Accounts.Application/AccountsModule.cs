@@ -1,7 +1,7 @@
 ﻿using Deep.Accounts.Application.Data;
-using Deep.Common.Api.Endpoints;
-using Deep.Common.Database;
-using Deep.Common.Messaging;
+using Deep.Common.Application.Database;
+using Deep.Common.Application.Messaging;
+using Deep.Common.Application.Api.Endpoints;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

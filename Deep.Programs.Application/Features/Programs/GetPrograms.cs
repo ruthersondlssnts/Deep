@@ -1,13 +1,12 @@
 ﻿using Deep.Common.Domain;
-using Deep.Common.Api.ApiResults;
-using Deep.Common.Api.Endpoints;
+using Deep.Common.Application.Api.ApiResults;
+using Deep.Common.Application.Api.Endpoints;
 using Deep.Programs.Application.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using Deep.Common.SimpleMediatR;
-using Deep.Programs.Application.Data;
+using Deep.Common.Application.SimpleMediatR;
 
 namespace Deep.Programs.Application.Features.Programs;
 public static class GetPrograms

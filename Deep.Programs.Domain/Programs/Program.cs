@@ -1,7 +1,7 @@
 ﻿using Deep.Common.Domain;
 using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Users;
-using Microsoft.Extensions.Logging;
+
 namespace Deep.Programs.Domain.Programs;
 
 public class Program : Entity

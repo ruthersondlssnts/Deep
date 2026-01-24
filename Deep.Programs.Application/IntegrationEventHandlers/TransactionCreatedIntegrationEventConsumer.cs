@@ -1,5 +1,5 @@
-﻿using Deep.Common.Exceptions;
-using Deep.Common.SimpleMediatR;
+﻿using Deep.Common.Application.Exceptions;
+using Deep.Common.Application.SimpleMediatR;
 using Deep.Programs.Application.Features.ProgramStatistics;
 using Deep.Transactions.IntegrationEvents;
 using MassTransit;

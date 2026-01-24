@@ -1,4 +1,4 @@
-﻿using Deep.Common.Database;
+﻿using Deep.Common.Application.Database;
 using Microsoft.EntityFrameworkCore;
 using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;

@@ -1,7 +1,7 @@
 using Deep.Common.Domain;
-using Deep.Common.Exceptions;
-using Deep.Common.Messaging;
-using Deep.Common.SimpleMediatR;
+using Deep.Common.Application.Exceptions;
+using Deep.Common.Application.Messaging;
+using Deep.Common.Application.SimpleMediatR;
 using Deep.Programs.Domain.Programs;
 using Deep.Programs.Application.Features.Programs;
 using Deep.Programs.Application.Features.ProgramStatistics;

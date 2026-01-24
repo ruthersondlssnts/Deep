@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <ItemGroup>
-    <ProjectReference Include="..\Deep.Common\Deep.Common.csproj" />
+    <ProjectReference Include="..\Deep.Common.Application\Deep.Common.Application.csproj" />
+    <ProjectReference Include="..\Deep.Common.Domain\Deep.Common.Domain.csproj" />
   </ItemGroup>
-
 </Project>

@@ -1,5 +1,5 @@
 using Dapper;
-using Deep.Common.Messaging;
+using Deep.Common.Application.Messaging;
 using Deep.Programs.Domain.Programs;
 
 namespace Deep.Programs.Application.Features.Programs;

@@ -1,7 +1,7 @@
-﻿using Deep.Common.Api.ApiResults;
-using Deep.Common.Api.Endpoints;
+﻿using Deep.Common.Application.Api.ApiResults;
+using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Domain;
-using Deep.Common.SimpleMediatR;
+using Deep.Common.Application.SimpleMediatR;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;

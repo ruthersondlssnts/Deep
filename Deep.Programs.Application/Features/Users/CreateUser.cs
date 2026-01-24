@@ -1,13 +1,8 @@
-﻿using Deep.Common.Api.ApiResults;
-using Deep.Common.Api.Endpoints;
-using Deep.Common.Domain;
-using Deep.Common.SimpleMediatR;
+﻿using Deep.Common.Domain;
+using Deep.Common.Application.SimpleMediatR;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.Users;
 using FluentValidation;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Features.Users;

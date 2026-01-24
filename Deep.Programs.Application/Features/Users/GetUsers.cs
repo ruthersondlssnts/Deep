@@ -1,7 +1,7 @@
-﻿using Deep.Common.Api.ApiResults;
-using Deep.Common.Api.Endpoints;
+﻿using Deep.Common.Application.Api.ApiResults;
+using Deep.Common.Application.Api.Endpoints;
+using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
-using Deep.Common.SimpleMediatR;
 using Deep.Programs.Application.Data;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;

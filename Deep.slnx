@@ -11,7 +11,8 @@
     <Project Path="Deep.ServiceDefaults/Deep.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/src/common/">
-    <Project Path="Deep.Common/Deep.Common.csproj" />
+    <Project Path="Deep.Common.Application/Deep.Common.Application.csproj" Id="98e0a1a2-8819-4096-9d9d-e809df115db9" />
+    <Project Path="Deep.Common.Domain/Deep.Common.Domain.csproj" Id="8b730430-0b67-48a6-90fc-f14513ae0bf7" />
   </Folder>
   <Folder Name="/src/modules/" />
   <Folder Name="/src/modules/Accounts/">
