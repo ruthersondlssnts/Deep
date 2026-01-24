@@ -2,10 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace Deep.Common.Messaging
 {
-    public class PublishDomainEventsInterceptor(IServiceScopeFactory serviceScopeFactory)
+    public class PublishDomainEventsInterceptor(IServiceScopeFactory serviceScopeFactory, Assembly assembly)
     : SaveChangesInterceptor
     {
         public override async ValueTask<int> SavedChangesAsync(
@@ -46,7 +47,7 @@ namespace Deep.Common.Messaging
             var domainEventHandlers = DomainEventHandlersFactory.GetHandlers(
                 domainEvent.GetType(),
                 scope.ServiceProvider,
-                domainEvent.GetType().Assembly);
+                assembly);
 
             foreach (var domainEventHandler in domainEventHandlers)
             {

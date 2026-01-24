@@ -62,8 +62,6 @@ builder.Services.AddRequestPipelines(
     typeof(RequestLoggingPipelineBehavior<,>),
     typeof(ExceptionHandlingPipelineBehavior<,>));
 
-builder.Services.TryAddSingleton<PublishDomainEventsInterceptor>();
-
 builder.Services.TryAddSingleton<IEventBus, EventBus>();
 
 builder.Services.AddMassTransit(configurator =>

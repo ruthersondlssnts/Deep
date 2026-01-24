@@ -21,6 +21,12 @@ public static class TransactionsModule
 
         // Aspire enrichment belongs HERE
         builder.EnrichNpgsqlDbContext<TransactionsDbContext>();
+
+        builder.Services.AddSingleton(sp =>
+           new PublishDomainEventsInterceptor(
+               sp.GetRequiredService<IServiceScopeFactory>(),
+               AssemblyReference.Assembly
+           ));
         return builder;
     }
 
