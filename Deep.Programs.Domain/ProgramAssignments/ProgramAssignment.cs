@@ -1,9 +1,10 @@
 ﻿using Deep.Common.Domain;
+using System.Collections.Generic;
 
 namespace Deep.Programs.Domain.ProgramAssignments;
 public sealed class ProgramAssignment : Entity
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; private set; }
     public Guid ProgramId { get; private set; }
     public Guid UserId { get; private set; }
     public Role Role { get; private set; }
@@ -26,37 +27,44 @@ public sealed class ProgramAssignment : Entity
     public static IReadOnlyCollection<ProgramAssignment> CreateBatch(
       Guid programId,
       IReadOnlyCollection<(Guid UserId, Role Role)> users)
-          => users is { Count: > 0 }
-              ? users.Select(u => Create(programId, u.UserId, u.Role)).ToList()
-              : throw new ArgumentException("At least one assignment is required.");
+          => users.Select(u => Create(programId, u.UserId, u.Role)).ToList();
 
-    public static IReadOnlyCollection<ProgramAssignment> Sync(
-        Guid programId,
-        IReadOnlyCollection<ProgramAssignment> existing,
-        IReadOnlyCollection<(Guid UserId, Role Role)> incoming)
+    public static IReadOnlyCollection<ProgramAssignment> UpsertBatch(
+      Guid programId,
+      IReadOnlyCollection<ProgramAssignment> existing,
+      IReadOnlyCollection<(Guid UserId, Role Role)> incoming)
     {
-        if (incoming is not { Count: > 0 })
-            throw new ArgumentException("At least one assignment is required.");
+        var incomingByUserId = incoming.ToDictionary(x => x.UserId, x => x.Role);
+        var created = new List<ProgramAssignment>();
 
-        var result = new List<ProgramAssignment>();
-        var lookup = incoming.ToDictionary(x => x.UserId, x => x.Role);
-
-        foreach (var a in existing.Where(x => x.IsActive && !lookup.ContainsKey(x.UserId)))
-            a.DeactivateFromBatch();
+        foreach (var assignment in existing)
+        {
+            if (!incomingByUserId.ContainsKey(assignment.UserId))
+            {
+                assignment.DeactivateFromBatch();
+            }
+        }
 
         foreach (var (userId, role) in incoming)
         {
-            var a = existing.SingleOrDefault(x => x.UserId == userId);
+            var assignment = existing.SingleOrDefault(a => a.UserId == userId);
 
-            if (a is null)
-                result.Add(Create(programId, userId, role));
-            else if (!a.IsActive)
-                a.ReactivateFromBatch(role);
-            else
-                a.UpdateRoleFromBatch(role);
+            if (assignment is null)
+            {
+                created.Add(Create(programId, userId, role));
+                continue;
+            }
+
+            if (!assignment.IsActive)
+            {
+                assignment.ReactivateFromBatch(role);
+                continue;
+            }
+
+            assignment.UpdateRoleFromBatch(role);
         }
 
-        return result;
+        return created;
     }
 
     internal static ProgramAssignment Create(
@@ -65,6 +73,7 @@ public sealed class ProgramAssignment : Entity
        Role role)
            => new()
            {
+               Id = Guid.CreateVersion7(),
                ProgramId = programId,
                UserId = userId,
                Role = role,

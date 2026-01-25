@@ -55,6 +55,7 @@ public static class UpdateProgram
                 return ProgramErrors.NotFound(c.ProgramId);
 
             var users = await context.Users
+                .AsNoTracking()
                 .Where(u => c.UserIds.Contains(u.Id))
                 .Select(u => new { u.Id, u.Role })
                 .ToListAsync(ct);
@@ -79,13 +80,12 @@ public static class UpdateProgram
                 c.Products,
                 assignmentValidation);
 
-            var newAssignments = ProgramAssignment.Sync(
-                program.Id,
-                assignments,
-                users.Select(u => (u.Id, u.Role)).ToList());
+            var newAssignments = ProgramAssignment.UpsertBatch(
+                 program.Id,
+                 assignments,
+                 users.Select(u => (u.Id, u.Role)).ToList());
 
-            context.ProgramAssignments.AddRange(newAssignments);
-
+            await context.ProgramAssignments.AddRangeAsync(newAssignments);
             await context.SaveChangesAsync(ct);
 
             return new Response(program.Id);
