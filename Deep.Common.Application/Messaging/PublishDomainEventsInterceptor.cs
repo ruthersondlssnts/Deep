@@ -6,18 +6,27 @@ using System.Reflection;
 
 namespace Deep.Common.Application.Messaging;
 
-public class PublishDomainEventsInterceptor(IServiceScopeFactory serviceScopeFactory, Assembly assembly)
+public class PublishDomainEventsInterceptor(IServiceScopeFactory serviceScopeFactory, Assembly assembly, Type dbContextType)
 : SaveChangesInterceptor
 {
     public override async ValueTask<int> SavedChangesAsync(
-         SaveChangesCompletedEventData eventData,
-         int result,
-         CancellationToken cancellationToken = default)
+       SaveChangesCompletedEventData eventData,
+       int result,
+       CancellationToken cancellationToken = default)
     {
-        if (eventData.Context is not null)
-            await PublishDomainEventsAsync(eventData.Context, cancellationToken);
+        if (eventData.Context is null ||
+            !dbContextType.IsAssignableFrom(eventData.Context.GetType()))
+        {
+            return await base.SavedChangesAsync(
+                eventData, result, cancellationToken);
+        }
 
-        return await base.SavedChangesAsync(eventData, result, cancellationToken);
+        await PublishDomainEventsAsync(
+            eventData.Context,
+            cancellationToken);
+
+        return await base.SavedChangesAsync(
+            eventData, result, cancellationToken);
     }
 
     private async Task PublishDomainEventsAsync(
