@@ -1,7 +1,7 @@
-﻿using Deep.Common.Application.SimpleMediatR;
-using Deep.Common.Domain;
-using Deep.Common.Application.Api.ApiResults;
+﻿using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
+using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.Programs;
 using Microsoft.AspNetCore.Builder;
@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Features.Programs;
+
 public static class GetProgram
 {
     public sealed record Query(Guid Id);

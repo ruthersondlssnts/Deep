@@ -1,4 +1,3 @@
-using Dapper;
 using Deep.Common.Application.Messaging;
 using Deep.Programs.Domain.Programs;
 
@@ -9,6 +8,6 @@ internal sealed class ProgramCreatedNotificationHandler()
 {
     public override async Task Handle(ProgramCreatedDomainEvent domainEvent, CancellationToken cancellationToken = default)
     {
-        
+
     }
 }

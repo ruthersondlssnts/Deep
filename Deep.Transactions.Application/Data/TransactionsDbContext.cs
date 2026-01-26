@@ -1,7 +1,7 @@
 ﻿using Deep.Common.Application.Database;
-using Microsoft.EntityFrameworkCore;
-using Deep.Transactions.Domain.Transaction;
 using Deep.Transactions.Domain.Customer;
+using Deep.Transactions.Domain.Transaction;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Transactions.Application.Data;
 

@@ -1,9 +1,9 @@
-using Deep.Common.Domain;
 using Deep.Common.Application.Exceptions;
 using Deep.Common.Application.Messaging;
 using Deep.Common.Application.SimpleMediatR;
-using Deep.Programs.Domain.ProgramAssignments;
+using Deep.Common.Domain;
 using Deep.Programs.Application.Features.Programs;
+using Deep.Programs.Domain.ProgramAssignments;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 

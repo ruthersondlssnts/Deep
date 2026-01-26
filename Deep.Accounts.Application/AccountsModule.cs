@@ -1,10 +1,7 @@
 ﻿using Deep.Accounts.Application.Data;
-using Deep.Common.Application.Database;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using MassTransit;
 using Deep.Common.Application;
+using Deep.Common.Application.Database;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Accounts.Application;
 

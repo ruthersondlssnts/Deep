@@ -1,7 +1,7 @@
 ﻿using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
-using Deep.Common.Domain;
 using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Domain;
 using Deep.Transactions.Application.Data;
 using Deep.Transactions.Domain.Customer;
 using Deep.Transactions.Domain.Transaction;
@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 namespace Deep.Transactions.Application.Features.Transactions;
+
 public static class CreateTransaction
 {
     public sealed record Command(

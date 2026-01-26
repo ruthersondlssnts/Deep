@@ -1,7 +1,7 @@
-using Deep.Api.Extensions;
 using Deep.Accounts.Application;
-using Deep.Programs.Application;
+using Deep.Api.Extensions;
 using Deep.Common.Application.Api.Endpoints;
+using Deep.Programs.Application;
 using Deep.Transactions.Application;
 
 var builder = WebApplication.CreateBuilder(args);

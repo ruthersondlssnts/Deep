@@ -3,7 +3,7 @@ namespace Deep.Common.Application.EventBus;
 public interface IEventBus
 {
     Task PublishAsync<TIntegrationEvent>(
-        TIntegrationEvent integrationEvent, 
+        TIntegrationEvent integrationEvent,
         CancellationToken cancellationToken = default)
         where TIntegrationEvent : IIntegrationEvent;
 }

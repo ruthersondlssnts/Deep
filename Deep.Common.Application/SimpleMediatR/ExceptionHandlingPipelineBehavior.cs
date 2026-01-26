@@ -1,5 +1,5 @@
-﻿using Deep.Common.Domain;
-using Deep.Common.Application.Exceptions;
+﻿using Deep.Common.Application.Exceptions;
+using Deep.Common.Domain;
 using Microsoft.Extensions.Logging;
 
 namespace Deep.Common.Application.SimpleMediatR;

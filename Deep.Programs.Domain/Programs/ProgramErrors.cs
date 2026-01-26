@@ -1,7 +1,4 @@
 ﻿using Deep.Common.Domain;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Deep.Programs.Domain.Programs;
 

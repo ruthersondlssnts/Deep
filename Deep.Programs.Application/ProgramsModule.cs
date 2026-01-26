@@ -1,10 +1,7 @@
 ﻿using Deep.Common.Application;
-using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.Database;
 using Deep.Programs.Application.Data;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;

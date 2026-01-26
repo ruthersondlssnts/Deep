@@ -1,6 +1,6 @@
-﻿using Deep.Common.Application.Database;
+﻿using Deep.Accounts.Domain.Accounts;
+using Deep.Common.Application.Database;
 using Microsoft.EntityFrameworkCore;
-using Deep.Accounts.Domain.Accounts;
 
 namespace Deep.Accounts.Application.Data;
 

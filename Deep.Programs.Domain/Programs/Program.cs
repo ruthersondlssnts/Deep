@@ -1,6 +1,4 @@
 ﻿using Deep.Common.Domain;
-using Deep.Programs.Domain.ProgramAssignments;
-using Deep.Programs.Domain.Users;
 
 namespace Deep.Programs.Domain.Programs;
 

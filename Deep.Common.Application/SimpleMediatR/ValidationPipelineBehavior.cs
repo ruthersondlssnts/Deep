@@ -1,7 +1,6 @@
 ﻿using Deep.Common.Domain;
 using FluentValidation;
 using FluentValidation.Results;
-using System.Diagnostics.Eventing.Reader;
 
 namespace Deep.Common.Application.SimpleMediatR;
 

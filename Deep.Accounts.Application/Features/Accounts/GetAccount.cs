@@ -1,9 +1,9 @@
 ﻿using Deep.Accounts.Application.Data;
 using Deep.Accounts.Domain.Accounts;
-using Deep.Common.Domain;
-using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
+using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Domain;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;

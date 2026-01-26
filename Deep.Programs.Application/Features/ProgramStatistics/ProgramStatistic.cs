@@ -1,5 +1,4 @@
 ﻿using Deep.Programs.Domain.Programs;
-using MassTransit.Mediator;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace Deep.Programs.Application.Features.ProgramStatistics;

@@ -1,9 +1,9 @@
 using Deep.Accounts.Domain.Accounts;
+using Deep.Accounts.IntegrationEvents;
 using Deep.Common.Application.EventBus;
 using Deep.Common.Application.Exceptions;
 using Deep.Common.Application.Messaging;
 using Deep.Common.Application.SimpleMediatR;
-using Deep.Accounts.IntegrationEvents;
 
 namespace Deep.Accounts.Application.Features.Accounts;
 

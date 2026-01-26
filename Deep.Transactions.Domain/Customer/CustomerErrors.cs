@@ -1,6 +1,7 @@
 ﻿using Deep.Common.Domain;
 
 namespace Deep.Transactions.Domain.Customer;
+
 public static class CustomerErrors
 {
     public static Error NotFound(Guid id) =>

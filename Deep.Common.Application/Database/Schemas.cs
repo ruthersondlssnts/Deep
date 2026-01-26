@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Deep.Common.Application.Database;
+﻿namespace Deep.Common.Application.Database;
 
 public static class Schemas
 {

@@ -1,6 +1,7 @@
 ﻿using Deep.Common.Domain;
 
 namespace Deep.Accounts.Domain.Accounts;
+
 public static class AccountErrors
 {
     public static Error NotFound(Guid id) =>

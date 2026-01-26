@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Deep.Common.Domain;
+
 public class Result
 {
     public bool IsSuccess { get; }

@@ -1,18 +1,16 @@
-﻿using Deep.Transactions.Application.Data;
+﻿using Deep.Common.Application;
 using Deep.Common.Application.Database;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
+using Deep.Transactions.Application.Data;
 using Microsoft.Extensions.DependencyInjection;
-using MassTransit;
-using Deep.Common.Application;
 
 namespace Deep.Transactions.Application;
+
 public static class TransactionsModule
 {
     public static IServiceCollection AddTransactionsModule(this IServiceCollection services)
     {
         services.AddDomainEventHandlers(AssemblyReference.Assembly)
-                .AddPostgresDbContextWithSchema<TransactionsDbContext>( Schemas.Transactions)
+                .AddPostgresDbContextWithSchema<TransactionsDbContext>(Schemas.Transactions)
                 .AddEndpoints(AssemblyReference.Assembly)
                 .AddDomainEventInterceptor<TransactionsDbContext>(AssemblyReference.Assembly);
         return services;

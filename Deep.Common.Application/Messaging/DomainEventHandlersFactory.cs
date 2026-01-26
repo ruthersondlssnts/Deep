@@ -1,6 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Common.Application.Messaging;
 
@@ -24,5 +24,5 @@ public static class DomainEventHandlersFactory
             .Select(domainEventHandler => (domainEventHandler as IDomainEventHandler)!)
             .ToList();
     }
-    
+
 }

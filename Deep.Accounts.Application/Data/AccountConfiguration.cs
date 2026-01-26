@@ -29,7 +29,7 @@ namespace Deep.Accounts.Data
             builder.Property(u => u.Role)
                .IsRequired()
                .HasConversion(
-                   v => v.ToString(),                     
+                   v => v.ToString(),
                    v => Enum.Parse<Role>(v));
 
             builder.HasIndex(u => u.Email)

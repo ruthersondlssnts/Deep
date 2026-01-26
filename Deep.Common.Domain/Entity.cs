@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-
-namespace Deep.Common.Domain;
+﻿namespace Deep.Common.Domain;
 
 public abstract class Entity
 {

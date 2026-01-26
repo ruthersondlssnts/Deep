@@ -1,7 +1,7 @@
-﻿using Deep.Common.Domain;
-using Deep.Common.Application.SimpleMediatR;
-using Deep.Common.Application.Api.ApiResults;
+﻿using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
+using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Features.Programs;
+
 public static class CreateProgram
 {
     public sealed record Command(

@@ -1,7 +1,7 @@
 ﻿using Deep.Common.Domain;
-using System.Collections.Generic;
 
 namespace Deep.Programs.Domain.ProgramAssignments;
+
 public sealed class ProgramAssignment : Entity
 {
     public Guid Id { get; private set; }
@@ -23,7 +23,7 @@ public sealed class ProgramAssignment : Entity
             ProgramId,
             UserId));
     }
-   
+
     public static IReadOnlyCollection<ProgramAssignment> CreateBatch(
       Guid programId,
       IReadOnlyCollection<(Guid UserId, Role Role)> users)
