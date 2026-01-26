@@ -1,23 +1,21 @@
-using Deep.Accounts;
 using Deep.Api.Extensions;
-using Deep.Transactions.Application;
 using Deep.Accounts.Application;
 using Deep.Programs.Application;
-using FluentValidation;
-using MassTransit;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Npgsql;
-using Deep.Common.Application.Dapper;
-using Deep.Common.Application.SimpleMediatR;
-using Deep.Common.Application.EventBus;
-using Deep.Common.Api.Middleware;
 using Deep.Common.Application.Api.Endpoints;
+using Deep.Transactions.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-var databaseConnectionString = builder.Configuration.GetConnectionString("deep-db")!;
+//Aspire Connections
+var postgresDb = "deep-db";
+var mongoDb = "deep-docs";
+var rabbitmq = "rabbitmq";
+
+var databaseConnectionString = builder.Configuration.GetConnectionString(postgresDb)!;
+var mqConnectionString = builder.Configuration.GetConnectionString(rabbitmq)!;
+
 
 builder.Services
     .AddOpenApiAndSwagger()
@@ -28,14 +26,20 @@ builder.Services
         Deep.Accounts.Application.AssemblyReference.Assembly,
         Deep.Transactions.Application.AssemblyReference.Assembly)
     .AddMassTransit(
-        ProgramsModule.ConfigureConsumers,
+        mqConnectionString,
+        [ProgramsModule.ConfigureConsumers,
         AccountsModule.ConfigureConsumers,
-        TransactionsModule.ConfigureConsumers
+        TransactionsModule.ConfigureConsumers]
     );
 
-builder.AddProgramsModule();
-builder.AddAccountsModule();
-builder.AddTransactionsModule();
+
+builder.Services
+    .AddProgramsModule()
+    .AddAccountsModule()
+    .AddTransactionsModule();
+
+builder.ApplyAspire(postgresDb, mongoDb, rabbitmq);
+
 
 var app = builder.Build();
 

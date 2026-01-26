@@ -1,7 +1,8 @@
-﻿
-using Deep.Common.Application;
+﻿using Deep.Common.Application;
+using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.Database;
 using Deep.Programs.Application.Data;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Bson;
@@ -12,16 +13,16 @@ namespace Deep.Programs.Application;
 
 public static class ProgramsModule
 {
-    public static IHostApplicationBuilder AddProgramsModule(this IHostApplicationBuilder builder)
+    public static IServiceCollection AddProgramsModule(this IServiceCollection services)
     {
-        return builder
-            .AddDomainEventHandlers(AssemblyReference.Assembly)
-            .AddPostgresDbContextWithSchema<ProgramsDbContext>(builder.Configuration, Schemas.Programs)
-            .AddEndpoints(AssemblyReference.Assembly)
-            .AddMongoDb<MongoDbContext>("deep", "deep", () => BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard)))
-            .AddDomainEventInterceptor<ProgramsDbContext>(AssemblyReference.Assembly);
+        services.AddDomainEventHandlers(AssemblyReference.Assembly)
+                .AddPostgresDbContextWithSchema<ProgramsDbContext>(Schemas.Programs)
+                .AddEndpoints(AssemblyReference.Assembly)
+                .AddMongoDb<MongoDbContext>("deep", () => BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard)))
+                .AddDomainEventInterceptor<ProgramsDbContext>(AssemblyReference.Assembly);
+        return services;
     }
 
     public static void ConfigureConsumers(MassTransit.IRegistrationConfigurator registrationConfigurator) =>
-        Deep.Common.Application.ModuleRegistrationHelper.ConfigureConsumers(AssemblyReference.Assembly, registrationConfigurator);
+        ModuleRegistrationHelper.ConfigureConsumers(AssemblyReference.Assembly, registrationConfigurator);
 }

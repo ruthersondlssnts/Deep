@@ -8,7 +8,7 @@ namespace Deep.Common.Application.Api.Endpoints;
 
 public static class EndpointExtensions
 {
-    public static IServiceCollection AddEndpoints(
+    public static IServiceCollection AddEndpointExtension(
         this IServiceCollection services,
         params Assembly[] assemblies)
     {

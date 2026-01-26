@@ -7,10 +7,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
-using MongoDB.Bson.IO;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using System.Reflection;
 
@@ -19,60 +15,59 @@ namespace Deep.Common.Application;
 
 public static class ModuleRegistrationHelper
 {
-    public static IHostApplicationBuilder AddDomainEventHandlers(this IHostApplicationBuilder builder, Assembly assembly)
+    public static IServiceCollection AddDomainEventHandlers(this IServiceCollection services, Assembly assembly)
     {
         assembly
             .GetTypes()
             .Where(type => typeof(IDomainEventHandler).IsAssignableFrom(type))
             .ToList()
-            .ForEach(builder.Services.TryAddScoped);
-        return builder;
+            .ForEach(services.TryAddScoped);
+        return services;
     }
 
-    public static IHostApplicationBuilder AddEndpoints(this IHostApplicationBuilder builder, Assembly assembly)
+    public static IServiceCollection AddEndpoints(this IServiceCollection services, Assembly assembly)
     {
-        builder.Services.AddEndpoints(assembly);
-        return builder;
+        services.AddEndpointExtension(assembly);
+        return services;
     }
 
-    public static IHostApplicationBuilder AddDomainEventInterceptor<TDbContext>(
-        this IHostApplicationBuilder builder,
+    public static IServiceCollection AddDomainEventInterceptor<TDbContext>(
+        this IServiceCollection services,
         Assembly assembly)
         where TDbContext : DbContext
     {
-        builder.Services.AddSingleton<IInterceptor>(sp =>
+        services.AddSingleton<IInterceptor>(sp =>
            new PublishDomainEventsInterceptor(
                sp.GetRequiredService<IServiceScopeFactory>(),
                assembly,
                typeof(TDbContext)));
-
-        return builder;
+        return services;
     }
-    public static IHostApplicationBuilder AddMongoDb<TContext>(this IHostApplicationBuilder builder, string connectionName, string databaseName, Action? configureSerializers = null)
+
+    public static IServiceCollection AddMongoDb<TContext>(this IServiceCollection services, string databaseName, Action? configureSerializers = null)
         where TContext : class
     {
-        builder.AddMongoDBClient(connectionName: connectionName);
         configureSerializers?.Invoke();
-        builder.Services.AddSingleton<IMongoDatabase>(sp =>
+        services.AddSingleton<IMongoDatabase>(sp =>
         {
             var client = sp.GetRequiredService<IMongoClient>();
             return client.GetDatabase(databaseName);
         });
-        builder.Services.AddScoped<TContext>();
-        return builder;
+        services.AddScoped<TContext>();
+        return services;
     }
 
-    public static IHostApplicationBuilder AddPostgresDbContextWithSchema<TDbContext>(
-        this IHostApplicationBuilder builder,
-        IConfiguration configuration,
-        string schema,
-        Action<IServiceCollection, IConfiguration>? additionalInfrastructure = null)
+    public static IServiceCollection AddPostgresDbContextWithSchema<TDbContext>(
+        this IServiceCollection services,
+        string schema)
         where TDbContext : Microsoft.EntityFrameworkCore.DbContext
     {
-        builder.Services.AddDbContext<TDbContext>(Postgres.StandardOptions(configuration, schema));
-        builder.EnrichNpgsqlDbContext<TDbContext>();
-        additionalInfrastructure?.Invoke(builder.Services, configuration);
-        return builder;
+        services.AddDbContext<TDbContext>((sp, options) =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            Postgres.StandardOptions(configuration, schema)(sp, options);
+        });
+        return services;
     }
 
     public static void ConfigureConsumers(Assembly assembly, IRegistrationConfigurator registrationConfigurator)

@@ -6,10 +6,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Scrutor" Version="7.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
-
-          <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.0" />
   </ItemGroup>
 
   <ItemGroup>
