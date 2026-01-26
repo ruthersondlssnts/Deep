@@ -52,7 +52,7 @@ public static class GetProgramAssignments
                             u.role            AS {nameof(Response.Role)},
                             u.first_name      AS {nameof(Response.Firstname)},
                             u.last_name       AS {nameof(Response.Lastname)},    
-                            u.is_active       AS {nameof(Response.isActive)}
+                            pa.is_active       AS {nameof(Response.isActive)}
                         FROM programs.program_assignments pa
                         INNER JOIN programs.programs p
                             ON p.id = pa.program_id
