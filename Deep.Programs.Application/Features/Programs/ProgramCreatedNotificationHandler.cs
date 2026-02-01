@@ -1,4 +1,4 @@
-using Deep.Common.Application.Messaging;
+using Deep.Common.Application.DomainEvents;
 using Deep.Programs.Domain.Programs;
 
 namespace Deep.Programs.Application.Features.Programs;

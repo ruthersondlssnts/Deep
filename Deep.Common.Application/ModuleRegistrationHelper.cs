@@ -1,6 +1,6 @@
 using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.Database;
-using Deep.Common.Application.Messaging;
+using Deep.Common.Application.DomainEvents;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;

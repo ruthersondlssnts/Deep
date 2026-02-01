@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Deep.Common.Application.Messaging;
+namespace Deep.Common.Application.DomainEvents;
 
 public class PublishDomainEventsInterceptor(IServiceScopeFactory serviceScopeFactory, Assembly assembly, Type dbContextType)
 : SaveChangesInterceptor

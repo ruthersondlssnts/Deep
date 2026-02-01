@@ -1,15 +1,13 @@
+using Deep.Accounts.Application;
 using Deep.Accounts.Application.Data;
 using Deep.Common.Api.Middleware;
-using Deep.Common.Application.Dapper;
-using Deep.Common.Application.EventBus;
-using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Application.Api;
+using Deep.Programs.Application;
 using Deep.Programs.Application.Data;
+using Deep.Transactions.Application;
 using Deep.Transactions.Application.Data;
-using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Npgsql;
 
 namespace Deep.Api.Extensions;
 
@@ -33,48 +31,27 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddDapperAndNpgsql(this IServiceCollection services, string databaseConnectionString)
-    {
-        var npgsqlDataSource = new NpgsqlDataSourceBuilder(databaseConnectionString).Build();
-        services.TryAddSingleton(npgsqlDataSource);
-        services.AddScoped<IDbConnectionFactory, NpgsqlConnectionFactory>();
-        return services;
-    }
-
-    public static IServiceCollection AddCustomMediatR(this IServiceCollection services, params System.Reflection.Assembly[] assemblies)
-    {
-        services.AddValidatorsFromAssemblies(assemblies, includeInternalTypes: true);
-        services.AddScoped<IRequestBus, RequestBus>();
-        services.AddRequestHandlers(assemblies);
-        services.AddRequestPipelines(
-            typeof(ValidationPipelineBehavior<,>),
-            typeof(RequestLoggingPipelineBehavior<,>),
-            typeof(ExceptionHandlingPipelineBehavior<,>));
-        services.TryAddSingleton<IEventBus, EventBus>();
-        return services;
-    }
-
-    public static IServiceCollection AddMassTransit(
+    public static IServiceCollection AddModules(
         this IServiceCollection services,
-        string mqConnectionString,
-        params Action<IRegistrationConfigurator>[] configureConsumers)
+        string databaseConnectionString,
+        string messagingConnectionString)
     {
-        services.AddMassTransit(configurator =>
-        {
-            foreach (var configureConsumer in configureConsumers)
-            {
-                configureConsumer(configurator);
-            }
+        services
+            .AddDapperAndNpgsql(databaseConnectionString)
+            .AddCustomMediatR(
+                Deep.Programs.Application.AssemblyReference.Assembly,
+                Deep.Accounts.Application.AssemblyReference.Assembly,
+                Deep.Transactions.Application.AssemblyReference.Assembly)
+            .AddMassTransit(
+                messagingConnectionString,
+                [ProgramsModule.ConfigureConsumers,
+                AccountsModule.ConfigureConsumers,
+                TransactionsModule.ConfigureConsumers]);
 
-            configurator.SetKebabCaseEndpointNameFormatter();
-
-            configurator.UsingRabbitMq((context, cfg) =>
-            {
-                var connectionString = mqConnectionString;
-                cfg.Host(new Uri(connectionString));
-                cfg.ConfigureEndpoints(context);
-            });
-        });
+        services
+            .AddProgramsModule()
+            .AddAccountsModule()
+            .AddTransactionsModule();
 
         return services;
     }

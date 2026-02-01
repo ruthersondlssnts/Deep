@@ -1,5 +1,5 @@
-using Deep.Common.Application.EventBus;
-using Deep.Common.Application.Messaging;
+using Deep.Common.Application.DomainEvents;
+using Deep.Common.Application.IntegrationEvents;
 using Deep.Transactions.Application.Data;
 using Deep.Transactions.Domain.Transaction;
 using Deep.Transactions.IntegrationEvents;

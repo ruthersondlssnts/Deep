@@ -1,4 +1,4 @@
-namespace Deep.Common.Application.EventBus;
+namespace Deep.Common.Application.IntegrationEvents;
 
 public abstract class IntegrationEvent : IIntegrationEvent
 {

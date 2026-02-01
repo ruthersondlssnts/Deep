@@ -1,6 +1,6 @@
 using Deep.Common.Domain;
 
-namespace Deep.Common.Application.Messaging;
+namespace Deep.Common.Application.DomainEvents;
 
 public abstract class DomainEventHandler<TDomainEvent> : IDomainEventHandler, IDomainEventHandler<TDomainEvent>
     where TDomainEvent : IDomainEvent

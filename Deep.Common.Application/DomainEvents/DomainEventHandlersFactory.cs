@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace Deep.Common.Application.Messaging;
+namespace Deep.Common.Application.DomainEvents;
 
 public static class DomainEventHandlersFactory
 {
