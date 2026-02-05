@@ -1,5 +1,4 @@
 ﻿using Deep.Common.Application.IntegrationEvents;
-using Deep.Common.Domain;
 
 namespace Deep.Accounts.IntegrationEvents;
 
@@ -10,12 +9,12 @@ public sealed class AccountRegisteredIntegrationEvent(
     string email,
     string firstName,
     string lastName,
-    Role role)
+    IReadOnlyCollection<string> roles)
     : IntegrationEvent(id, occurredAtUtc)
 {
     public Guid AccountId { get; } = accountId;
     public string Email { get; } = email;
     public string FirstName { get; } = firstName;
     public string LastName { get; } = lastName;
-    public Role Role { get; } = role;
+    public IReadOnlyCollection<string> Roles { get; } = roles;
 }

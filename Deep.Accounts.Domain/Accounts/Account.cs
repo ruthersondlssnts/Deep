@@ -8,7 +8,9 @@ public sealed class Account : Entity
     public string FirstName { get; private set; } = string.Empty;
     public string LastName { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
-    public Role Role { get; private set; }
+
+    public IReadOnlyCollection<Role> Roles => _roles.AsReadOnly();
+    private readonly List<Role> _roles = [];
 
     private Account() { }
 
@@ -16,19 +18,32 @@ public sealed class Account : Entity
         string firstName,
         string lastName,
         string email,
-        Role role)
+        IEnumerable<Role> roles)
     {
-        var user = new Account
+        var account = new Account
         {
             Id = Guid.CreateVersion7(),
             FirstName = firstName,
             LastName = lastName,
-            Email = email,
-            Role = role
+            Email = email
         };
 
-        user.RaiseDomainEvent(new AccountRegisteredDomainEvent(user.Id));
+        foreach (var role in roles)
+        {
+            account.AddRole(role);
+        }
 
-        return user;
+        account.RaiseDomainEvent(
+            new AccountRegisteredDomainEvent(account.Id));
+
+        return account;
+    }
+
+    private void AddRole(Role role)
+    {
+        if (_roles.Any(r => r.Name == role.Name))
+            return;
+
+        _roles.Add(role);
     }
 }

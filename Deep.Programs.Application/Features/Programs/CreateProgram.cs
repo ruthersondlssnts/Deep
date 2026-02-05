@@ -3,8 +3,8 @@ using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
-using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
+using Deep.Programs.Domain.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -15,13 +15,17 @@ namespace Deep.Programs.Application.Features.Programs;
 
 public static class CreateProgram
 {
+    public sealed record ProgramUser(
+        Guid UserId,
+        string RoleName);
+
     public sealed record Command(
         string Name,
         string Description,
         DateTime StartsAtUtc,
         DateTime EndsAtUtc,
         IReadOnlyCollection<string> ProductNames,
-        IReadOnlyCollection<Guid> UserIds);
+        IReadOnlyCollection<ProgramUser> Users);
 
     public sealed record Response(Guid Id);
 
@@ -29,13 +33,36 @@ public static class CreateProgram
     {
         public Validator()
         {
-            RuleFor(x => x.Name).NotEmpty();
-            RuleFor(x => x.Description).NotEmpty();
-            RuleFor(x => x.StartsAtUtc).GreaterThan(DateTime.UtcNow);
-            RuleFor(x => x.EndsAtUtc).GreaterThan(x => x.StartsAtUtc);
-            RuleFor(x => x.UserIds).NotEmpty();
-            RuleFor(x => x.ProductNames).NotEmpty()
+            RuleFor(x => x.Name)
+                .NotEmpty();
+
+            RuleFor(x => x.Description)
+                .NotEmpty();
+
+            RuleFor(x => x.StartsAtUtc)
+                .Must(x => x > DateTime.UtcNow)
+                .WithMessage("Start date must be in the future.");
+
+            RuleFor(x => x.EndsAtUtc)
+                .GreaterThan(x => x.StartsAtUtc)
+                .WithMessage("End date must be after start date.");
+
+            RuleFor(x => x.ProductNames)
+                .NotEmpty()
                 .WithMessage("At least one product is required.");
+
+            RuleFor(x => x.Users)
+                .NotEmpty()
+                .WithMessage("At least one user is required.");
+
+            RuleForEach(x => x.Users).ChildRules(user =>
+            {
+                user.RuleFor(u => u.UserId)
+                    .NotEmpty();
+
+                user.RuleFor(u => u.RoleName)
+                    .NotEmpty();
+            });
         }
     }
 
@@ -44,51 +71,47 @@ public static class CreateProgram
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            var users = await context.Users
-                .Where(u => c.UserIds.Contains(u.Id))
-                .Select(u => new { u.Id, u.Role })
-                .ToListAsync(ct);
+            var currentUserEntity = await context.Users
+                .Include(u => u.Roles)
+                .SingleOrDefaultAsync(u => u.Roles.Any(r => r == Role.ProgramOwner));
 
-            if (users.Count != c.UserIds.Distinct().Count())
+            if (currentUserEntity is null)
+                return UserErrors.UserRoleNotFound(currentUserEntity!.Id, Role.ProgramOwner.Name);
+
+            var users = await context.Users
+              .Include(u => u.Roles)
+              .Where(u =>
+                  c.Users.Any(cu =>
+                      cu.UserId == u.Id &&
+                      u.Roles.Any(r => r.Name == cu.RoleName)))
+              .ToListAsync(ct);
+
+
+            if (c.Users.Count != users.Count)
                 return ProgramErrors.ProgramUserNotFound;
 
-            var currentUserId = await context.Users //Change to current user in future auth implementation
-                .Where(u => u.Role == Role.ProgramOwner)
-                .Select(u => u.Id)
-                .SingleAsync(ct);
-
-            var assignmentValidation = new AssignmentValidationResult(
-                CoordinatorCount: users.Count(u => u.Role == Role.Coordinator),
-                CoOwnerCount: users.Count(u => u.Role == Role.ProgramOwner)
-            );
-
-            var programResult = Program.Create(
+            var createResult = Program.Create(
                 c.Name,
                 c.Description,
                 c.StartsAtUtc,
                 c.EndsAtUtc,
-                currentUserId,
+                currentUserEntity.Id,
                 c.ProductNames,
-                assignmentValidation);
+                c.Users.Select(u => (u.UserId, u.RoleName)).ToList());
 
-            if (programResult.IsFailure)
-                return programResult.Error;
+            if (createResult.IsFailure)
+                return createResult.Error;
 
-            var program = programResult.Value;
+            var result = createResult.Value;
 
-            var assignments = ProgramAssignment
-                .CreateBatch(
-                    program.Id,
-                    users
-                        .Select(u => (UserId: u.Id, u.Role))
-                        .ToList());
+            context.Programs.Add(result.Program);
+            context.ProgramAssignments.AddRange(result.Assignments);
 
-            context.Programs.Add(program);
-            context.ProgramAssignments.AddRange(assignments);
             await context.SaveChangesAsync(ct);
 
-            return new Response(program.Id);
+            return new Response(result.Program.Id);
         }
+
     }
 
     public sealed class Endpoint : IEndpoint

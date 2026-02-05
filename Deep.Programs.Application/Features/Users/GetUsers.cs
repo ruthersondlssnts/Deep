@@ -13,51 +13,52 @@ namespace Deep.Programs.Application.Features.Users;
 
 public static class GetUsers
 {
-    public sealed record Query(Role? Role);
+    public sealed record Query(string? Role);
 
     public sealed record Response(
         Guid Id,
         string FirstName,
         string LastName,
         string Email,
-        string Role);
+        IReadOnlyCollection<string> Roles);
 
     public sealed class Handler(
         ProgramsDbContext context)
-        : IRequestHandler<Query, IReadOnlyList<Response>>
+        : IRequestHandler<Query, IReadOnlyCollection<Response>>
     {
-        public async Task<Result<IReadOnlyList<Response>>> Handle(
+        public async Task<Result<IReadOnlyCollection<Response>>> Handle(
             Query request,
             CancellationToken ct)
         {
-            var usersQuery = context.Users.AsQueryable();
+            var accountsQuery = context.Users
+                .Include(a => a.Roles)
+                .AsQueryable();
 
-            if (request.Role.HasValue)
+            if (!string.IsNullOrWhiteSpace(request.Role))
             {
-                usersQuery = usersQuery
-                    .Where(u => u.Role == request.Role.Value);
+                accountsQuery = accountsQuery
+                    .Where(a => a.Roles.Any(r => r.Name == request.Role));
             }
 
-            var users = await usersQuery
-                .OrderBy(u => u.LastName)
-                .ThenBy(u => u.FirstName)
-                .Select(u => new Response(
-                    u.Id,
-                    u.FirstName,
-                    u.LastName,
-                    u.Email,
-                    u.Role.ToString()))
+            var accounts = await accountsQuery
+                .OrderBy(a => a.LastName)
+                .ThenBy(a => a.FirstName)
+                .Select(a => new Response(
+                    a.Id,
+                    a.FirstName,
+                    a.LastName,
+                    a.Email,
+                    a.Roles.Select(r => r.Name).ToList()))
                 .ToListAsync(ct);
 
-            return users;
+            return accounts;
         }
     }
-
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
             app.MapGet("/users", async (
-                Role? role,
+                string? role,
                 IRequestHandler<Query, IReadOnlyList<Response>> handler,
                 CancellationToken ct) =>
             {

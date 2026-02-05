@@ -34,6 +34,10 @@ public static class ProgramErrors
        "Programs.CoordinatorRequired",
        "At least one program user with the coordinator role is required");
 
+    public static Error BrandAmbassadorRequired = Error.Problem(
+      "Programs.BrandAmbassadorRequired",
+      "At least one program user with the brand ambassador role is required");
+
     public static Error TooManyCoOwners = Error.Problem(
       "Programs.TooManyCoOwners",
       "The number of program users with the program owner role exceeds the allowed limit");

@@ -25,8 +25,8 @@ internal sealed class ProgramAssignmentDeactivatedDomainEventHandler(
         var result = await requestBus.Send<UpsertProgramStatistic.Response>(
            new UpsertProgramStatistic.Command(
                 ProgramId: program.Value.Id,
-                TotalCoordinators: program.Value.Assignments.Count(a => a.Role == Role.Coordinator),
-                TotalBrandAmbassadors: program.Value.Assignments.Count(a => a.Role == Role.BrandAmbassador)
+                TotalCoordinators: program.Value.Assignments.Count(a => a.RoleName == RoleNames.Coordinator),
+                TotalBrandAmbassadors: program.Value.Assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador)
            ));
 
         if (result.IsFailure)

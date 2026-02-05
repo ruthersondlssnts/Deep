@@ -20,7 +20,7 @@ public static class GetAccount
         string FirstName,
         string LastName,
         string Email,
-        Role Role);
+        IReadOnlyCollection<Role> Roles);
 
     public sealed class Handler(AccountsDbContext context)
         : IRequestHandler<Query, Response>
@@ -31,12 +31,13 @@ public static class GetAccount
         {
             var user = await context.Accounts
                 .Where(u => u.Id == query.Id)
+                .Include(u => u.Roles)
                 .Select(u => new Response(
                     u.Id,
                     u.FirstName,
                     u.LastName,
                     u.Email,
-                    u.Role))
+                    u.Roles))
                 .FirstOrDefaultAsync(ct);
 
             return user is null

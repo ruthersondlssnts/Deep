@@ -24,7 +24,7 @@ public static class GetProgramAssignments
         string ProgramDescription,
         DateTime StartsAtUtc,
         DateTime EndsAtUtc,
-        Role Role,
+        string Role,
         string Firstname,
         string Lastname,
         bool isActive);

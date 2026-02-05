@@ -35,7 +35,7 @@ internal sealed class AccountRegisteredDomainEventHandler(
                account.Email,
                account.FirstName,
                account.LastName,
-               account.Role),
+               account.Roles.Select(r => r.Name).ToList()),
            cancellationToken);
     }
 }

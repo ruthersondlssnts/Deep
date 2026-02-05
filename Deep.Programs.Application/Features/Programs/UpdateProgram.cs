@@ -3,7 +3,6 @@ using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
-using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
@@ -15,14 +14,18 @@ namespace Deep.Programs.Application.Features.Programs;
 
 public static class UpdateProgram
 {
+    public sealed record ProgramUser(
+     Guid UserId,
+     string RoleName);
+
     public sealed record Command(
         Guid ProgramId,
         string Name,
         string Description,
         DateTime StartsAtUtc,
         DateTime EndsAtUtc,
-        IReadOnlyCollection<string> Products,
-        IReadOnlyCollection<Guid> UserIds);
+        IReadOnlyCollection<string> ProductNames,
+        IReadOnlyCollection<ProgramUser> Users);
 
     public sealed record Response(Guid Id);
 
@@ -30,15 +33,36 @@ public static class UpdateProgram
     {
         public Validator()
         {
-            RuleFor(x => x.ProgramId).NotEmpty();
-            RuleFor(x => x.Name).NotEmpty();
-            RuleFor(x => x.Description).NotEmpty();
-            RuleFor(x => x.StartsAtUtc).GreaterThan(DateTime.UtcNow);
-            RuleFor(x => x.EndsAtUtc).GreaterThan(x => x.StartsAtUtc);
-            RuleFor(x => x.UserIds).NotEmpty();
-            RuleFor(x => x.Products)
+            RuleFor(x => x.Name)
+                .NotEmpty();
+
+            RuleFor(x => x.Description)
+                .NotEmpty();
+
+            RuleFor(x => x.StartsAtUtc)
+                .Must(x => x > DateTime.UtcNow)
+                .WithMessage("Start date must be in the future.");
+
+            RuleFor(x => x.EndsAtUtc)
+                .GreaterThan(x => x.StartsAtUtc)
+                .WithMessage("End date must be after start date.");
+
+            RuleFor(x => x.ProductNames)
                 .NotEmpty()
                 .WithMessage("At least one product is required.");
+
+            RuleFor(x => x.Users)
+                .NotEmpty()
+                .WithMessage("At least one user is required.");
+
+            RuleForEach(x => x.Users).ChildRules(user =>
+            {
+                user.RuleFor(u => u.UserId)
+                    .NotEmpty();
+
+                user.RuleFor(u => u.RoleName)
+                    .NotEmpty();
+            });
         }
     }
 
@@ -48,44 +72,44 @@ public static class UpdateProgram
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
             var program = await context.Programs
-                .Include(p => p.Products)
-                .SingleOrDefaultAsync(p => p.Id == c.ProgramId, ct);
+               .Include(p => p.Products)
+               .SingleOrDefaultAsync(p => p.Id == c.ProgramId, ct);
 
             if (program is null)
                 return ProgramErrors.NotFound(c.ProgramId);
 
             var users = await context.Users
-                .AsNoTracking()
-                .Where(u => c.UserIds.Contains(u.Id))
-                .Select(u => new { u.Id, u.Role })
+                .Include(u => u.Roles)
+                .Where(u => c.Users.Any(cu =>
+                    cu.UserId == u.Id &&
+                    u.Roles.Any(r => r.Name == cu.RoleName)))
                 .ToListAsync(ct);
 
-            if (users.Count != c.UserIds.Distinct().Count())
+            if (users.Count != c.Users.Count)
                 return ProgramErrors.ProgramUserNotFound;
 
-            var assignments = await context.ProgramAssignments
+            var existingAssignments = await context.ProgramAssignments
                 .Where(a => a.ProgramId == program.Id)
                 .ToListAsync(ct);
 
-            var assignmentValidation = new AssignmentValidationResult(
-                CoordinatorCount: users.Count(u => u.Role == Role.Coordinator),
-                CoOwnerCount: users.Count(u => u.Role == Role.ProgramOwner)
-            );
+            var desired = c.Users
+                .Select(u => (u.UserId, u.RoleName))
+                .ToList();
 
-            program.UpdateDetails(
+            var update = program.UpdateDetails(
                 c.Name,
                 c.Description,
                 c.StartsAtUtc,
                 c.EndsAtUtc,
-                c.Products,
-                assignmentValidation);
+                c.ProductNames,
+                desired,
+                existingAssignments);
 
-            var newAssignments = ProgramAssignment.UpsertBatch(
-                 program.Id,
-                 assignments,
-                 users.Select(u => (u.Id, u.Role)).ToList());
+            if (update.Result.IsFailure)
+                return update.Result.Error;
 
-            await context.ProgramAssignments.AddRangeAsync(newAssignments);
+            context.ProgramAssignments.AddRange(update.NewAssignments);
+
             await context.SaveChangesAsync(ct);
 
             return new Response(program.Id);

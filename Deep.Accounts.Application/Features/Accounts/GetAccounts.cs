@@ -13,40 +13,42 @@ namespace Deep.Accounts.Application.Features.Accounts;
 
 public static class GetAccounts
 {
-    public sealed record Query(Role? Role);
+    public sealed record Query(string? Role);
 
     public sealed record Response(
         Guid Id,
         string FirstName,
         string LastName,
         string Email,
-        string Role);
+        IReadOnlyCollection<string> Roles);
 
     public sealed class Handler(
         AccountsDbContext context)
-        : IRequestHandler<Query, IReadOnlyList<Response>>
+        : IRequestHandler<Query, IReadOnlyCollection<Response>>
     {
-        public async Task<Result<IReadOnlyList<Response>>> Handle(
+        public async Task<Result<IReadOnlyCollection<Response>>> Handle(
             Query request,
             CancellationToken ct)
         {
-            var accountsQuery = context.Accounts.AsQueryable();
+            var accountsQuery = context.Accounts
+                .Include(a => a.Roles)
+                .AsQueryable();
 
-            if (request.Role.HasValue)
+            if (!string.IsNullOrWhiteSpace(request.Role))
             {
                 accountsQuery = accountsQuery
-                    .Where(u => u.Role == request.Role.Value);
+                    .Where(a => a.Roles.Any(r => r.Name == request.Role));
             }
 
             var accounts = await accountsQuery
-                .OrderBy(u => u.LastName)
-                .ThenBy(u => u.FirstName)
-                .Select(u => new Response(
-                    u.Id,
-                    u.FirstName,
-                    u.LastName,
-                    u.Email,
-                    u.Role.ToString()))
+                .OrderBy(a => a.LastName)
+                .ThenBy(a => a.FirstName)
+                .Select(a => new Response(
+                    a.Id,
+                    a.FirstName,
+                    a.LastName,
+                    a.Email,
+                    a.Roles.Select(r => r.Name).ToList()))
                 .ToListAsync(ct);
 
             return accounts;
@@ -56,7 +58,7 @@ public static class GetAccounts
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
             app.MapGet("/accounts", async (
-                Role? role,
+                string? role,
                 IRequestHandler<Query, IReadOnlyList<Response>> handler,
                 CancellationToken ct) =>
             {

@@ -1,11 +1,10 @@
-﻿using Deep.Common.Domain;
-using Deep.Programs.Domain.Users;
+﻿using Deep.Programs.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Deep.Programs.Application.Data;
 
-internal sealed class UsersConfiguration : IEntityTypeConfiguration<User>
+internal sealed partial class UsersConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
@@ -27,14 +26,8 @@ internal sealed class UsersConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(255);
 
-        builder.Property(u => u.Role)
-            .IsRequired()
-            .HasConversion(
-                v => v.ToString(),
-                v => Enum.Parse<Role>(v));
-
-        // Email uniqueness (local to Programs service)
         builder.HasIndex(u => u.Email)
             .IsUnique();
     }
+
 }

@@ -12,13 +12,14 @@ public sealed class UserRegisteredIntegrationEventConsumer(
 {
     public async Task Consume(ConsumeContext<AccountRegisteredIntegrationEvent> context)
     {
+
         var result = await handler.Handle(
             new CreateUser.Command(
                 context.Message.AccountId,
                 context.Message.FirstName,
                 context.Message.LastName,
                 context.Message.Email,
-                context.Message.Role),
+                context.Message.Roles),
             context.CancellationToken);
 
         if (result.IsFailure)

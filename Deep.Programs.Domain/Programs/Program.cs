@@ -1,6 +1,16 @@
 ﻿using Deep.Common.Domain;
+using Deep.Programs.Domain.ProgramAssignments;
+using Deep.Programs.Domain.Users;
 
 namespace Deep.Programs.Domain.Programs;
+
+public sealed record ProgramCreateResult(
+    Program Program,
+    IReadOnlyCollection<ProgramAssignment> Assignments);
+
+public sealed record ProgramUpdateResult(
+    Result Result,
+    IReadOnlyList<ProgramAssignment> NewAssignments);
 
 public class Program : Entity
 {
@@ -18,14 +28,14 @@ public class Program : Entity
 
     private Program() { }
 
-    public static Result<Program> Create(
+    public static Result<ProgramCreateResult> Create(
         string name,
         string description,
         DateTime startsAtUtc,
         DateTime endsAtUtc,
         Guid ownerId,
-        IEnumerable<string> productNames,
-        AssignmentValidationResult assignmentValidation)
+        IReadOnlyCollection<string> productNames,
+        IReadOnlyCollection<(Guid UserId, string RoleName)> assignments)
     {
         if (endsAtUtc < startsAtUtc)
             return ProgramErrors.EndDatePrecedesStartDate;
@@ -36,12 +46,16 @@ public class Program : Entity
         if (productNames is null || !productNames.Any())
             return ProgramErrors.AtLeastOneProductRequired;
 
-        var assignmentResult = assignmentValidation.Validate();
+        var validationResult = ValidateAssignment(
+            assignments.Count(a => a.RoleName == Role.Coordinator.Name),
+            assignments.Count(a => a.RoleName == Role.ProgramOwner.Name),
+            assignments.Count(a => a.RoleName == Role.BrandAmbassador.Name),
+            ProgramStatus.New);
 
-        if (assignmentResult.IsFailure)
-            return assignmentResult.Error;
+        if (validationResult.IsFailure)
+            return validationResult.Error;
 
-        var @program = new Program
+        var program = new Program
         {
             Id = Guid.CreateVersion7(),
             Name = name,
@@ -53,37 +67,50 @@ public class Program : Entity
         };
 
         foreach (var productName in productNames)
-        {
             program.AddProduct(productName);
+
+        var assignmentEntities = new List<ProgramAssignment>();
+
+        foreach (var (userId, roleName) in assignments)
+        {
+            var assignmentResult = ProgramAssignment.Create(program.Id, userId, roleName);
+            if (assignmentResult.IsFailure)
+                return assignmentResult.Error;
+
+            assignmentEntities.Add(assignmentResult.Value);
         }
 
-        @program.RaiseDomainEvent(
-            new ProgramCreatedDomainEvent(@program.Id));
+        program.RaiseDomainEvent(new ProgramCreatedDomainEvent(program.Id));
 
-        return @program;
+        return new ProgramCreateResult(program, assignmentEntities);
     }
 
-    public Result UpdateDetails(
+    public ProgramUpdateResult UpdateDetails(
       string name,
       string description,
       DateTime startsAtUtc,
       DateTime endsAtUtc,
       IEnumerable<string> productNames,
-      AssignmentValidationResult assignmentValidation)
+      List<(Guid UserId, string RoleName)> desired,
+      List<ProgramAssignment> existingAssignments)
     {
         if (endsAtUtc < startsAtUtc)
-            return ProgramErrors.EndDatePrecedesStartDate;
+            return new(ProgramErrors.EndDatePrecedesStartDate, Array.Empty<ProgramAssignment>());
 
         if (startsAtUtc < DateTime.UtcNow)
-            return ProgramErrors.StartDateInPast;
+            return new(ProgramErrors.StartDateInPast, Array.Empty<ProgramAssignment>());
 
         if (productNames is null || !productNames.Any())
-            return ProgramErrors.AtLeastOneProductRequired;
+            return new(ProgramErrors.AtLeastOneProductRequired, Array.Empty<ProgramAssignment>());
 
-        var assignmentResult = assignmentValidation.Validate();
+        var validation = ValidateAssignment(
+            desired.Count(a => a.RoleName == RoleNames.Coordinator),
+            desired.Count(a => a.RoleName == RoleNames.ProgramOwner),
+            desired.Count(a => a.RoleName == RoleNames.BrandAmbassador),
+            ProgramStatus);
 
-        if (assignmentResult.IsFailure)
-            return assignmentResult.Error;
+        if (validation.IsFailure)
+            return new(validation, Array.Empty<ProgramAssignment>());
 
         Name = name;
         Description = description;
@@ -91,7 +118,51 @@ public class Program : Entity
         EndsAtUtc = endsAtUtc;
 
         ReplaceProducts(productNames);
+
+        var desiredSet = desired
+            .Select(a => (a.UserId, a.RoleName))
+            .ToHashSet();
+
+        foreach (var existing in existingAssignments)
+            if (!desiredSet.Contains((existing.UserId, existing.Role.Name)))
+                existing.SetActive(false);
+
+        var existingSet = existingAssignments
+            .Where(a => a.IsActive)
+            .Select(a => (a.UserId, a.Role.Name))
+            .ToHashSet();
+
+        var toCreate = new List<ProgramAssignment>();
+
+        foreach (var (userId, roleName) in desiredSet.Except(existingSet))
+        {
+            var createResult = ProgramAssignment.Create(Id, userId, roleName);
+            if (createResult.IsFailure)
+                return new(createResult, Array.Empty<ProgramAssignment>());
+
+            toCreate.Add(createResult.Value);
+        }
+
         RaiseDomainEvent(new ProgramUpdatedDomainEvent(Id));
+
+        return new(Result.Success(), toCreate);
+    }
+
+    public static Result ValidateAssignment(
+        int coordinatorCount,
+        int coOwnerCount,
+        int brandAmbassadorCount,
+        ProgramStatus programStatus)
+    {
+        if (programStatus == ProgramStatus.InProgress && brandAmbassadorCount < 1)
+            return ProgramErrors.BrandAmbassadorRequired;
+
+        if (coordinatorCount < 1)
+            return ProgramErrors.CoordinatorRequired;
+
+        if (coOwnerCount > 2)
+            return ProgramErrors.TooManyCoOwners;
+
         return Result.Success();
     }
 

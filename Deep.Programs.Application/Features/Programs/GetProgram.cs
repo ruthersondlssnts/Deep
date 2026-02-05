@@ -31,7 +31,6 @@ public static class GetProgram
         Guid UserId,
         string FullName,
         string Email,
-        Role Role,
         string RoleName);
 
     public sealed class Handler(ProgramsDbContext context)
@@ -53,7 +52,6 @@ public static class GetProgram
                     p.ProgramStatus,
                     p.OwnerId,
 
-                    // Owner name
                     context.Users
                         .Where(u => u.Id == p.OwnerId)
                         .Select(u => u.FirstName + " " + u.LastName)
@@ -61,7 +59,6 @@ public static class GetProgram
                    p.Products
                         .Select(pp => pp.ProductName)
                         .ToList(),
-                    // Assignments
                     context.ProgramAssignments
                         .Where(pa => pa.ProgramId == p.Id && pa.IsActive)
                         .Join(
@@ -72,8 +69,7 @@ public static class GetProgram
                                 u.Id,
                                 u.FirstName + " " + u.LastName,
                                 u.Email,
-                                pa.Role,
-                                pa.Role.ToString()
+                                pa.Role.Name
                             ))
                         .ToList()
                 ))

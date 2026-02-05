@@ -1,5 +1,4 @@
 ﻿using Deep.Accounts.Domain.Accounts;
-using Deep.Common.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -26,14 +25,9 @@ namespace Deep.Accounts.Data
                 .IsRequired()
                 .HasMaxLength(255);
 
-            builder.Property(u => u.Role)
-               .IsRequired()
-               .HasConversion(
-                   v => v.ToString(),
-                   v => Enum.Parse<Role>(v));
-
             builder.HasIndex(u => u.Email)
                 .IsUnique();
         }
     }
+
 }

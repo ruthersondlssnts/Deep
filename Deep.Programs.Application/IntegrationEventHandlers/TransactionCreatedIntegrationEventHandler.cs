@@ -6,7 +6,7 @@ using MassTransit;
 
 namespace Deep.Programs.Application.IntegrationEventHandlers;
 
-public sealed class TransactionCreatedIntegrationEventConsumer(
+public sealed class TransactionCreatedIntegrationEventHandler(
     IRequestHandler<UpsertProgramStatistic.Command, UpsertProgramStatistic.Response> handler)
     : IConsumer<TransactionCreatedIntegrationEvent>
 {

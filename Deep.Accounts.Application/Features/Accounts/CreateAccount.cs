@@ -18,7 +18,7 @@ public static class CreateAccount
         string FirstName,
         string LastName,
         string Email,
-        Role Role);
+        List<string> Roles);
 
     public sealed record Response(Guid Id);
 
@@ -26,7 +26,11 @@ public static class CreateAccount
     {
         public Validator()
         {
-            RuleFor(x => x.Role).IsInEnum();
+            RuleFor(x => x.Roles)
+                .NotNull()
+                .NotEmpty();
+            RuleForEach(x => x.Roles)
+                .NotEmpty();
 
             RuleFor(x => x.FirstName)
                 .NotEmpty()
@@ -48,11 +52,19 @@ public static class CreateAccount
             Command c,
             CancellationToken ct)
         {
+            var roles = new List<Role>();
+            foreach (var roleName in c.Roles)
+            {
+                if (!Role.TryFromName(roleName, out var role))
+                    return AccountErrors.InvalidRole;
+                roles.Add(role);
+            }
+
             var account = Account.Create(
                 c.FirstName,
                 c.LastName,
                 c.Email,
-                c.Role);
+                roles);
 
             context.Accounts.Add(account);
             await context.SaveChangesAsync(ct);

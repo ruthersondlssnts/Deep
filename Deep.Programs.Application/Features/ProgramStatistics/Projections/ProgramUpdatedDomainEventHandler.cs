@@ -30,8 +30,8 @@ internal sealed class ProgramUpdatedDomainEventHandler(
                program.Value.EndsAtUtc,
                program.Value.OwnerId,
                program.Value.OwnerName,
-               program.Value.Assignments.Count(a => a.Role == Role.Coordinator),
-               program.Value.Assignments.Count(a => a.Role == Role.BrandAmbassador)
+               program.Value.Assignments.Count(a => a.RoleName == RoleNames.Coordinator),
+               program.Value.Assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador)
            ));
 
         if (result.IsFailure)
