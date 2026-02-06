@@ -14,11 +14,11 @@ public sealed class Account : Entity
 
     private Account() { }
 
-    public static Account Create(
+    public static Result<Account> Create(
         string firstName,
         string lastName,
         string email,
-        IEnumerable<Role> roles
+        IReadOnlyCollection<string> roleNames
     )
     {
         var account = new Account
@@ -29,7 +29,14 @@ public sealed class Account : Entity
             Email = email,
         };
 
-        foreach (Role role in roles)
+        Result<IReadOnlyCollection<Role>> roles = CreateRolesFromNames(roleNames);
+
+        if (roles.IsFailure)
+        {
+            return roles.Error;
+        }
+
+        foreach (Role role in roles.Value)
         {
             account.AddRole(role);
         }
@@ -47,5 +54,21 @@ public sealed class Account : Entity
         }
 
         _roles.Add(role);
+    }
+
+    public static Result<IReadOnlyCollection<Role>> CreateRolesFromNames(
+        IReadOnlyCollection<string> roleNames
+    )
+    {
+        var roles = new List<Role>();
+        foreach (string roleName in roleNames)
+        {
+            if (!Role.TryFromName(roleName, out Role? role))
+            {
+                return AccountErrors.InvalidRole;
+            }
+            roles.Add(role);
+        }
+        return roles;
     }
 }

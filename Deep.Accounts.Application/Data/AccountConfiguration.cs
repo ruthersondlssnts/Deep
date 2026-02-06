@@ -10,8 +10,6 @@ internal sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
     {
         builder.HasKey(u => u.Id);
 
-        builder.Property(u => u.Id).ValueGeneratedNever();
-
         builder.Property(u => u.FirstName).IsRequired().HasMaxLength(100);
 
         builder.Property(u => u.LastName).IsRequired().HasMaxLength(100);

@@ -17,7 +17,9 @@ public static class ServiceCollectionExtensions
     {
         services.AddOpenApi();
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(options => options.CustomSchemaIds(t => t.FullName?.Replace("+", ".")));
+        services.AddSwaggerGen(options =>
+            options.CustomSchemaIds(t => t.FullName?.Replace("+", "."))
+        );
         return services;
     }
 
@@ -62,9 +64,12 @@ public static class ServiceCollectionExtensions
         string amqConnection
     )
     {
-        builder.EnrichNpgsqlDbContext<ProgramsDbContext>();
-        builder.EnrichNpgsqlDbContext<AccountsDbContext>();
-        builder.EnrichNpgsqlDbContext<TransactionsDbContext>();
+        if (!string.IsNullOrWhiteSpace(sqlConnection))
+        {
+            builder.EnrichNpgsqlDbContext<ProgramsDbContext>();
+            builder.EnrichNpgsqlDbContext<AccountsDbContext>();
+            builder.EnrichNpgsqlDbContext<TransactionsDbContext>();
+        }
 
         if (!string.IsNullOrWhiteSpace(noSqlConnection))
         {

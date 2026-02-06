@@ -6,12 +6,12 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 //Aspire Connections
-var postgresDb = "deep-db";
-var mongoDb = "deep-docs";
-var rabbitmq = "rabbitmq";
+string postgresDb = "deep-db";
+string mongoDb = "deep-docs";
+string rabbitmq = "rabbitmq";
 
-var databaseConnectionString = builder.Configuration.GetConnectionString(postgresDb)!;
-var mqConnectionString = builder.Configuration.GetConnectionString(rabbitmq)!;
+string databaseConnectionString = builder.Configuration.GetConnectionString(postgresDb)!;
+string mqConnectionString = builder.Configuration.GetConnectionString(rabbitmq)!;
 
 builder
     .Services.AddOpenApiAndSwagger()

@@ -12,13 +12,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Accounts.Application.Features.Accounts;
 
-public static class CreateAccount
+public static class RegisterAccount
 {
     public sealed record Command(
         string FirstName,
         string LastName,
         string Email,
-        List<string> Roles
+        IReadOnlyCollection<string> Roles
     );
 
     public sealed record Response(Guid Id);
@@ -28,6 +28,7 @@ public static class CreateAccount
         public Validator()
         {
             RuleFor(x => x.Roles).NotNull().NotEmpty();
+
             RuleForEach(x => x.Roles).NotEmpty();
 
             RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
@@ -42,18 +43,12 @@ public static class CreateAccount
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            var roles = new List<Role>();
-            foreach (var roleName in c.Roles)
+            Account account = Account.Create(c.FirstName, c.LastName, c.Email, c.Roles);
+
+            foreach (Role role in account.Roles)
             {
-                if (!Role.TryFromName(roleName, out Role? role))
-                {
-                    return AccountErrors.InvalidRole;
-                }
-
-                roles.Add(role);
+                context.Attach(role);
             }
-
-            var account = Account.Create(c.FirstName, c.LastName, c.Email, roles);
 
             context.Accounts.Add(account);
             await context.SaveChangesAsync(ct);

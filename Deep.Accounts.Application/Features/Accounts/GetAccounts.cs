@@ -7,6 +7,7 @@ using Deep.Common.Domain;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,7 +33,9 @@ public static class GetAccounts
             CancellationToken ct
         )
         {
-            IQueryable<Account> accountsQuery = context.Accounts.Include(a => a.Roles).AsQueryable();
+            IQueryable<Account> accountsQuery = context
+                .Accounts.Include(a => a.Roles)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(request.Role))
             {
@@ -61,12 +64,15 @@ public static class GetAccounts
             app.MapGet(
                     "/accounts",
                     async (
-                        string? role,
-                        IRequestHandler<Query, IReadOnlyList<Response>> handler,
+                        [FromQuery] string? role,
+                        [FromServices] IRequestHandler<Query, IReadOnlyList<Response>> handler,
                         CancellationToken ct
                     ) =>
                     {
-                        Result<IReadOnlyList<Response>> result = await handler.Handle(new Query(role), ct);
+                        Result<IReadOnlyList<Response>> result = await handler.Handle(
+                            new Query(role),
+                            ct
+                        );
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

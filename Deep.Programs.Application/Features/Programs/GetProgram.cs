@@ -79,7 +79,8 @@ public static class GetProgram
 
     public sealed class Endpoint : IEndpoint
     {
-        public void MapEndpoint(IEndpointRouteBuilder app) => app.MapGet(
+        public void MapEndpoint(IEndpointRouteBuilder app) =>
+            app.MapGet(
                     "/programs/{id:guid}",
                     async (
                         Guid id,
