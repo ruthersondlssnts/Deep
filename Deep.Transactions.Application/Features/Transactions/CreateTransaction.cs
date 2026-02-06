@@ -10,49 +10,37 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+
 namespace Deep.Transactions.Application.Features.Transactions;
 
 public static class CreateTransaction
 {
-    public sealed record Command(
-      Guid ProgramId,
-      string CustomerEmail,
-      string CustomerFullName);
+    public sealed record Command(Guid ProgramId, string CustomerEmail, string CustomerFullName);
 
-    public sealed record Response(
-        Guid TransactionId,
-        Guid? CustomerId);
+    public sealed record Response(Guid TransactionId, Guid? CustomerId);
 
     public sealed class Validator : AbstractValidator<Command>
     {
         public Validator()
         {
-            RuleFor(x => x.CustomerEmail)
-                .EmailAddress()
-                .NotEmpty();
+            RuleFor(x => x.CustomerEmail).EmailAddress().NotEmpty();
 
-            RuleFor(x => x.CustomerFullName)
-               .NotEmpty();
+            RuleFor(x => x.CustomerFullName).NotEmpty();
         }
     }
 
-    public sealed class Handler(
-        TransactionsDbContext context)
-        : IRequestHandler<Command, Response>
+    public sealed class Handler(TransactionsDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(
-            Command command,
-            CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(Command command, CancellationToken ct = default)
         {
-            var customer = await context.Customers
-                    .FirstOrDefaultAsync(
-                        c => c.Email == command.CustomerEmail, ct);
+            var customer = await context.Customers.FirstOrDefaultAsync(
+                c => c.Email == command.CustomerEmail,
+                ct
+            );
 
             if (customer is null)
             {
-                customer = Customer.Create(
-                    command.CustomerFullName,
-                    command.CustomerEmail).Value;
+                customer = Customer.Create(command.CustomerFullName, command.CustomerEmail).Value;
 
                 context.Customers.Add(customer);
             }
@@ -69,19 +57,26 @@ public static class CreateTransaction
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
-            app.MapPost("/transactions", async (
-                Command command,
-                IRequestHandler<Command, Response> handler,
-                CancellationToken ct) =>
-            {
-                var result = await handler.Handle(command, ct);
+            app.MapPost(
+                    "/transactions",
+                    async (
+                        Command command,
+                        IRequestHandler<Command, Response> handler,
+                        CancellationToken ct
+                    ) =>
+                    {
+                        var result = await handler.Handle(command, ct);
 
-                return result.Match(
-                    () => Results.Created(
-                        $"/transactions/{result.Value.TransactionId}",
-                        result.Value),
-                    ApiResults.Problem);
-            })
-            .WithTags("Transactions");
+                        return result.Match(
+                            () =>
+                                Results.Created(
+                                    $"/transactions/{result.Value.TransactionId}",
+                                    result.Value
+                                ),
+                            ApiResults.Problem
+                        );
+                    }
+                )
+                .WithTags("Transactions");
     }
 }

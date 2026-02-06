@@ -7,13 +7,18 @@ using Deep.Programs.Domain.Programs;
 
 namespace Deep.Programs.Application.Features.ProgramStatistics.Projections;
 
-internal sealed class ProgramCreatedDomainEventHandler(
-   IRequestBus requestBus)
+internal sealed class ProgramCreatedDomainEventHandler(IRequestBus requestBus)
     : DomainEventHandler<ProgramCreatedDomainEvent>
 {
-    public override async Task Handle(ProgramCreatedDomainEvent domainEvent, CancellationToken cancellationToken = default)
+    public override async Task Handle(
+        ProgramCreatedDomainEvent domainEvent,
+        CancellationToken cancellationToken = default
+    )
     {
-        var program = await requestBus.Send<GetProgram.Response>(new GetProgram.Query(domainEvent.ProgramId), cancellationToken);
+        var program = await requestBus.Send<GetProgram.Response>(
+            new GetProgram.Query(domainEvent.ProgramId),
+            cancellationToken
+        );
 
         if (program == null)
         {
@@ -21,22 +26,21 @@ internal sealed class ProgramCreatedDomainEventHandler(
         }
 
         var result = await requestBus.Send<UpsertProgramStatistic.Response>(
-           new UpsertProgramStatistic.Command(
-               program.Value.Id,
-               program.Value.Name,
-               program.Value.Description,
-               program.Value.ProgramStatus,
-               program.Value.StartsAtUtc,
-               program.Value.EndsAtUtc,
-               program.Value.OwnerId,
-               program.Value.OwnerName,
-               program.Value.Assignments.Count(a => a.RoleName == RoleNames.Coordinator),
-               program.Value.Assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador)
-           ));
+            new UpsertProgramStatistic.Command(
+                program.Value.Id,
+                program.Value.Name,
+                program.Value.Description,
+                program.Value.ProgramStatus,
+                program.Value.StartsAtUtc,
+                program.Value.EndsAtUtc,
+                program.Value.OwnerId,
+                program.Value.OwnerName,
+                program.Value.Assignments.Count(a => a.RoleName == RoleNames.Coordinator),
+                program.Value.Assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador)
+            )
+        );
 
         if (result.IsFailure)
-            throw new DeepException(
-                nameof(UpsertProgramStatistic),
-                result.Error);
+            throw new DeepException(nameof(UpsertProgramStatistic), result.Error);
     }
 }

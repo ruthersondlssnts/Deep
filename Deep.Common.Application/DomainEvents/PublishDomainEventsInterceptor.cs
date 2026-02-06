@@ -6,36 +6,38 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Common.Application.DomainEvents;
 
-public class PublishDomainEventsInterceptor(IServiceScopeFactory serviceScopeFactory, Assembly assembly, Type dbContextType)
-: SaveChangesInterceptor
+public class PublishDomainEventsInterceptor(
+    IServiceScopeFactory serviceScopeFactory,
+    Assembly assembly,
+    Type dbContextType
+) : SaveChangesInterceptor
 {
     public override async ValueTask<int> SavedChangesAsync(
-       SaveChangesCompletedEventData eventData,
-       int result,
-       CancellationToken cancellationToken = default)
+        SaveChangesCompletedEventData eventData,
+        int result,
+        CancellationToken cancellationToken = default
+    )
     {
-        if (eventData.Context is null ||
-            !dbContextType.IsAssignableFrom(eventData.Context.GetType()))
+        if (
+            eventData.Context is null
+            || !dbContextType.IsAssignableFrom(eventData.Context.GetType())
+        )
         {
-            return await base.SavedChangesAsync(
-                eventData, result, cancellationToken);
+            return await base.SavedChangesAsync(eventData, result, cancellationToken);
         }
 
-        await PublishDomainEventsAsync(
-            eventData.Context,
-            cancellationToken);
+        await PublishDomainEventsAsync(eventData.Context, cancellationToken);
 
-        return await base.SavedChangesAsync(
-            eventData, result, cancellationToken);
+        return await base.SavedChangesAsync(eventData, result, cancellationToken);
     }
 
     private async Task PublishDomainEventsAsync(
         DbContext context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var domainEvents = context
-            .ChangeTracker
-            .Entries<Entity>()
+            .ChangeTracker.Entries<Entity>()
             .Select(entry => entry.Entity)
             .SelectMany(entity =>
             {
@@ -56,7 +58,8 @@ public class PublishDomainEventsInterceptor(IServiceScopeFactory serviceScopeFac
         var domainEventHandlers = DomainEventHandlersFactory.GetHandlers(
             domainEvent.GetType(),
             scope.ServiceProvider,
-            assembly);
+            assembly
+        );
 
         foreach (var domainEventHandler in domainEventHandlers)
         {

@@ -5,11 +5,13 @@ namespace Deep.Programs.Domain.Programs;
 
 public sealed record ProgramCreateResult(
     Program Program,
-    IReadOnlyCollection<ProgramAssignment> Assignments);
+    IReadOnlyCollection<ProgramAssignment> Assignments
+);
 
 public sealed record ProgramUpdateResult(
     Result Result,
-    IReadOnlyList<ProgramAssignment> NewAssignments);
+    IReadOnlyList<ProgramAssignment> NewAssignments
+);
 
 public class Program : Entity
 {
@@ -34,7 +36,8 @@ public class Program : Entity
         DateTime endsAtUtc,
         Guid ownerId,
         IReadOnlyCollection<string> productNames,
-        IReadOnlyCollection<(Guid UserId, string RoleName)> assignments)
+        IReadOnlyCollection<(Guid UserId, string RoleName)> assignments
+    )
     {
         if (endsAtUtc < startsAtUtc)
             return ProgramErrors.EndDatePrecedesStartDate;
@@ -49,7 +52,8 @@ public class Program : Entity
             assignments.Count(a => a.RoleName == RoleNames.Coordinator),
             assignments.Count(a => a.RoleName == RoleNames.ProgramOwner),
             assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador),
-            ProgramStatus.New);
+            ProgramStatus.New
+        );
 
         if (validationResult.IsFailure)
             return validationResult.Error;
@@ -62,7 +66,7 @@ public class Program : Entity
             StartsAtUtc = startsAtUtc,
             EndsAtUtc = endsAtUtc,
             OwnerId = ownerId,
-            ProgramStatus = ProgramStatus.New
+            ProgramStatus = ProgramStatus.New,
         };
 
         foreach (var productName in productNames)
@@ -85,13 +89,14 @@ public class Program : Entity
     }
 
     public ProgramUpdateResult UpdateDetails(
-      string name,
-      string description,
-      DateTime startsAtUtc,
-      DateTime endsAtUtc,
-      IEnumerable<string> productNames,
-      List<(Guid UserId, string RoleName)> desired,
-      List<ProgramAssignment> existingAssignments)
+        string name,
+        string description,
+        DateTime startsAtUtc,
+        DateTime endsAtUtc,
+        IEnumerable<string> productNames,
+        List<(Guid UserId, string RoleName)> desired,
+        List<ProgramAssignment> existingAssignments
+    )
     {
         if (endsAtUtc < startsAtUtc)
             return new(ProgramErrors.EndDatePrecedesStartDate, Array.Empty<ProgramAssignment>());
@@ -106,7 +111,8 @@ public class Program : Entity
             desired.Count(a => a.RoleName == RoleNames.Coordinator),
             desired.Count(a => a.RoleName == RoleNames.ProgramOwner),
             desired.Count(a => a.RoleName == RoleNames.BrandAmbassador),
-            ProgramStatus);
+            ProgramStatus
+        );
 
         if (validation.IsFailure)
             return new(validation, Array.Empty<ProgramAssignment>());
@@ -118,9 +124,7 @@ public class Program : Entity
 
         ReplaceProducts(productNames);
 
-        var desiredSet = desired
-            .Select(a => (a.UserId, a.RoleName))
-            .ToHashSet();
+        var desiredSet = desired.Select(a => (a.UserId, a.RoleName)).ToHashSet();
 
         foreach (var existing in existingAssignments)
             if (!desiredSet.Contains((existing.UserId, existing.Role.Name)))
@@ -151,7 +155,8 @@ public class Program : Entity
         int coordinatorCount,
         int coOwnerCount,
         int brandAmbassadorCount,
-        ProgramStatus programStatus)
+        ProgramStatus programStatus
+    )
     {
         if (programStatus == ProgramStatus.InProgress && brandAmbassadorCount < 1)
             return ProgramErrors.BrandAmbassadorRequired;

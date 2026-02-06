@@ -12,10 +12,12 @@ using MongoDB.Driver;
 
 namespace Deep.Common.Application;
 
-
 public static class ModuleRegistrationHelper
 {
-    public static IServiceCollection AddDomainEventHandlers(this IServiceCollection services, Assembly assembly)
+    public static IServiceCollection AddDomainEventHandlers(
+        this IServiceCollection services,
+        Assembly assembly
+    )
     {
         assembly
             .GetTypes()
@@ -25,7 +27,10 @@ public static class ModuleRegistrationHelper
         return services;
     }
 
-    public static IServiceCollection AddEndpoints(this IServiceCollection services, Assembly assembly)
+    public static IServiceCollection AddEndpoints(
+        this IServiceCollection services,
+        Assembly assembly
+    )
     {
         services.AddEndpointExtension(assembly);
         return services;
@@ -33,18 +38,23 @@ public static class ModuleRegistrationHelper
 
     public static IServiceCollection AddDomainEventInterceptor<TDbContext>(
         this IServiceCollection services,
-        Assembly assembly)
+        Assembly assembly
+    )
         where TDbContext : DbContext
     {
-        services.AddSingleton<IInterceptor>(sp =>
-           new PublishDomainEventsInterceptor(
-               sp.GetRequiredService<IServiceScopeFactory>(),
-               assembly,
-               typeof(TDbContext)));
+        services.AddSingleton<IInterceptor>(sp => new PublishDomainEventsInterceptor(
+            sp.GetRequiredService<IServiceScopeFactory>(),
+            assembly,
+            typeof(TDbContext)
+        ));
         return services;
     }
 
-    public static IServiceCollection AddMongoDb<TContext>(this IServiceCollection services, string databaseName, Action? configureSerializers = null)
+    public static IServiceCollection AddMongoDb<TContext>(
+        this IServiceCollection services,
+        string databaseName,
+        Action? configureSerializers = null
+    )
         where TContext : class
     {
         configureSerializers?.Invoke();
@@ -59,18 +69,24 @@ public static class ModuleRegistrationHelper
 
     public static IServiceCollection AddPostgresDbContextWithSchema<TDbContext>(
         this IServiceCollection services,
-        string schema)
+        string schema
+    )
         where TDbContext : Microsoft.EntityFrameworkCore.DbContext
     {
-        services.AddDbContext<TDbContext>((sp, options) =>
-        {
-            var configuration = sp.GetRequiredService<IConfiguration>();
-            Postgres.StandardOptions(configuration, schema)(sp, options);
-        });
+        services.AddDbContext<TDbContext>(
+            (sp, options) =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                Postgres.StandardOptions(configuration, schema)(sp, options);
+            }
+        );
         return services;
     }
 
-    public static void ConfigureConsumers(Assembly assembly, IRegistrationConfigurator registrationConfigurator)
+    public static void ConfigureConsumers(
+        Assembly assembly,
+        IRegistrationConfigurator registrationConfigurator
+    )
     {
         registrationConfigurator.AddConsumers(assembly);
     }

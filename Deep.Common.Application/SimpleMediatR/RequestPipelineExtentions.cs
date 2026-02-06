@@ -6,7 +6,8 @@ public static class RequestPipelineExtensions
 {
     public static IServiceCollection AddRequestPipelines(
         this IServiceCollection services,
-        params Type[] pipelineTypes)
+        params Type[] pipelineTypes
+    )
     {
         foreach (var pipelineType in pipelineTypes)
         {

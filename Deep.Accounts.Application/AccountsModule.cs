@@ -9,13 +9,19 @@ public static class AccountsModule
 {
     public static IServiceCollection AddAccountsModule(this IServiceCollection services)
     {
-        services.AddDomainEventHandlers(AssemblyReference.Assembly)
-                .AddPostgresDbContextWithSchema<AccountsDbContext>(Schemas.Accounts)
-                .AddEndpoints(AssemblyReference.Assembly)
-                .AddDomainEventInterceptor<AccountsDbContext>(AssemblyReference.Assembly);
+        services
+            .AddDomainEventHandlers(AssemblyReference.Assembly)
+            .AddPostgresDbContextWithSchema<AccountsDbContext>(Schemas.Accounts)
+            .AddEndpoints(AssemblyReference.Assembly)
+            .AddDomainEventInterceptor<AccountsDbContext>(AssemblyReference.Assembly);
         return services;
     }
 
-    public static void ConfigureConsumers(MassTransit.IRegistrationConfigurator registrationConfigurator) =>
-        Deep.Common.Application.ModuleRegistrationHelper.ConfigureConsumers(AssemblyReference.Assembly, registrationConfigurator);
+    public static void ConfigureConsumers(
+        MassTransit.IRegistrationConfigurator registrationConfigurator
+    ) =>
+        Deep.Common.Application.ModuleRegistrationHelper.ConfigureConsumers(
+            AssemblyReference.Assembly,
+            registrationConfigurator
+        );
 }

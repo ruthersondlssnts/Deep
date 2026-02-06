@@ -10,19 +10,18 @@ public sealed class Transaction : Entity
 
     private Transaction() { }
 
-    public static Result<Transaction> Create(
-        Guid programId,
-        Guid customerId)
+    public static Result<Transaction> Create(Guid programId, Guid customerId)
     {
         var transaction = new Transaction
         {
             Id = Guid.CreateVersion7(),
             CustomerId = customerId,
-            ProgramId = programId
+            ProgramId = programId,
         };
 
         transaction.RaiseDomainEvent(
-            new TransactionCreatedDomainEvent(transaction.Id, transaction.ProgramId));
+            new TransactionCreatedDomainEvent(transaction.Id, transaction.ProgramId)
+        );
 
         return transaction;
     }

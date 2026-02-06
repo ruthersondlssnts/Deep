@@ -25,23 +25,22 @@ public static class GetProgram
         Guid OwnerId,
         string OwnerName,
         IReadOnlyList<string> Products,
-        IReadOnlyList<ProgramAssignmentResponse> Assignments);
+        IReadOnlyList<ProgramAssignmentResponse> Assignments
+    );
 
     public sealed record ProgramAssignmentResponse(
         Guid UserId,
         string FullName,
         string Email,
-        string RoleName);
+        string RoleName
+    );
 
-    public sealed class Handler(ProgramsDbContext context)
-        : IRequestHandler<Query, Response>
+    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Query, Response>
     {
-        public async Task<Result<Response>> Handle(
-            Query query,
-            CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(Query query, CancellationToken ct = default)
         {
-            var program = await context.Programs
-                .AsNoTracking()
+            var program = await context
+                .Programs.AsNoTracking()
                 .Where(p => p.Id == query.Id)
                 .Select(p => new Response(
                     p.Id,
@@ -51,33 +50,30 @@ public static class GetProgram
                     p.EndsAtUtc,
                     p.ProgramStatus,
                     p.OwnerId,
-
-                    context.Users
-                        .Where(u => u.Id == p.OwnerId)
+                    context
+                        .Users.Where(u => u.Id == p.OwnerId)
                         .Select(u => u.FirstName + " " + u.LastName)
                         .FirstOrDefault()!,
-                   p.Products
-                        .Select(pp => pp.ProductName)
-                        .ToList(),
-                    context.ProgramAssignments
-                        .Where(pa => pa.ProgramId == p.Id && pa.IsActive)
+                    p.Products.Select(pp => pp.ProductName).ToList(),
+                    context
+                        .ProgramAssignments.Where(pa => pa.ProgramId == p.Id && pa.IsActive)
                         .Join(
                             context.Users,
                             pa => pa.UserId,
                             u => u.Id,
-                            (pa, u) => new ProgramAssignmentResponse(
-                                u.Id,
-                                u.FirstName + " " + u.LastName,
-                                u.Email,
-                                pa.Role.Name
-                            ))
+                            (pa, u) =>
+                                new ProgramAssignmentResponse(
+                                    u.Id,
+                                    u.FirstName + " " + u.LastName,
+                                    u.Email,
+                                    pa.Role.Name
+                                )
+                        )
                         .ToList()
                 ))
                 .FirstOrDefaultAsync(ct);
 
-            return program is null
-                ? ProgramErrors.NotFound(query.Id)
-                : program;
+            return program is null ? ProgramErrors.NotFound(query.Id) : program;
         }
     }
 
@@ -85,19 +81,20 @@ public static class GetProgram
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapGet("/programs/{id:guid}", async (
-                Guid id,
-                IRequestHandler<Query, Response> handler,
-                CancellationToken ct) =>
-            {
-                var result = await handler.Handle(
-                    new Query(id), ct);
+            app.MapGet(
+                    "/programs/{id:guid}",
+                    async (
+                        Guid id,
+                        IRequestHandler<Query, Response> handler,
+                        CancellationToken ct
+                    ) =>
+                    {
+                        var result = await handler.Handle(new Query(id), ct);
 
-                return result.Match(
-                    Results.Ok,
-                    ApiResults.Problem);
-            })
-            .WithTags("Programs");
+                        return result.Match(Results.Ok, ApiResults.Problem);
+                    }
+                )
+                .WithTags("Programs");
         }
     }
 }

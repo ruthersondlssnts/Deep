@@ -14,7 +14,8 @@ public static class CreateUser
         string FirstName,
         string LastName,
         string Email,
-        IReadOnlyCollection<string> Roles);
+        IReadOnlyCollection<string> Roles
+    );
 
     public sealed record Response(Guid Id);
 
@@ -22,35 +23,22 @@ public static class CreateUser
     {
         public Validator()
         {
-            RuleFor(x => x.Id)
-               .NotNull()
-               .NotEmpty();
+            RuleFor(x => x.Id).NotNull().NotEmpty();
 
-            RuleFor(x => x.Roles)
-                .NotNull()
-                .NotEmpty();
-            RuleForEach(x => x.Roles)
-                .NotEmpty();
+            RuleFor(x => x.Roles).NotNull().NotEmpty();
+            RuleForEach(x => x.Roles).NotEmpty();
 
-            RuleFor(x => x.FirstName)
-                .NotEmpty()
-                .MaximumLength(100);
+            RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
 
-            RuleFor(x => x.LastName)
-                .NotEmpty()
-                .MaximumLength(100);
+            RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
 
-            RuleFor(x => x.Email)
-                .NotEmpty();
+            RuleFor(x => x.Email).NotEmpty();
         }
     }
 
-    public sealed class Handler(ProgramsDbContext context)
-        : IRequestHandler<Command, Response>
+    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(
-            Command c,
-            CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
             var roles = new List<Role>();
             foreach (var roleName in c.Roles)
@@ -60,12 +48,7 @@ public static class CreateUser
                 roles.Add(role);
             }
 
-            var account = User.Create(
-                c.Id,
-                c.FirstName,
-                c.LastName,
-                c.Email,
-                roles);
+            var account = User.Create(c.Id, c.FirstName, c.LastName, c.Email, roles);
 
             context.Users.Add(account);
             await context.SaveChangesAsync(ct);

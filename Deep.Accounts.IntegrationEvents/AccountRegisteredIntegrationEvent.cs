@@ -9,8 +9,8 @@ public sealed class AccountRegisteredIntegrationEvent(
     string email,
     string firstName,
     string lastName,
-    IReadOnlyCollection<string> roles)
-    : IntegrationEvent(id, occurredAtUtc)
+    IReadOnlyCollection<string> roles
+) : IntegrationEvent(id, occurredAtUtc)
 {
     public Guid AccountId { get; } = accountId;
     public string Email { get; } = email;

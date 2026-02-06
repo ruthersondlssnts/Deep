@@ -11,7 +11,8 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         logger.LogError(exception, "Unhandled exception occurred");
 
@@ -19,7 +20,7 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
         {
             Status = StatusCodes.Status500InternalServerError,
             Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
-            Title = "Server failure"
+            Title = "Server failure",
         };
 
         httpContext.Response.StatusCode = problemDetails.Status.Value;

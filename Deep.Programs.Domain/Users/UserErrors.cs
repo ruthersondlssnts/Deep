@@ -10,17 +10,18 @@ public static class UserErrors
     public static Error UserRoleNotFound(Guid userId, string role) =>
         Error.NotFound(
             "User.UserRoleNotFound",
-            $"The user with the identifier {userId} and role '{role}' was not found");
+            $"The user with the identifier {userId} and role '{role}' was not found"
+        );
 
     public static readonly Error UserAlreadyExists = Error.Problem(
         "User.AlreadyExists",
-        "The user already exists");
+        "The user already exists"
+    );
 
     public static readonly Error UserRoleNotAllowed = Error.Problem(
-          "UserRole.NotAllowed",
-          "The role is not allowed");
+        "UserRole.NotAllowed",
+        "The role is not allowed"
+    );
 
-    public static readonly Error InvalidRole = Error.Problem(
-       "Role.Invalid",
-       "The role is invalid");
+    public static readonly Error InvalidRole = Error.Problem("Role.Invalid", "The role is invalid");
 }

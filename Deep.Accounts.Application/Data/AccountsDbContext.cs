@@ -4,8 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Accounts.Application.Data;
 
-public class AccountsDbContext(DbContextOptions<AccountsDbContext> options)
-    : DbContext(options)
+public class AccountsDbContext(DbContextOptions<AccountsDbContext> options) : DbContext(options)
 {
     internal DbSet<Account> Accounts => Set<Account>();
 

@@ -13,33 +13,35 @@ namespace Deep.Programs.Application.Data.Migrations
             migrationBuilder.DropForeignKey(
                 name: "fk_program_products_programs_program_id",
                 schema: "programs",
-                table: "program_products");
+                table: "program_products"
+            );
 
             migrationBuilder.DropIndex(
                 name: "ix_program_assignments_program_id_user_id_role",
                 schema: "programs",
-                table: "program_assignments");
+                table: "program_assignments"
+            );
 
             migrationBuilder.DropPrimaryKey(
                 name: "pk_program_products",
                 schema: "programs",
-                table: "program_products");
+                table: "program_products"
+            );
+
+            migrationBuilder.DropColumn(name: "role", schema: "programs", table: "users");
 
             migrationBuilder.DropColumn(
                 name: "role",
                 schema: "programs",
-                table: "users");
-
-            migrationBuilder.DropColumn(
-                name: "role",
-                schema: "programs",
-                table: "program_assignments");
+                table: "program_assignments"
+            );
 
             migrationBuilder.RenameTable(
                 name: "program_products",
                 schema: "programs",
                 newName: "program_product",
-                newSchema: "programs");
+                newSchema: "programs"
+            );
 
             migrationBuilder.AddColumn<string>(
                 name: "role_name",
@@ -48,33 +50,43 @@ namespace Deep.Programs.Application.Data.Migrations
                 type: "character varying(50)",
                 maxLength: 50,
                 nullable: false,
-                defaultValue: "");
+                defaultValue: ""
+            );
 
             migrationBuilder.AddPrimaryKey(
                 name: "pk_program_product",
                 schema: "programs",
                 table: "program_product",
-                columns: new[] { "program_id", "product_name" });
+                columns: new[] { "program_id", "product_name" }
+            );
 
             migrationBuilder.CreateTable(
                 name: "roles",
                 schema: "programs",
                 columns: table => new
                 {
-                    name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                    name = table.Column<string>(
+                        type: "character varying(50)",
+                        maxLength: 50,
+                        nullable: false
+                    ),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("ak_role_name", x => x.name);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "user_roles",
                 schema: "programs",
                 columns: table => new
                 {
-                    role_name = table.Column<string>(type: "character varying(50)", nullable: false),
-                    user_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    role_name = table.Column<string>(
+                        type: "character varying(50)",
+                        nullable: false
+                    ),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -85,15 +97,18 @@ namespace Deep.Programs.Application.Data.Migrations
                         principalSchema: "programs",
                         principalTable: "roles",
                         principalColumn: "name",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Cascade
+                    );
                     table.ForeignKey(
                         name: "fk_user_roles_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "programs",
                         principalTable: "users",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.InsertData(
                 schema: "programs",
@@ -105,27 +120,31 @@ namespace Deep.Programs.Application.Data.Migrations
                     "Coordinator",
                     "ItAdmin",
                     "Manager",
-                    "ProgramOwner"
-                });
+                    "ProgramOwner",
+                }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "ix_program_assignments_program_id_user_id_role_name",
                 schema: "programs",
                 table: "program_assignments",
                 columns: new[] { "program_id", "user_id", "role_name" },
-                unique: true);
+                unique: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "ix_program_assignments_role_name",
                 schema: "programs",
                 table: "program_assignments",
-                column: "role_name");
+                column: "role_name"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "ix_user_roles_user_id",
                 schema: "programs",
                 table: "user_roles",
-                column: "user_id");
+                column: "user_id"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "fk_program_assignments_role_role_name",
@@ -135,7 +154,8 @@ namespace Deep.Programs.Application.Data.Migrations
                 principalSchema: "programs",
                 principalTable: "roles",
                 principalColumn: "name",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "fk_program_product_programs_program_id",
@@ -145,7 +165,8 @@ namespace Deep.Programs.Application.Data.Migrations
                 principalSchema: "programs",
                 principalTable: "programs",
                 principalColumn: "id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
         }
 
         /// <inheritdoc />
@@ -154,46 +175,49 @@ namespace Deep.Programs.Application.Data.Migrations
             migrationBuilder.DropForeignKey(
                 name: "fk_program_assignments_role_role_name",
                 schema: "programs",
-                table: "program_assignments");
+                table: "program_assignments"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "fk_program_product_programs_program_id",
                 schema: "programs",
-                table: "program_product");
+                table: "program_product"
+            );
 
-            migrationBuilder.DropTable(
-                name: "user_roles",
-                schema: "programs");
+            migrationBuilder.DropTable(name: "user_roles", schema: "programs");
 
-            migrationBuilder.DropTable(
-                name: "roles",
-                schema: "programs");
+            migrationBuilder.DropTable(name: "roles", schema: "programs");
 
             migrationBuilder.DropIndex(
                 name: "ix_program_assignments_program_id_user_id_role_name",
                 schema: "programs",
-                table: "program_assignments");
+                table: "program_assignments"
+            );
 
             migrationBuilder.DropIndex(
                 name: "ix_program_assignments_role_name",
                 schema: "programs",
-                table: "program_assignments");
+                table: "program_assignments"
+            );
 
             migrationBuilder.DropPrimaryKey(
                 name: "pk_program_product",
                 schema: "programs",
-                table: "program_product");
+                table: "program_product"
+            );
 
             migrationBuilder.DropColumn(
                 name: "role_name",
                 schema: "programs",
-                table: "program_assignments");
+                table: "program_assignments"
+            );
 
             migrationBuilder.RenameTable(
                 name: "program_product",
                 schema: "programs",
                 newName: "program_products",
-                newSchema: "programs");
+                newSchema: "programs"
+            );
 
             migrationBuilder.AddColumn<string>(
                 name: "role",
@@ -201,7 +225,8 @@ namespace Deep.Programs.Application.Data.Migrations
                 table: "users",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: ""
+            );
 
             migrationBuilder.AddColumn<string>(
                 name: "role",
@@ -209,20 +234,23 @@ namespace Deep.Programs.Application.Data.Migrations
                 table: "program_assignments",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: ""
+            );
 
             migrationBuilder.AddPrimaryKey(
                 name: "pk_program_products",
                 schema: "programs",
                 table: "program_products",
-                columns: new[] { "program_id", "product_name" });
+                columns: new[] { "program_id", "product_name" }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "ix_program_assignments_program_id_user_id_role",
                 schema: "programs",
                 table: "program_assignments",
                 columns: new[] { "program_id", "user_id", "role" },
-                unique: true);
+                unique: true
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "fk_program_products_programs_program_id",
@@ -232,7 +260,8 @@ namespace Deep.Programs.Application.Data.Migrations
                 principalSchema: "programs",
                 principalTable: "programs",
                 principalColumn: "id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
         }
     }
 }

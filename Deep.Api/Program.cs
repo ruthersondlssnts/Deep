@@ -13,14 +13,12 @@ var rabbitmq = "rabbitmq";
 var databaseConnectionString = builder.Configuration.GetConnectionString(postgresDb)!;
 var mqConnectionString = builder.Configuration.GetConnectionString(rabbitmq)!;
 
-
-builder.Services
-    .AddOpenApiAndSwagger()
+builder
+    .Services.AddOpenApiAndSwagger()
     .AddExceptionAndProblemDetails()
     .AddModules(databaseConnectionString, mqConnectionString);
 
 builder.ApplyAspire(postgresDb, mongoDb, rabbitmq);
-
 
 var app = builder.Build();
 
@@ -35,5 +33,6 @@ if (app.Environment.IsDevelopment())
 app.MapDefaultEndpoints();
 app.MapEndpoints();
 app.UseHttpsRedirection();
+
 //app.UseAuthorization();
 app.Run();

@@ -10,16 +10,16 @@ public static class Postgres
 {
     public static Action<IServiceProvider, DbContextOptionsBuilder> StandardOptions(
         IConfiguration configuration,
-        string schema) =>
+        string schema
+    ) =>
         (serviceProvider, options) =>
         {
             options
                 .UseNpgsql(
                     configuration.GetConnectionString("deep-db")!,
                     npgsql =>
-                        npgsql.MigrationsHistoryTable(
-                            HistoryRepository.DefaultTableName,
-                            schema))
+                        npgsql.MigrationsHistoryTable(HistoryRepository.DefaultTableName, schema)
+                )
                 .UseSnakeCaseNamingConvention()
                 .AddInterceptors(serviceProvider.GetServices<IInterceptor>());
         };

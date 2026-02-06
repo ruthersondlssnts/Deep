@@ -6,8 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Data;
 
-public class ProgramsDbContext(DbContextOptions<ProgramsDbContext> options)
-: DbContext(options)
+public class ProgramsDbContext(DbContextOptions<ProgramsDbContext> options) : DbContext(options)
 {
     internal DbSet<Program> Programs => Set<Program>();
     internal DbSet<User> Users => Set<User>();

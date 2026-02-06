@@ -18,14 +18,15 @@ public sealed class Account : Entity
         string firstName,
         string lastName,
         string email,
-        IEnumerable<Role> roles)
+        IEnumerable<Role> roles
+    )
     {
         var account = new Account
         {
             Id = Guid.CreateVersion7(),
             FirstName = firstName,
             LastName = lastName,
-            Email = email
+            Email = email,
         };
 
         foreach (var role in roles)
@@ -33,8 +34,7 @@ public sealed class Account : Entity
             account.AddRole(role);
         }
 
-        account.RaiseDomainEvent(
-            new AccountRegisteredDomainEvent(account.Id));
+        account.RaiseDomainEvent(new AccountRegisteredDomainEvent(account.Id));
 
         return account;
     }

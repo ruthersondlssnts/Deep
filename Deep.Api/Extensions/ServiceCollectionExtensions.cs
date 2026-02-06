@@ -34,33 +34,36 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddModules(
         this IServiceCollection services,
         string databaseConnectionString,
-        string messagingConnectionString)
+        string messagingConnectionString
+    )
     {
         services
             .AddDapperAndNpgsql(databaseConnectionString)
             .AddCustomMediatR(
                 Deep.Programs.Application.AssemblyReference.Assembly,
                 Deep.Accounts.Application.AssemblyReference.Assembly,
-                Deep.Transactions.Application.AssemblyReference.Assembly)
+                Deep.Transactions.Application.AssemblyReference.Assembly
+            )
             .AddMassTransit(
                 messagingConnectionString,
-                [ProgramsModule.ConfigureConsumers,
-                AccountsModule.ConfigureConsumers,
-                TransactionsModule.ConfigureConsumers]);
+                [
+                    ProgramsModule.ConfigureConsumers,
+                    AccountsModule.ConfigureConsumers,
+                    TransactionsModule.ConfigureConsumers,
+                ]
+            );
 
-        services
-            .AddProgramsModule()
-            .AddAccountsModule()
-            .AddTransactionsModule();
+        services.AddProgramsModule().AddAccountsModule().AddTransactionsModule();
 
         return services;
     }
 
     public static IHostApplicationBuilder ApplyAspire(
-     this IHostApplicationBuilder builder,
-     string sqlConnection,
-     string noSqlConnection,
-     string amqConnection)
+        this IHostApplicationBuilder builder,
+        string sqlConnection,
+        string noSqlConnection,
+        string amqConnection
+    )
     {
         builder.EnrichNpgsqlDbContext<ProgramsDbContext>();
         builder.EnrichNpgsqlDbContext<AccountsDbContext>();

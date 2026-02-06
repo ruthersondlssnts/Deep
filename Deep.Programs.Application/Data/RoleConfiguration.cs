@@ -15,7 +15,8 @@ internal sealed partial class UsersConfiguration
             builder.HasKey(role => role.Name);
             builder.Property(role => role.Name).HasMaxLength(50);
 
-            builder.HasMany<User>()
+            builder
+                .HasMany<User>()
                 .WithMany(user => user.Roles)
                 .UsingEntity(joinBuilder =>
                 {
@@ -29,8 +30,8 @@ internal sealed partial class UsersConfiguration
                 Role.Manager,
                 Role.ProgramOwner,
                 Role.Coordinator,
-                Role.BrandAmbassador);
+                Role.BrandAmbassador
+            );
         }
     }
-
 }

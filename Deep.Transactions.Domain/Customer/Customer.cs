@@ -1,4 +1,5 @@
 using Deep.Common.Domain;
+
 namespace Deep.Transactions.Domain.Customer
 {
     public sealed class Customer : Entity
@@ -19,7 +20,7 @@ namespace Deep.Transactions.Domain.Customer
             {
                 Id = Guid.CreateVersion7(),
                 FullName = fullName,
-                Email = email
+                Email = email,
             };
 
             return customer;

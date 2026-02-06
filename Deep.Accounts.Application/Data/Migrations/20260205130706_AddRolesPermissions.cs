@@ -12,34 +12,41 @@ namespace Deep.Accounts.Application.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "role",
-                schema: "accounts",
-                table: "accounts");
+            migrationBuilder.DropColumn(name: "role", schema: "accounts", table: "accounts");
 
             migrationBuilder.CreateTable(
                 name: "permissions",
                 schema: "accounts",
                 columns: table => new
                 {
-                    code = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                    code = table.Column<string>(
+                        type: "character varying(100)",
+                        maxLength: 100,
+                        nullable: false
+                    ),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_permissions", x => x.code);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "roles",
                 schema: "accounts",
                 columns: table => new
                 {
-                    name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                    name = table.Column<string>(
+                        type: "character varying(50)",
+                        maxLength: 50,
+                        nullable: false
+                    ),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_roles", x => x.name);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "account_roles",
@@ -47,7 +54,10 @@ namespace Deep.Accounts.Application.Data.Migrations
                 columns: table => new
                 {
                     account_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    role_name = table.Column<string>(type: "character varying(50)", nullable: false)
+                    role_name = table.Column<string>(
+                        type: "character varying(50)",
+                        nullable: false
+                    ),
                 },
                 constraints: table =>
                 {
@@ -58,42 +68,57 @@ namespace Deep.Accounts.Application.Data.Migrations
                         principalSchema: "accounts",
                         principalTable: "accounts",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Cascade
+                    );
                     table.ForeignKey(
                         name: "fk_account_roles_roles_roles_name",
                         column: x => x.role_name,
                         principalSchema: "accounts",
                         principalTable: "roles",
                         principalColumn: "name",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "role_permissions",
                 schema: "accounts",
                 columns: table => new
                 {
-                    permission_code = table.Column<string>(type: "character varying(100)", nullable: false),
-                    role_name = table.Column<string>(type: "character varying(50)", nullable: false)
+                    permission_code = table.Column<string>(
+                        type: "character varying(100)",
+                        nullable: false
+                    ),
+                    role_name = table.Column<string>(
+                        type: "character varying(50)",
+                        nullable: false
+                    ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_role_permissions", x => new { x.permission_code, x.role_name });
+                    table.PrimaryKey(
+                        "pk_role_permissions",
+                        x => new { x.permission_code, x.role_name }
+                    );
                     table.ForeignKey(
                         name: "fk_role_permissions_permissions_permission_code",
                         column: x => x.permission_code,
                         principalSchema: "accounts",
                         principalTable: "permissions",
                         principalColumn: "code",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Cascade
+                    );
                     table.ForeignKey(
                         name: "fk_role_permissions_roles_role_name",
                         column: x => x.role_name,
                         principalSchema: "accounts",
                         principalTable: "roles",
                         principalColumn: "name",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.InsertData(
                 schema: "accounts",
@@ -117,8 +142,9 @@ namespace Deep.Accounts.Application.Data.Migrations
                     "programs.create",
                     "programs.read.all",
                     "programs.read.own",
-                    "programs.update"
-                });
+                    "programs.update",
+                }
+            );
 
             migrationBuilder.InsertData(
                 schema: "accounts",
@@ -130,8 +156,9 @@ namespace Deep.Accounts.Application.Data.Migrations
                     "Coordinator",
                     "ItAdmin",
                     "Manager",
-                    "ProgramOwner"
-                });
+                    "ProgramOwner",
+                }
+            );
 
             migrationBuilder.InsertData(
                 schema: "accounts",
@@ -156,40 +183,35 @@ namespace Deep.Accounts.Application.Data.Migrations
                     { "programs.read.all", "Manager" },
                     { "programs.read.own", "BrandAmbassador" },
                     { "programs.read.own", "ProgramOwner" },
-                    { "programs.update", "ProgramOwner" }
-                });
+                    { "programs.update", "ProgramOwner" },
+                }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "ix_account_roles_roles_name",
                 schema: "accounts",
                 table: "account_roles",
-                column: "role_name");
+                column: "role_name"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "ix_role_permissions_role_name",
                 schema: "accounts",
                 table: "role_permissions",
-                column: "role_name");
+                column: "role_name"
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "account_roles",
-                schema: "accounts");
+            migrationBuilder.DropTable(name: "account_roles", schema: "accounts");
 
-            migrationBuilder.DropTable(
-                name: "role_permissions",
-                schema: "accounts");
+            migrationBuilder.DropTable(name: "role_permissions", schema: "accounts");
 
-            migrationBuilder.DropTable(
-                name: "permissions",
-                schema: "accounts");
+            migrationBuilder.DropTable(name: "permissions", schema: "accounts");
 
-            migrationBuilder.DropTable(
-                name: "roles",
-                schema: "accounts");
+            migrationBuilder.DropTable(name: "roles", schema: "accounts");
 
             migrationBuilder.AddColumn<string>(
                 name: "role",
@@ -197,7 +219,8 @@ namespace Deep.Accounts.Application.Data.Migrations
                 table: "accounts",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: ""
+            );
         }
     }
 }

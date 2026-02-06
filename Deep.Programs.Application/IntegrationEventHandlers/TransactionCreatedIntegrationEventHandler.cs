@@ -7,8 +7,8 @@ using MassTransit;
 namespace Deep.Programs.Application.IntegrationEventHandlers;
 
 public sealed class TransactionCreatedIntegrationEventHandler(
-    IRequestHandler<UpsertProgramStatistic.Command, UpsertProgramStatistic.Response> handler)
-    : IConsumer<TransactionCreatedIntegrationEvent>
+    IRequestHandler<UpsertProgramStatistic.Command, UpsertProgramStatistic.Response> handler
+) : IConsumer<TransactionCreatedIntegrationEvent>
 {
     public async Task Consume(ConsumeContext<TransactionCreatedIntegrationEvent> context)
     {
@@ -16,12 +16,12 @@ public sealed class TransactionCreatedIntegrationEventHandler(
             new UpsertProgramStatistic.Command(
                 ProgramId: context.Message.ProgramId,
                 TotalTransactions: context.Message.TotalTransactions,
-                TotalCustomers: context.Message.TotalCustomers),
-            context.CancellationToken);
+                TotalCustomers: context.Message.TotalCustomers
+            ),
+            context.CancellationToken
+        );
 
         if (result.IsFailure)
-            throw new DeepException(
-                nameof(UpsertProgramStatistic),
-                result.Error);
+            throw new DeepException(nameof(UpsertProgramStatistic), result.Error);
     }
 }

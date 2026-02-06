@@ -18,7 +18,7 @@ public sealed class Role
         ProgramOwner,
         Manager,
         BrandAmbassador,
-        Coordinator
+        Coordinator,
     ];
 
     private Role(string name)
@@ -28,8 +28,7 @@ public sealed class Role
 
     public static bool TryFromName(string name, out Role role)
     {
-        role = All.FirstOrDefault(r =>
-            r.Name.Equals(name, StringComparison.OrdinalIgnoreCase))!;
+        role = All.FirstOrDefault(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase))!;
         return role is not null;
     }
 

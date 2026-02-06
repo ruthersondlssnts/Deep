@@ -26,15 +26,14 @@ public static class DeleteProgramAssignment
         }
     }
 
-    public sealed class Handler(ProgramsDbContext context)
-        : IRequestHandler<Command, Response>
+    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(
-            Command c,
-            CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            var assignment = await context.ProgramAssignments
-                .FirstOrDefaultAsync(a => a.Id == c.AssignmentId, ct);
+            var assignment = await context.ProgramAssignments.FirstOrDefaultAsync(
+                a => a.Id == c.AssignmentId,
+                ct
+            );
 
             if (assignment is null)
                 return ProgramErrors.NotFound(c.AssignmentId);
@@ -50,19 +49,19 @@ public static class DeleteProgramAssignment
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
-            app.MapDelete("/program-assignments/{id:guid}", async (
-                Guid id,
-                IRequestHandler<Command, Response> handler,
-                CancellationToken ct) =>
-            {
-                var result = await handler.Handle(
-                    new Command(id), ct);
+            app.MapDelete(
+                    "/program-assignments/{id:guid}",
+                    async (
+                        Guid id,
+                        IRequestHandler<Command, Response> handler,
+                        CancellationToken ct
+                    ) =>
+                    {
+                        var result = await handler.Handle(new Command(id), ct);
 
-                return result.Match(
-                    Results.Ok,
-                    ApiResults.Problem);
-            })
-            .WithTags("ProgramAssignments");
+                        return result.Match(Results.Ok, ApiResults.Problem);
+                    }
+                )
+                .WithTags("ProgramAssignments");
     }
 }
-

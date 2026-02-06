@@ -14,9 +14,7 @@ namespace Deep.Programs.Application.Features.Programs;
 
 public static class UpdateProgram
 {
-    public sealed record ProgramUser(
-     Guid UserId,
-     string RoleName);
+    public sealed record ProgramUser(Guid UserId, string RoleName);
 
     public sealed record Command(
         Guid ProgramId,
@@ -25,7 +23,8 @@ public static class UpdateProgram
         DateTime StartsAtUtc,
         DateTime EndsAtUtc,
         IReadOnlyCollection<string> ProductNames,
-        IReadOnlyCollection<ProgramUser> Users);
+        IReadOnlyCollection<ProgramUser> Users
+    );
 
     public sealed record Response(Guid Id);
 
@@ -33,11 +32,9 @@ public static class UpdateProgram
     {
         public Validator()
         {
-            RuleFor(x => x.Name)
-                .NotEmpty();
+            RuleFor(x => x.Name).NotEmpty();
 
-            RuleFor(x => x.Description)
-                .NotEmpty();
+            RuleFor(x => x.Description).NotEmpty();
 
             RuleFor(x => x.StartsAtUtc)
                 .Must(x => x > DateTime.UtcNow)
@@ -51,50 +48,44 @@ public static class UpdateProgram
                 .NotEmpty()
                 .WithMessage("At least one product is required.");
 
-            RuleFor(x => x.Users)
-                .NotEmpty()
-                .WithMessage("At least one user is required.");
+            RuleFor(x => x.Users).NotEmpty().WithMessage("At least one user is required.");
 
-            RuleForEach(x => x.Users).ChildRules(user =>
-            {
-                user.RuleFor(u => u.UserId)
-                    .NotEmpty();
+            RuleForEach(x => x.Users)
+                .ChildRules(user =>
+                {
+                    user.RuleFor(u => u.UserId).NotEmpty();
 
-                user.RuleFor(u => u.RoleName)
-                    .NotEmpty();
-            });
+                    user.RuleFor(u => u.RoleName).NotEmpty();
+                });
         }
     }
 
-    public sealed class Handler(ProgramsDbContext context)
-        : IRequestHandler<Command, Response>
+    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            var program = await context.Programs
-               .Include(p => p.Products)
-               .SingleOrDefaultAsync(p => p.Id == c.ProgramId, ct);
+            var program = await context
+                .Programs.Include(p => p.Products)
+                .SingleOrDefaultAsync(p => p.Id == c.ProgramId, ct);
 
             if (program is null)
                 return ProgramErrors.NotFound(c.ProgramId);
 
-            var users = await context.Users
-                .Include(u => u.Roles)
-                .Where(u => c.Users.Any(cu =>
-                    cu.UserId == u.Id &&
-                    u.Roles.Any(r => r.Name == cu.RoleName)))
+            var users = await context
+                .Users.Include(u => u.Roles)
+                .Where(u =>
+                    c.Users.Any(cu => cu.UserId == u.Id && u.Roles.Any(r => r.Name == cu.RoleName))
+                )
                 .ToListAsync(ct);
 
             if (users.Count != c.Users.Count)
                 return ProgramErrors.ProgramUserNotFound;
 
-            var existingAssignments = await context.ProgramAssignments
-                .Where(a => a.ProgramId == program.Id)
+            var existingAssignments = await context
+                .ProgramAssignments.Where(a => a.ProgramId == program.Id)
                 .ToListAsync(ct);
 
-            var desired = c.Users
-                .Select(u => (u.UserId, u.RoleName))
-                .ToList();
+            var desired = c.Users.Select(u => (u.UserId, u.RoleName)).ToList();
 
             var update = program.UpdateDetails(
                 c.Name,
@@ -103,7 +94,8 @@ public static class UpdateProgram
                 c.EndsAtUtc,
                 c.ProductNames,
                 desired,
-                existingAssignments);
+                existingAssignments
+            );
 
             if (update.Result.IsFailure)
                 return update.Result.Error;
@@ -119,20 +111,26 @@ public static class UpdateProgram
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
-            app.MapPut("/programs/{programId:guid}", async (
-                Guid programId,
-                Command command,
-                IRequestHandler<Command, Response> handler,
-                CancellationToken ct) =>
-            {
-                var result = await handler.Handle(
-                    command with { ProgramId = programId },
-                    ct);
+            app.MapPut(
+                    "/programs/{programId:guid}",
+                    async (
+                        Guid programId,
+                        Command command,
+                        IRequestHandler<Command, Response> handler,
+                        CancellationToken ct
+                    ) =>
+                    {
+                        var result = await handler.Handle(
+                            command with
+                            {
+                                ProgramId = programId,
+                            },
+                            ct
+                        );
 
-                return result.Match(
-                    () => Results.Ok(result.Value),
-                    ApiResults.Problem);
-            })
-            .WithTags("Programs");
+                        return result.Match(() => Results.Ok(result.Value), ApiResults.Problem);
+                    }
+                )
+                .WithTags("Programs");
     }
 }

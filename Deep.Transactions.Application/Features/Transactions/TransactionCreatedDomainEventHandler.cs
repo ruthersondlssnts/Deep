@@ -8,33 +8,36 @@ namespace Deep.Transactions.Application.Features.Transactions;
 
 internal sealed class TransactionCreatedDomainEventHandler(
     TransactionsDbContext context,
-    IEventBus eventBus)
-    : DomainEventHandler<TransactionCreatedDomainEvent>
+    IEventBus eventBus
+) : DomainEventHandler<TransactionCreatedDomainEvent>
 {
     public override async Task Handle(
         TransactionCreatedDomainEvent domainEvent,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        var stats = context.Transactions
-          .Where(t => t.ProgramId == domainEvent.ProgramId)
-          .GroupBy(_ => 1)
-          .Select(g => new
-          {
-              TotalTransactions = g.Count(),
-              TotalCustomers = g.Select(x => x.CustomerId).Distinct().Count()
-          })
-          .FirstOrDefault();
+        var stats = context
+            .Transactions.Where(t => t.ProgramId == domainEvent.ProgramId)
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                TotalTransactions = g.Count(),
+                TotalCustomers = g.Select(x => x.CustomerId).Distinct().Count(),
+            })
+            .FirstOrDefault();
 
         var totalTransactions = stats?.TotalTransactions ?? 0;
         var totalCustomers = stats?.TotalCustomers ?? 0;
 
         await eventBus.PublishAsync(
-           new TransactionCreatedIntegrationEvent(
-               domainEvent.Id,
-               domainEvent.OccurredAtUtc,
-               totalTransactions,
-               totalCustomers,
-               domainEvent.ProgramId),
-           cancellationToken);
+            new TransactionCreatedIntegrationEvent(
+                domainEvent.Id,
+                domainEvent.OccurredAtUtc,
+                totalTransactions,
+                totalCustomers,
+                domainEvent.ProgramId
+            ),
+            cancellationToken
+        );
     }
 }

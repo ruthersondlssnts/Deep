@@ -20,24 +20,22 @@ public static class GetUsers
         string FirstName,
         string LastName,
         string Email,
-        IReadOnlyCollection<string> Roles);
+        IReadOnlyCollection<string> Roles
+    );
 
-    public sealed class Handler(
-        ProgramsDbContext context)
+    public sealed class Handler(ProgramsDbContext context)
         : IRequestHandler<Query, IReadOnlyCollection<Response>>
     {
         public async Task<Result<IReadOnlyCollection<Response>>> Handle(
             Query request,
-            CancellationToken ct)
+            CancellationToken ct
+        )
         {
-            var accountsQuery = context.Users
-                .Include(a => a.Roles)
-                .AsQueryable();
+            var accountsQuery = context.Users.Include(a => a.Roles).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(request.Role))
             {
-                accountsQuery = accountsQuery
-                    .Where(a => a.Roles.Any(r => r.Name == request.Role));
+                accountsQuery = accountsQuery.Where(a => a.Roles.Any(r => r.Name == request.Role));
             }
 
             var accounts = await accountsQuery
@@ -48,27 +46,30 @@ public static class GetUsers
                     a.FirstName,
                     a.LastName,
                     a.Email,
-                    a.Roles.Select(r => r.Name).ToList()))
+                    a.Roles.Select(r => r.Name).ToList()
+                ))
                 .ToListAsync(ct);
 
             return accounts;
         }
     }
+
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
-            app.MapGet("/users", async (
-                string? role,
-                IRequestHandler<Query, IReadOnlyList<Response>> handler,
-                CancellationToken ct) =>
-            {
-                var result = await handler.Handle(
-                    new Query(role), ct);
+            app.MapGet(
+                    "/users",
+                    async (
+                        string? role,
+                        IRequestHandler<Query, IReadOnlyList<Response>> handler,
+                        CancellationToken ct
+                    ) =>
+                    {
+                        var result = await handler.Handle(new Query(role), ct);
 
-                return result.Match(
-                    Results.Ok,
-                    ApiResults.Problem);
-            })
-            .WithTags("Users");
+                        return result.Match(Results.Ok, ApiResults.Problem);
+                    }
+                )
+                .WithTags("Users");
     }
 }

@@ -9,9 +9,8 @@ public static class AccountErrors
 
     public static readonly Error AccountAlreadyExists = Error.Problem(
         "Account.AlreadyExists",
-        "The user already exists");
+        "The user already exists"
+    );
 
-    public static readonly Error InvalidRole = Error.Problem(
-       "Role.Invalid",
-       "The role is invalid");
+    public static readonly Error InvalidRole = Error.Problem("Role.Invalid", "The role is invalid");
 }

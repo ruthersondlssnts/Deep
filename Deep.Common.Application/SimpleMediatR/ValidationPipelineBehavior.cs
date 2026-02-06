@@ -12,7 +12,8 @@ public sealed class ValidationPipelineBehavior<TRequest, TResponse>
 
     public ValidationPipelineBehavior(
         IRequestHandler<TRequest, TResponse> inner,
-        IEnumerable<IValidator<TRequest>> validators)
+        IEnumerable<IValidator<TRequest>> validators
+    )
     {
         _inner = inner;
         _validators = validators;
@@ -20,7 +21,8 @@ public sealed class ValidationPipelineBehavior<TRequest, TResponse>
 
     public async Task<Result<TResponse>> Handle(
         TRequest request,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (!_validators.Any())
             return await _inner.Handle(request, cancellationToken);
@@ -30,28 +32,18 @@ public sealed class ValidationPipelineBehavior<TRequest, TResponse>
         if (failures.Length == 0)
             return await _inner.Handle(request, cancellationToken);
 
-        return Result<TResponse>.ValidationFailure(
-            CreateValidationError(failures));
+        return Result<TResponse>.ValidationFailure(CreateValidationError(failures));
     }
 
-    private async Task<ValidationFailure[]> ValidateAsync(
-        TRequest request,
-        CancellationToken ct)
+    private async Task<ValidationFailure[]> ValidateAsync(TRequest request, CancellationToken ct)
     {
         var context = new ValidationContext<TRequest>(request);
 
-        var results = await Task.WhenAll(
-            _validators.Select(v => v.ValidateAsync(context, ct)));
+        var results = await Task.WhenAll(_validators.Select(v => v.ValidateAsync(context, ct)));
 
-        return results
-            .Where(r => !r.IsValid)
-            .SelectMany(r => r.Errors)
-            .ToArray();
+        return results.Where(r => !r.IsValid).SelectMany(r => r.Errors).ToArray();
     }
-    private static ValidationError CreateValidationError(
-        IEnumerable<ValidationFailure> failures) =>
-        new(failures
-            .Select(f => Error.Problem(f.ErrorCode, f.ErrorMessage))
-            .ToArray());
-}
 
+    private static ValidationError CreateValidationError(IEnumerable<ValidationFailure> failures) =>
+        new(failures.Select(f => Error.Problem(f.ErrorCode, f.ErrorMessage)).ToArray());
+}

@@ -6,5 +6,5 @@ public enum ProgramStatus
     New,
     InProgress,
     Completed,
-    Cancelled
+    Cancelled,
 }

@@ -25,16 +25,14 @@ public static class UpsertProgramStatistic
         int? TotalCoordinators = null,
         int? TotalBrandAmbassadors = null,
         int? TotalTransactions = null,
-        int? TotalCustomers = null);
+        int? TotalCustomers = null
+    );
+
     public sealed record Response(Guid Id);
 
-    public sealed class Handler(
-        MongoDbContext context)
-        : IRequestHandler<Command, Response>
+    public sealed class Handler(MongoDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(
-        Command request,
-        CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command request, CancellationToken ct)
         {
             var u = Builders<ProgramStatistic>.Update;
             var updates = new List<UpdateDefinition<ProgramStatistic>>();
@@ -48,7 +46,9 @@ public static class UpsertProgramStatistic
             if (request.ProgramStatus is not null)
             {
                 updates.Add(u.Set(x => x.ProgramStatus, request.ProgramStatus.Value));
-                updates.Add(u.Set(x => x.ProgramStatusName, request.ProgramStatus.Value.ToString()));
+                updates.Add(
+                    u.Set(x => x.ProgramStatusName, request.ProgramStatus.Value.ToString())
+                );
             }
 
             if (request.StartsAtUtc is not null)
@@ -67,7 +67,9 @@ public static class UpsertProgramStatistic
                 updates.Add(u.Set(x => x.TotalCoordinators, request.TotalCoordinators.Value));
 
             if (request.TotalBrandAmbassadors is not null)
-                updates.Add(u.Set(x => x.TotalBrandAmbassadors, request.TotalBrandAmbassadors.Value));
+                updates.Add(
+                    u.Set(x => x.TotalBrandAmbassadors, request.TotalBrandAmbassadors.Value)
+                );
 
             if (request.TotalTransactions is not null)
                 updates.Add(u.Set(x => x.TotalTransactions, request.TotalTransactions.Value));
@@ -91,27 +93,36 @@ public static class UpsertProgramStatistic
                 x => x.ProgramId == request.ProgramId,
                 u.Combine(updates),
                 new UpdateOptions { IsUpsert = true },
-                ct);
+                ct
+            );
 
             return new Response(request.ProgramId);
         }
     }
+
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
-            app.MapPost("/program-statistics/{programId:guid}", async (
-                Guid programId,
-                Command command,
-                IRequestHandler<Command, Response> handler,
-                CancellationToken ct) =>
-            {
-                var result = await handler.Handle(
-                    command with { ProgramId = programId }, ct);
+            app.MapPost(
+                    "/program-statistics/{programId:guid}",
+                    async (
+                        Guid programId,
+                        Command command,
+                        IRequestHandler<Command, Response> handler,
+                        CancellationToken ct
+                    ) =>
+                    {
+                        var result = await handler.Handle(
+                            command with
+                            {
+                                ProgramId = programId,
+                            },
+                            ct
+                        );
 
-                return result.Match(
-                    () => Results.NoContent(),
-                    ApiResults.Problem);
-            })
-            .WithTags("ProgramStatistics");
+                        return result.Match(() => Results.NoContent(), ApiResults.Problem);
+                    }
+                )
+                .WithTags("ProgramStatistics");
     }
 }

@@ -24,7 +24,7 @@ public sealed class ProgramAssignment : Entity
             ProgramId = programId,
             UserId = userId,
             Role = role,
-            IsActive = true
+            IsActive = true,
         };
     }
 
@@ -40,13 +40,9 @@ public sealed class ProgramAssignment : Entity
 
         IsActive = false;
 
-        RaiseDomainEvent(new ProgramAssignmentDeactivatedDomainEvent(
-            ProgramId,
-            UserId));
+        RaiseDomainEvent(new ProgramAssignmentDeactivatedDomainEvent(ProgramId, UserId));
     }
 
     private static bool IsAllowedProgramRole(Role role) =>
-        role == Role.Coordinator ||
-        role == Role.ProgramOwner ||
-        role == Role.BrandAmbassador;
+        role == Role.Coordinator || role == Role.ProgramOwner || role == Role.BrandAmbassador;
 }

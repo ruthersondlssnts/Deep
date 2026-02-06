@@ -20,46 +20,39 @@ public static class GetAccount
         string FirstName,
         string LastName,
         string Email,
-        IReadOnlyCollection<Role> Roles);
+        IReadOnlyCollection<Role> Roles
+    );
 
-    public sealed class Handler(AccountsDbContext context)
-        : IRequestHandler<Query, Response>
+    public sealed class Handler(AccountsDbContext context) : IRequestHandler<Query, Response>
     {
-        public async Task<Result<Response>> Handle(
-            Query query,
-            CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(Query query, CancellationToken ct = default)
         {
-            var user = await context.Accounts
-                .Where(u => u.Id == query.Id)
+            var user = await context
+                .Accounts.Where(u => u.Id == query.Id)
                 .Include(u => u.Roles)
-                .Select(u => new Response(
-                    u.Id,
-                    u.FirstName,
-                    u.LastName,
-                    u.Email,
-                    u.Roles))
+                .Select(u => new Response(u.Id, u.FirstName, u.LastName, u.Email, u.Roles))
                 .FirstOrDefaultAsync(ct);
 
-            return user is null
-                ? AccountErrors.NotFound(query.Id)
-                : user;
+            return user is null ? AccountErrors.NotFound(query.Id) : user;
         }
     }
+
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
-            app.MapGet("/accounts/{id:guid}", async (
-                Guid id,
-                IRequestHandler<Query, Response> handler,
-                CancellationToken ct) =>
-            {
-                var result = await handler.Handle(
-                    new Query(id), ct);
+            app.MapGet(
+                    "/accounts/{id:guid}",
+                    async (
+                        Guid id,
+                        IRequestHandler<Query, Response> handler,
+                        CancellationToken ct
+                    ) =>
+                    {
+                        var result = await handler.Handle(new Query(id), ct);
 
-                return result.Match(
-                    Results.Ok,
-                    ApiResults.Problem);
-            })
-            .WithTags("Accounts");
+                        return result.Match(Results.Ok, ApiResults.Problem);
+                    }
+                )
+                .WithTags("Accounts");
     }
 }

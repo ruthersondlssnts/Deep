@@ -12,14 +12,13 @@ public sealed class Role
     public static readonly Role BrandAmbassador = new(RoleNames.BrandAmbassador);
     public static readonly Role Coordinator = new(RoleNames.Coordinator);
 
-
     private static readonly IReadOnlyCollection<Role> All =
     [
         ItAdmin,
         ProgramOwner,
         Manager,
         BrandAmbassador,
-        Coordinator
+        Coordinator,
     ];
 
     private Role(string name)
@@ -29,8 +28,7 @@ public sealed class Role
 
     public static bool TryFromName(string name, out Role role)
     {
-        role = All.FirstOrDefault(r =>
-            r.Name.Equals(name, StringComparison.OrdinalIgnoreCase))!;
+        role = All.FirstOrDefault(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase))!;
         return role is not null;
     }
 

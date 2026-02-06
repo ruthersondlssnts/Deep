@@ -13,7 +13,8 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.HasKey(role => role.Name);
         builder.Property(role => role.Name).HasMaxLength(50);
 
-        builder.HasMany<Account>()
+        builder
+            .HasMany<Account>()
             .WithMany(user => user.Roles)
             .UsingEntity(joinBuilder =>
             {
@@ -27,6 +28,7 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
             Role.Manager,
             Role.ProgramOwner,
             Role.Coordinator,
-            Role.BrandAmbassador);
+            Role.BrandAmbassador
+        );
     }
 }

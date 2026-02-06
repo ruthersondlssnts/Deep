@@ -14,13 +14,15 @@ namespace Deep.Programs.Data.Migrations
                 name: "type",
                 schema: "programs",
                 table: "program_assignments",
-                newName: "role");
+                newName: "role"
+            );
 
             migrationBuilder.RenameIndex(
                 name: "ix_program_assignments_program_id_user_id_type",
                 schema: "programs",
                 table: "program_assignments",
-                newName: "ix_program_assignments_program_id_user_id_role");
+                newName: "ix_program_assignments_program_id_user_id_role"
+            );
 
             migrationBuilder.AddColumn<bool>(
                 name: "is_active",
@@ -28,7 +30,8 @@ namespace Deep.Programs.Data.Migrations
                 table: "program_assignments",
                 type: "boolean",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: false
+            );
 
             migrationBuilder.CreateTable(
                 name: "program_products",
@@ -36,44 +39,54 @@ namespace Deep.Programs.Data.Migrations
                 columns: table => new
                 {
                     program_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    product_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false)
+                    product_name = table.Column<string>(
+                        type: "character varying(200)",
+                        maxLength: 200,
+                        nullable: false
+                    ),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_program_products", x => new { x.program_id, x.product_name });
+                    table.PrimaryKey(
+                        "pk_program_products",
+                        x => new { x.program_id, x.product_name }
+                    );
                     table.ForeignKey(
                         name: "fk_program_products_programs_program_id",
                         column: x => x.program_id,
                         principalSchema: "programs",
                         principalTable: "programs",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "program_products",
-                schema: "programs");
+            migrationBuilder.DropTable(name: "program_products", schema: "programs");
 
             migrationBuilder.DropColumn(
                 name: "is_active",
                 schema: "programs",
-                table: "program_assignments");
+                table: "program_assignments"
+            );
 
             migrationBuilder.RenameColumn(
                 name: "role",
                 schema: "programs",
                 table: "program_assignments",
-                newName: "type");
+                newName: "type"
+            );
 
             migrationBuilder.RenameIndex(
                 name: "ix_program_assignments_program_id_user_id_role",
                 schema: "programs",
                 table: "program_assignments",
-                newName: "ix_program_assignments_program_id_user_id_type");
+                newName: "ix_program_assignments_program_id_user_id_type"
+            );
         }
     }
 }

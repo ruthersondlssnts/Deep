@@ -7,8 +7,8 @@ public sealed class TransactionCreatedIntegrationEvent(
     DateTime occurredAtUtc,
     int totalTransactions,
     int totalCustomers,
-    Guid programId)
-: IntegrationEvent(id, occurredAtUtc)
+    Guid programId
+) : IntegrationEvent(id, occurredAtUtc)
 {
     public int TotalTransactions { get; } = totalTransactions;
     public int TotalCustomers { get; } = totalCustomers;

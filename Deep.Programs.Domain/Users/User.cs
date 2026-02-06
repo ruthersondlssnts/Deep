@@ -19,14 +19,15 @@ public sealed class User : Entity
         string firstName,
         string lastName,
         string email,
-        IEnumerable<Role> roles)
+        IEnumerable<Role> roles
+    )
     {
         var account = new User
         {
             Id = id,
             FirstName = firstName,
             LastName = lastName,
-            Email = email
+            Email = email,
         };
 
         foreach (var role in roles)
@@ -45,6 +46,5 @@ public sealed class User : Entity
         _roles.Add(role);
     }
 
-    public bool HasRole(Role role) =>
-       _roles.Any(r => r == role);
+    public bool HasRole(Role role) => _roles.Any(r => r == role);
 }

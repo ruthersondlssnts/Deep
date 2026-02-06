@@ -4,26 +4,20 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Deep.Programs.Application.Data;
 
-internal sealed class ProgramProductsConfiguration
-: IEntityTypeConfiguration<ProgramProduct>
+internal sealed class ProgramProductsConfiguration : IEntityTypeConfiguration<ProgramProduct>
 {
     public void Configure(EntityTypeBuilder<ProgramProduct> builder)
     {
-        builder.HasKey(p =>
-            new { p.ProgramId, p.ProductName });
+        builder.HasKey(p => new { p.ProgramId, p.ProductName });
 
-        builder.Property(p => p.ProgramId)
-            .IsRequired();
+        builder.Property(p => p.ProgramId).IsRequired();
 
-        builder.Property(p => p.ProductName)
-            .IsRequired()
-            .HasMaxLength(200);
+        builder.Property(p => p.ProductName).IsRequired().HasMaxLength(200);
 
-        builder.HasOne<Program>()
+        builder
+            .HasOne<Program>()
             .WithMany(p => p.Products)
             .HasForeignKey(p => p.ProgramId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
-
-

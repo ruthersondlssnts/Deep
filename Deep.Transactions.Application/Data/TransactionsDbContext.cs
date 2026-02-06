@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Deep.Transactions.Application.Data;
 
 public class TransactionsDbContext(DbContextOptions<TransactionsDbContext> options)
-: DbContext(options)
+    : DbContext(options)
 {
     internal DbSet<Transaction> Transactions => Set<Transaction>();
     internal DbSet<Customer> Customers => Set<Customer>();

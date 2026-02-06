@@ -13,9 +13,7 @@ namespace Deep.Programs.Application.Features.ProgramAssignments;
 
 public static class GetProgramAssignments
 {
-    public sealed record Query(
-        Guid? UserId,
-        Guid? ProgramId);
+    public sealed record Query(Guid? UserId, Guid? ProgramId);
 
     public sealed record Response(
         Guid AssignmentId,
@@ -27,39 +25,40 @@ public static class GetProgramAssignments
         string Role,
         string Firstname,
         string Lastname,
-        bool isActive);
+        bool isActive
+    );
 
-    public sealed class Handler(
-        IDbConnectionFactory dbConnectionFactory)
+    public sealed class Handler(IDbConnectionFactory dbConnectionFactory)
         : IRequestHandler<Query, IReadOnlyList<Response>>
     {
         public async Task<Result<IReadOnlyList<Response>>> Handle(
             Query request,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken
+        )
         {
-            await using var connection =
-                await dbConnectionFactory.OpenConnectionAsync();
+            await using var connection = await dbConnectionFactory.OpenConnectionAsync();
 
             var sql = new StringBuilder(
-               $"""
-                        SELECT
-                            pa.id             AS {nameof(Response.AssignmentId)},
-                            p.id              AS {nameof(Response.ProgramId)},
-                            p.name            AS {nameof(Response.ProgramName)},
-                            p.description     AS {nameof(Response.ProgramDescription)},
-                            p.starts_at_utc   AS {nameof(Response.StartsAtUtc)},
-                            p.ends_at_utc     AS {nameof(Response.EndsAtUtc)},
-                            u.role            AS {nameof(Response.Role)},
-                            u.first_name      AS {nameof(Response.Firstname)},
-                            u.last_name       AS {nameof(Response.Lastname)},    
-                            pa.is_active       AS {nameof(Response.isActive)}
-                        FROM programs.program_assignments pa
-                        INNER JOIN programs.programs p
-                            ON p.id = pa.program_id
-                        INNER JOIN programs.users u
-                            ON u.id = pa.user_id
-                        WHERE 1 = 1
-                    """);
+                $"""
+                    SELECT
+                        pa.id             AS {nameof(Response.AssignmentId)},
+                        p.id              AS {nameof(Response.ProgramId)},
+                        p.name            AS {nameof(Response.ProgramName)},
+                        p.description     AS {nameof(Response.ProgramDescription)},
+                        p.starts_at_utc   AS {nameof(Response.StartsAtUtc)},
+                        p.ends_at_utc     AS {nameof(Response.EndsAtUtc)},
+                        u.role            AS {nameof(Response.Role)},
+                        u.first_name      AS {nameof(Response.Firstname)},
+                        u.last_name       AS {nameof(Response.Lastname)},    
+                        pa.is_active       AS {nameof(Response.isActive)}
+                    FROM programs.program_assignments pa
+                    INNER JOIN programs.programs p
+                        ON p.id = pa.program_id
+                    INNER JOIN programs.users u
+                        ON u.id = pa.user_id
+                    WHERE 1 = 1
+                """
+            );
 
             var parameters = new DynamicParameters();
 
@@ -76,11 +75,9 @@ public static class GetProgramAssignments
             }
 
             sql.Append(" ORDER BY p.starts_at_utc");
-            var assignments = (await connection
-                    .QueryAsync<Response>(
-                        sql.ToString(),
-                        parameters))
-                .AsList();
+            var assignments = (
+                await connection.QueryAsync<Response>(sql.ToString(), parameters)
+            ).AsList();
 
             return assignments;
         }
@@ -89,20 +86,20 @@ public static class GetProgramAssignments
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
-            app.MapGet("/program-assignments", async (
-                Guid? userId,
-                Guid? programId,
-                IRequestHandler<Query, IReadOnlyList<Response>> handler,
-                CancellationToken ct) =>
-            {
-                var result = await handler.Handle(
-                    new Query(userId, programId), ct);
+            app.MapGet(
+                    "/program-assignments",
+                    async (
+                        Guid? userId,
+                        Guid? programId,
+                        IRequestHandler<Query, IReadOnlyList<Response>> handler,
+                        CancellationToken ct
+                    ) =>
+                    {
+                        var result = await handler.Handle(new Query(userId, programId), ct);
 
-                return result.Match(
-                    Results.Ok,
-                    ApiResults.Problem);
-            })
-            .WithTags("ProgramAssignments");
+                        return result.Match(Results.Ok, ApiResults.Problem);
+                    }
+                )
+                .WithTags("ProgramAssignments");
     }
 }
-

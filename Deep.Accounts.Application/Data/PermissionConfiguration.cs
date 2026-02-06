@@ -33,7 +33,8 @@ namespace Deep.Accounts.Data
                 Permission.AssignBrandAmbassador
             );
 
-            builder.HasMany<Role>()
+            builder
+                .HasMany<Role>()
                 .WithMany()
                 .UsingEntity(joinBuilder =>
                 {
@@ -47,7 +48,6 @@ namespace Deep.Accounts.Data
                         CreateRolePermission(Role.ItAdmin, Permission.ReadManagers),
                         CreateRolePermission(Role.ItAdmin, Permission.ReadItAdmins),
                         CreateRolePermission(Role.ItAdmin, Permission.ReadProgramOwners),
-
                         // ProgramOwner permissions
                         CreateRolePermission(Role.ProgramOwner, Permission.RegisterCoordinator),
                         CreateRolePermission(Role.ProgramOwner, Permission.ReadCoordinators),
@@ -56,30 +56,21 @@ namespace Deep.Accounts.Data
                         CreateRolePermission(Role.ProgramOwner, Permission.ModifyPrograms),
                         CreateRolePermission(Role.ProgramOwner, Permission.AssignCoOwner),
                         CreateRolePermission(Role.ProgramOwner, Permission.AssignCoordinator),
-
                         // Manager permissions
                         CreateRolePermission(Role.Manager, Permission.ReadAllPrograms),
-
                         // Coordinator permissions
                         CreateRolePermission(Role.Coordinator, Permission.RegisterBrandAmbassador),
                         CreateRolePermission(Role.Coordinator, Permission.ReadBrandAmbassadors),
                         CreateRolePermission(Role.Coordinator, Permission.AssignBrandAmbassador),
-
                         // BrandAmbassador permissions
                         CreateRolePermission(Role.BrandAmbassador, Permission.ReadOwnPrograms)
                     );
                 });
-
         }
 
         private static object CreateRolePermission(Role role, Permission permission)
         {
-            return new
-            {
-                RoleName = role.Name,
-                PermissionCode = permission.Code
-            };
+            return new { RoleName = role.Name, PermissionCode = permission.Code };
         }
     }
-
 }

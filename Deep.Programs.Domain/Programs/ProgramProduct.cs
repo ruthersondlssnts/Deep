@@ -7,7 +7,6 @@ public class ProgramProduct
     public Guid ProgramId { get; internal set; }
     public string ProductName { get; internal set; } = string.Empty;
 
-
     private ProgramProduct() { }
 
     internal static Result<ProgramProduct> Create(Guid programId, string productName)
@@ -15,10 +14,6 @@ public class ProgramProduct
         if (string.IsNullOrWhiteSpace(productName))
             return ProgramErrors.InvalidProduct;
 
-        return new ProgramProduct
-        {
-            ProgramId = programId,
-            ProductName = productName
-        };
+        return new ProgramProduct { ProgramId = programId, ProductName = productName };
     }
 }

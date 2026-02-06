@@ -9,29 +9,35 @@ using MongoDB.Driver;
 
 namespace Deep.Programs.Application.Features.ProgramStatistics.Projections;
 
-internal sealed class ProgramAssignmentDeactivatedDomainEventHandler(
-   IRequestBus requestBus)
+internal sealed class ProgramAssignmentDeactivatedDomainEventHandler(IRequestBus requestBus)
     : DomainEventHandler<ProgramAssignmentDeactivatedDomainEvent>
 {
     public override async Task Handle(
         ProgramAssignmentDeactivatedDomainEvent domainEvent,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        var program = await requestBus.Send<GetProgram.Response>(new GetProgram.Query(domainEvent.ProgramId), cancellationToken);
+        var program = await requestBus.Send<GetProgram.Response>(
+            new GetProgram.Query(domainEvent.ProgramId),
+            cancellationToken
+        );
 
         if (program == null)
             return;
 
         var result = await requestBus.Send<UpsertProgramStatistic.Response>(
-           new UpsertProgramStatistic.Command(
+            new UpsertProgramStatistic.Command(
                 ProgramId: program.Value.Id,
-                TotalCoordinators: program.Value.Assignments.Count(a => a.RoleName == RoleNames.Coordinator),
-                TotalBrandAmbassadors: program.Value.Assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador)
-           ));
+                TotalCoordinators: program.Value.Assignments.Count(a =>
+                    a.RoleName == RoleNames.Coordinator
+                ),
+                TotalBrandAmbassadors: program.Value.Assignments.Count(a =>
+                    a.RoleName == RoleNames.BrandAmbassador
+                )
+            )
+        );
 
         if (result.IsFailure)
-            throw new DeepException(
-                nameof(UpsertProgramStatistic),
-                result.Error);
+            throw new DeepException(nameof(UpsertProgramStatistic), result.Error);
     }
 }

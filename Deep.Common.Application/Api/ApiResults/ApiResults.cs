@@ -15,7 +15,8 @@ public static class ApiResults
             detail: GetDetail(result.Error),
             type: GetType(result.Error.Type),
             statusCode: GetStatusCode(result.Error.Type),
-            extensions: GetErrors(result));
+            extensions: GetErrors(result)
+        );
     }
 
     private static string GetTitle(Error error) =>
@@ -26,7 +27,7 @@ public static class ApiResults
             ErrorType.NotFound => "Resource not found",
             ErrorType.Conflict => "Conflict",
             ErrorType.Authorization => "Unauthorized",
-            _ => "Server failure"
+            _ => "Server failure",
         };
 
     private static string GetDetail(Error error) =>
@@ -37,18 +38,19 @@ public static class ApiResults
             ErrorType.NotFound => error.Description,
             ErrorType.Conflict => error.Description,
             ErrorType.Authorization => error.Description,
-            _ => "An unexpected error occurred"
+            _ => "An unexpected error occurred",
         };
 
     private static string GetType(ErrorType errorType) =>
         errorType switch
         {
             ErrorType.Validation => "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-            ErrorType.Authorization => "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.3",
+            ErrorType.Authorization =>
+                "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.3",
             ErrorType.NotFound => "https://tools.ietf.org/html/rfc7231#section-6.5.4",
             ErrorType.Conflict => "https://tools.ietf.org/html/rfc7231#section-6.5.8",
             ErrorType.Problem => "https://datatracker.ietf.org/doc/html/rfc4918/#section-11.2",
-            _ => "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+            _ => "https://tools.ietf.org/html/rfc7231#section-6.6.1",
         };
 
     private static int GetStatusCode(ErrorType errorType) =>
@@ -59,7 +61,7 @@ public static class ApiResults
             ErrorType.NotFound => StatusCodes.Status404NotFound,
             ErrorType.Conflict => StatusCodes.Status409Conflict,
             ErrorType.Problem => StatusCodes.Status422UnprocessableEntity,
-            _ => StatusCodes.Status500InternalServerError
+            _ => StatusCodes.Status500InternalServerError,
         };
 
     private static Dictionary<string, object?>? GetErrors(Result result)
@@ -69,9 +71,6 @@ public static class ApiResults
             return null;
         }
 
-        return new Dictionary<string, object?>
-        {
-            { "errors", validationError.Errors }
-        };
+        return new Dictionary<string, object?> { { "errors", validationError.Errors } };
     }
 }

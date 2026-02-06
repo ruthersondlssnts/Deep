@@ -20,26 +20,27 @@ public static class GetPrograms
         string Description,
         DateTime StartsAtUtc,
         DateTime EndsAtUtc,
-        IReadOnlyCollection<string> Products);
+        IReadOnlyCollection<string> Products
+    );
 
     public sealed class Handler(ProgramsDbContext context)
         : IRequestHandler<Query, IReadOnlyList<Response>>
     {
         public async Task<Result<IReadOnlyList<Response>>> Handle(
             Query query,
-            CancellationToken ct = default)
+            CancellationToken ct = default
+        )
         {
-            var programs = await context.Programs
-                .OrderBy(p => p.StartsAtUtc)
+            var programs = await context
+                .Programs.OrderBy(p => p.StartsAtUtc)
                 .Select(p => new Response(
                     p.Id,
                     p.Name,
                     p.Description,
                     p.StartsAtUtc,
                     p.EndsAtUtc,
-                    p.Products
-                        .Select(pp => pp.ProductName)
-                        .ToList()))
+                    p.Products.Select(pp => pp.ProductName).ToList()
+                ))
                 .ToListAsync(ct);
 
             return programs;
@@ -50,17 +51,19 @@ public static class GetPrograms
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapGet("/programs", async (
-                IRequestHandler<Query, IReadOnlyList<Response>> handler,
-                CancellationToken ct) =>
-            {
-                var result = await handler.Handle(new Query(), ct);
+            app.MapGet(
+                    "/programs",
+                    async (
+                        IRequestHandler<Query, IReadOnlyList<Response>> handler,
+                        CancellationToken ct
+                    ) =>
+                    {
+                        var result = await handler.Handle(new Query(), ct);
 
-                return result.Match(
-                    Results.Ok,
-                    ApiResults.Problem);
-            })
-            .WithTags("Programs");
+                        return result.Match(Results.Ok, ApiResults.Problem);
+                    }
+                )
+                .WithTags("Programs");
         }
     }
 }

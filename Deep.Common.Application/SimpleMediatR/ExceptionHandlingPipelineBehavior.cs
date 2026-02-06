@@ -13,7 +13,8 @@ public sealed class ExceptionHandlingPipelineBehavior<TRequest, TResponse>
 
     public ExceptionHandlingPipelineBehavior(
         IRequestHandler<TRequest, TResponse> inner,
-        ILogger<ExceptionHandlingPipelineBehavior<TRequest, TResponse>> logger)
+        ILogger<ExceptionHandlingPipelineBehavior<TRequest, TResponse>> logger
+    )
     {
         _inner = inner;
         _logger = logger;
@@ -21,7 +22,8 @@ public sealed class ExceptionHandlingPipelineBehavior<TRequest, TResponse>
 
     public async Task<Result<TResponse>> Handle(
         TRequest request,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
@@ -32,12 +34,10 @@ public sealed class ExceptionHandlingPipelineBehavior<TRequest, TResponse>
             _logger.LogError(
                 exception,
                 "Unhandled exception for {RequestName}",
-                typeof(TRequest).Name);
+                typeof(TRequest).Name
+            );
 
-            throw new DeepException(
-                typeof(TRequest).Name,
-                innerException: exception);
+            throw new DeepException(typeof(TRequest).Name, innerException: exception);
         }
     }
 }
-

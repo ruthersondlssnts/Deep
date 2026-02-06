@@ -27,23 +27,22 @@ public static class GetProgramStatistic
         string FullName,
         int TotalCoordinators,
         int TotalBrandAmbassadors,
-        int TotalTransactions);
+        int TotalTransactions
+    );
 
-
-    public sealed class Handler(
-        MongoDbContext context)
-        : IRequestHandler<Query, Response>
+    public sealed class Handler(MongoDbContext context) : IRequestHandler<Query, Response>
     {
-        public async Task<Result<Response>> Handle(
-            Query request,
-            CancellationToken ct)
+        public async Task<Result<Response>> Handle(Query request, CancellationToken ct)
         {
-            var stat = await context.ProgramStatistics
-                .Find(x => x.ProgramId == request.ProgramId)
+            var stat = await context
+                .ProgramStatistics.Find(x => x.ProgramId == request.ProgramId)
                 .FirstOrDefaultAsync(ct);
 
             if (stat is null)
-                return Error.NotFound("ProgramStatistic.NotFound", $"The program statistic with the identifier {request.ProgramId} was not found");
+                return Error.NotFound(
+                    "ProgramStatistic.NotFound",
+                    $"The program statistic with the identifier {request.ProgramId} was not found"
+                );
 
             return new Response(
                 stat.ProgramId,
@@ -57,25 +56,27 @@ public static class GetProgramStatistic
                 stat.Owner,
                 stat.TotalCoordinators,
                 stat.TotalBrandAmbassadors,
-                stat.TotalTransactions);
+                stat.TotalTransactions
+            );
         }
     }
 
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
-            app.MapGet("/program-statistics/{programId:guid}", async (
-                Guid programId,
-                IRequestHandler<Query, Response> handler,
-                CancellationToken ct) =>
-            {
-                var result = await handler.Handle(
-                    new Query(programId), ct);
+            app.MapGet(
+                    "/program-statistics/{programId:guid}",
+                    async (
+                        Guid programId,
+                        IRequestHandler<Query, Response> handler,
+                        CancellationToken ct
+                    ) =>
+                    {
+                        var result = await handler.Handle(new Query(programId), ct);
 
-                return result.Match(
-                    Results.Ok,
-                    ApiResults.Problem);
-            })
-            .WithTags("ProgramStatistics");
+                        return result.Match(Results.Ok, ApiResults.Problem);
+                    }
+                )
+                .WithTags("ProgramStatistics");
     }
 }

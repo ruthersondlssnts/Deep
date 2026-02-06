@@ -6,8 +6,8 @@ namespace Deep.Programs.Application.Features.Programs;
 internal sealed class ProgramCreatedNotificationHandler()
     : DomainEventHandler<ProgramCreatedDomainEvent>
 {
-    public override async Task Handle(ProgramCreatedDomainEvent domainEvent, CancellationToken cancellationToken = default)
-    {
-
-    }
+    public override async Task Handle(
+        ProgramCreatedDomainEvent domainEvent,
+        CancellationToken cancellationToken = default
+    ) { }
 }
