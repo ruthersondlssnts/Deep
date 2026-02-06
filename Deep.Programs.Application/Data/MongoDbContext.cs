@@ -1,4 +1,7 @@
-﻿using Deep.Programs.Application.Features.ProgramStatistics;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using Deep.Programs.Application.Features.ProgramStatistics;
 using MongoDB.Driver;
 
 namespace Deep.Programs.Application.Data;

@@ -1,6 +1,8 @@
-﻿using Deep.Common.Domain;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using Deep.Common.Domain;
 using Deep.Programs.Domain.ProgramAssignments;
-using Deep.Programs.Domain.Users;
 
 namespace Deep.Programs.Domain.Programs;
 
@@ -47,9 +49,9 @@ public class Program : Entity
             return ProgramErrors.AtLeastOneProductRequired;
 
         var validationResult = ValidateAssignment(
-            assignments.Count(a => a.RoleName == Role.Coordinator.Name),
-            assignments.Count(a => a.RoleName == Role.ProgramOwner.Name),
-            assignments.Count(a => a.RoleName == Role.BrandAmbassador.Name),
+            assignments.Count(a => a.RoleName == RoleNames.Coordinator),
+            assignments.Count(a => a.RoleName == RoleNames.ProgramOwner),
+            assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador),
             ProgramStatus.New);
 
         if (validationResult.IsFailure)

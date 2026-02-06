@@ -1,4 +1,7 @@
-﻿using Deep.Programs.Domain.Programs;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using Deep.Programs.Domain.Programs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,8 +12,6 @@ internal sealed class ProgramProductsConfiguration
 {
     public void Configure(EntityTypeBuilder<ProgramProduct> builder)
     {
-        builder.ToTable("program_products");
-
         builder.HasKey(p =>
             new { p.ProgramId, p.ProductName });
 

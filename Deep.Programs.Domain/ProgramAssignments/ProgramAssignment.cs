@@ -1,4 +1,7 @@
-﻿using Deep.Common.Domain;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using Deep.Common.Domain;
 using Deep.Programs.Domain.Users;
 
 namespace Deep.Programs.Domain.ProgramAssignments;
@@ -15,8 +18,8 @@ public sealed class ProgramAssignment : Entity
 
     public static Result<ProgramAssignment> Create(Guid programId, Guid userId, string roleName)
     {
-        if (!Role.TryFromName(roleName, out var role))
-            return UserErrors.InvalidRole;
+        if (!Role.TryFromName(roleName, out var role) && !IsAllowedProgramRole(role))
+            return ProgramAssignmentErrors.InvalidRole;
 
         return new ProgramAssignment
         {
@@ -44,4 +47,9 @@ public sealed class ProgramAssignment : Entity
             ProgramId,
             UserId));
     }
+
+    private static bool IsAllowedProgramRole(Role role) =>
+        role == Role.Coordinator ||
+        role == Role.ProgramOwner ||
+        role == Role.BrandAmbassador;
 }

@@ -3,17 +3,20 @@ using System;
 using Deep.Programs.Application.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Deep.Programs.Data.Migrations
+namespace Deep.Programs.Application.Data.Migrations
 {
     [DbContext(typeof(ProgramsDbContext))]
-    partial class ProgramsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260205143640_AddRoleToProgramAssignment")]
+    partial class AddRoleToProgramAssignment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

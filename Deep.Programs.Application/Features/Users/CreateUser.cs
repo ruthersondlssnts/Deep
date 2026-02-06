@@ -1,4 +1,7 @@
-﻿using Deep.Common.Application.SimpleMediatR;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.Users;

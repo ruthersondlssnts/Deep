@@ -1,4 +1,7 @@
-﻿using Deep.Common.Domain;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using Deep.Common.Domain;
 
 namespace Deep.Programs.Domain.ProgramAssignments;
 
@@ -14,4 +17,8 @@ public static class ProgramAssignmentErrors
     public static Error InvalidProgramAssignment = Error.Problem(
        "ProgramAssignment.InvalidProgramAssignment",
        "The program assignment is invalid");
+
+    public static readonly Error InvalidRole = Error.Problem(
+          "ProgramAssignment.InvalidRole",
+          "The role is invalid");
 }

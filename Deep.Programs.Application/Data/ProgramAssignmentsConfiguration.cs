@@ -1,4 +1,7 @@
-﻿using Deep.Programs.Domain.ProgramAssignments;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
 using Deep.Programs.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -13,28 +16,33 @@ internal sealed class ProgramAssignmentsConfiguration
     {
         builder.HasKey(a => a.Id);
 
-        builder.Property(a => a.Id)
-            .ValueGeneratedNever();
+        builder.Property(a => a.ProgramId).IsRequired();
+        builder.Property(a => a.UserId).IsRequired();
+        builder.Property(a => a.IsActive).IsRequired();
 
-        builder.Property(a => a.ProgramId)
+        // Shadow FK column
+        builder.Property<string>("RoleName")
+            .HasColumnName("role_name")
+            .HasMaxLength(50)
             .IsRequired();
 
-        builder.Property(a => a.UserId)
-            .IsRequired();
-
-        builder.Property(a => a.Role)
+        // Foreign key to Role.Name
+        builder.HasOne(a => a.Role)
+            .WithMany()
+            .HasForeignKey("RoleName")
+            .HasPrincipalKey(r => r.Name)
             .IsRequired()
-            .HasConversion<string>();
+            .OnDelete(DeleteBehavior.Restrict);
 
-        // Prevent duplicate assignments
-        builder.HasIndex(a => new { a.ProgramId, a.UserId, a.Role })
+        builder.HasIndex(
+            nameof(ProgramAssignment.ProgramId),
+            nameof(ProgramAssignment.UserId),
+            "RoleName")
             .IsUnique();
 
-        // Query performance
         builder.HasIndex(a => a.ProgramId);
         builder.HasIndex(a => a.UserId);
 
-        // OPTIONAL: foreign keys (soft boundaries)
         builder.HasOne<Program>()
             .WithMany()
             .HasForeignKey(a => a.ProgramId)
@@ -46,4 +54,3 @@ internal sealed class ProgramAssignmentsConfiguration
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
-
