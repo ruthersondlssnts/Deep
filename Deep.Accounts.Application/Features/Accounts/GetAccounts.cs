@@ -1,4 +1,5 @@
 using Deep.Accounts.Application.Data;
+using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
@@ -31,14 +32,14 @@ public static class GetAccounts
             CancellationToken ct
         )
         {
-            var accountsQuery = context.Accounts.Include(a => a.Roles).AsQueryable();
+            IQueryable<Account> accountsQuery = context.Accounts.Include(a => a.Roles).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(request.Role))
             {
                 accountsQuery = accountsQuery.Where(a => a.Roles.Any(r => r.Name == request.Role));
             }
 
-            var accounts = await accountsQuery
+            List<Response> accounts = await accountsQuery
                 .OrderBy(a => a.LastName)
                 .ThenBy(a => a.FirstName)
                 .Select(a => new Response(
@@ -65,7 +66,7 @@ public static class GetAccounts
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(new Query(role), ct);
+                        Result<IReadOnlyList<Response>> result = await handler.Handle(new Query(role), ct);
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

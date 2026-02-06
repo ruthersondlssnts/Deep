@@ -1,7 +1,7 @@
 using Deep.Api.Extensions;
 using Deep.Common.Application.Api.Endpoints;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
@@ -20,7 +20,7 @@ builder
 
 builder.ApplyAspire(postgresDb, mongoDb, rabbitmq);
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {

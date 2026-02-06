@@ -33,7 +33,7 @@ public static class CreateTransaction
     {
         public async Task<Result<Response>> Handle(Command command, CancellationToken ct = default)
         {
-            var customer = await context.Customers.FirstOrDefaultAsync(
+            Customer? customer = await context.Customers.FirstOrDefaultAsync(
                 c => c.Email == command.CustomerEmail,
                 ct
             );
@@ -45,7 +45,7 @@ public static class CreateTransaction
                 context.Customers.Add(customer);
             }
 
-            var transaction = Transaction.Create(command.ProgramId, customer.Id).Value;
+            Transaction transaction = Transaction.Create(command.ProgramId, customer.Id).Value;
 
             context.Transactions.Add(transaction);
             await context.SaveChangesAsync(ct);
@@ -65,7 +65,7 @@ public static class CreateTransaction
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(command, ct);
+                        Result<Response> result = await handler.Handle(command, ct);
 
                         return result.Match(
                             () =>

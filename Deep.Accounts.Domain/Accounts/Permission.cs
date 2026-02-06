@@ -29,8 +29,5 @@ public sealed class Permission
 
     public string Code { get; }
 
-    public Permission(string code)
-    {
-        Code = code;
-    }
+    public Permission(string code) => Code = code;
 }

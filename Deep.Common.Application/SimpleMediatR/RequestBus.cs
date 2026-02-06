@@ -10,9 +10,9 @@ public sealed class RequestBus(IServiceProvider provider) : IRequestBus
         CancellationToken ct = default
     )
     {
-        var requestType = request.GetType();
+        Type requestType = request.GetType();
 
-        var handlerType = typeof(IRequestHandler<,>).MakeGenericType(
+        Type handlerType = typeof(IRequestHandler<,>).MakeGenericType(
             requestType,
             typeof(TResponse)
         );

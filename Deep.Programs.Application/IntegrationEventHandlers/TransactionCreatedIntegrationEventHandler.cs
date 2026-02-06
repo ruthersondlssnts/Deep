@@ -1,5 +1,6 @@
 using Deep.Common.Application.Exceptions;
 using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Domain;
 using Deep.Programs.Application.Features.ProgramStatistics;
 using Deep.Transactions.IntegrationEvents;
 using MassTransit;
@@ -12,7 +13,7 @@ public sealed class TransactionCreatedIntegrationEventHandler(
 {
     public async Task Consume(ConsumeContext<TransactionCreatedIntegrationEvent> context)
     {
-        var result = await handler.Handle(
+        Result<UpsertProgramStatistic.Response> result = await handler.Handle(
             new UpsertProgramStatistic.Command(
                 ProgramId: context.Message.ProgramId,
                 TotalTransactions: context.Message.TotalTransactions,
@@ -22,6 +23,8 @@ public sealed class TransactionCreatedIntegrationEventHandler(
         );
 
         if (result.IsFailure)
+        {
             throw new DeepException(nameof(UpsertProgramStatistic), result.Error);
+        }
     }
 }

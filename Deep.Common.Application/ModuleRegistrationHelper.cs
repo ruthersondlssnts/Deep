@@ -60,7 +60,7 @@ public static class ModuleRegistrationHelper
         configureSerializers?.Invoke();
         services.AddSingleton<IMongoDatabase>(sp =>
         {
-            var client = sp.GetRequiredService<IMongoClient>();
+            IMongoClient client = sp.GetRequiredService<IMongoClient>();
             return client.GetDatabase(databaseName);
         });
         services.AddScoped<TContext>();
@@ -76,7 +76,7 @@ public static class ModuleRegistrationHelper
         services.AddDbContext<TDbContext>(
             (sp, options) =>
             {
-                var configuration = sp.GetRequiredService<IConfiguration>();
+                IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
                 Postgres.StandardOptions(configuration, schema)(sp, options);
             }
         );
@@ -86,8 +86,5 @@ public static class ModuleRegistrationHelper
     public static void ConfigureConsumers(
         Assembly assembly,
         IRegistrationConfigurator registrationConfigurator
-    )
-    {
-        registrationConfigurator.AddConsumers(assembly);
-    }
+    ) => registrationConfigurator.AddConsumers(assembly);
 }

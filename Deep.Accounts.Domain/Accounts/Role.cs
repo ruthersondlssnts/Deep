@@ -21,10 +21,7 @@ public sealed class Role
         Coordinator,
     ];
 
-    private Role(string name)
-    {
-        Name = name;
-    }
+    private Role(string name) => Name = name;
 
     public static bool TryFromName(string name, out Role role)
     {

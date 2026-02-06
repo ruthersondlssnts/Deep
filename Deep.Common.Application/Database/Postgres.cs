@@ -12,9 +12,7 @@ public static class Postgres
         IConfiguration configuration,
         string schema
     ) =>
-        (serviceProvider, options) =>
-        {
-            options
+        (serviceProvider, options) => options
                 .UseNpgsql(
                     configuration.GetConnectionString("deep-db")!,
                     npgsql =>
@@ -22,5 +20,4 @@ public static class Postgres
                 )
                 .UseSnakeCaseNamingConvention()
                 .AddInterceptors(serviceProvider.GetServices<IInterceptor>());
-        };
 }

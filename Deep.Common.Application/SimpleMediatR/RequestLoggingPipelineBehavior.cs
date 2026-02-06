@@ -14,7 +14,7 @@ public sealed class RequestLoggingPipelineBehavior<TRequest, TResponse>(
         CancellationToken cancellationToken = default
     )
     {
-        var requestType = typeof(TRequest);
+        Type requestType = typeof(TRequest);
 
         var requestName = requestType.DeclaringType is not null
             ? $"{requestType.DeclaringType.Name}.{requestType.Name}"
@@ -26,7 +26,7 @@ public sealed class RequestLoggingPipelineBehavior<TRequest, TResponse>(
         {
             logger.LogInformation("Processing request {RequestName}", requestName);
 
-            var result = await innerHandler.Handle(request, cancellationToken);
+            Result<TResponse> result = await innerHandler.Handle(request, cancellationToken);
 
             if (result.IsSuccess)
             {

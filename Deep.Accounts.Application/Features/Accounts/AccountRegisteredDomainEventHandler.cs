@@ -4,6 +4,7 @@ using Deep.Common.Application.DomainEvents;
 using Deep.Common.Application.Exceptions;
 using Deep.Common.Application.IntegrationEvents;
 using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Domain;
 
 namespace Deep.Accounts.Application.Features.Accounts;
 
@@ -17,15 +18,17 @@ internal sealed class AccountRegisteredDomainEventHandler(
         CancellationToken cancellationToken = default
     )
     {
-        var result = await getAccountHandler.Handle(
+        Result<GetAccount.Response> result = await getAccountHandler.Handle(
             new GetAccount.Query(notification.AccountId),
             cancellationToken
         );
 
         if (result.IsFailure)
+        {
             throw new DeepException(nameof(GetAccount), result.Error);
+        }
 
-        var account = result.Value;
+        GetAccount.Response account = result.Value;
 
         await eventBus.PublishAsync(
             new AccountRegisteredIntegrationEvent(

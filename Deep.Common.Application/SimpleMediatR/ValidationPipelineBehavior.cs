@@ -25,12 +25,16 @@ public sealed class ValidationPipelineBehavior<TRequest, TResponse>
     )
     {
         if (!_validators.Any())
+        {
             return await _inner.Handle(request, cancellationToken);
+        }
 
-        var failures = await ValidateAsync(request, cancellationToken);
+        ValidationFailure[] failures = await ValidateAsync(request, cancellationToken);
 
         if (failures.Length == 0)
+        {
             return await _inner.Handle(request, cancellationToken);
+        }
 
         return Result<TResponse>.ValidationFailure(CreateValidationError(failures));
     }
@@ -39,7 +43,7 @@ public sealed class ValidationPipelineBehavior<TRequest, TResponse>
     {
         var context = new ValidationContext<TRequest>(request);
 
-        var results = await Task.WhenAll(_validators.Select(v => v.ValidateAsync(context, ct)));
+        ValidationResult[] results = await Task.WhenAll(_validators.Select(v => v.ValidateAsync(context, ct)));
 
         return results.Where(r => !r.IsValid).SelectMany(r => r.Errors).ToArray();
     }

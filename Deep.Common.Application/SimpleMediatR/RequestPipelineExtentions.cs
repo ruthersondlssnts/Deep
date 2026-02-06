@@ -9,7 +9,7 @@ public static class RequestPipelineExtensions
         params Type[] pipelineTypes
     )
     {
-        foreach (var pipelineType in pipelineTypes)
+        foreach (Type pipelineType in pipelineTypes)
         {
             services.Decorate(typeof(IRequestHandler<,>), pipelineType);
         }

@@ -3,6 +3,7 @@ using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
+using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
@@ -20,23 +21,22 @@ public static class DeleteProgramAssignment
 
     public sealed class Validator : AbstractValidator<Command>
     {
-        public Validator()
-        {
-            RuleFor(x => x.AssignmentId).NotEmpty();
-        }
+        public Validator() => RuleFor(x => x.AssignmentId).NotEmpty();
     }
 
     public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            var assignment = await context.ProgramAssignments.FirstOrDefaultAsync(
+            ProgramAssignment? assignment = await context.ProgramAssignments.FirstOrDefaultAsync(
                 a => a.Id == c.AssignmentId,
                 ct
             );
 
             if (assignment is null)
+            {
                 return ProgramErrors.NotFound(c.AssignmentId);
+            }
 
             assignment.Deactivate();
 
@@ -57,7 +57,7 @@ public static class DeleteProgramAssignment
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(new Command(id), ct);
+                        Result<Response> result = await handler.Handle(new Command(id), ct);
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

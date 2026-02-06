@@ -40,15 +40,21 @@ public class Program : Entity
     )
     {
         if (endsAtUtc < startsAtUtc)
+        {
             return ProgramErrors.EndDatePrecedesStartDate;
+        }
 
         if (startsAtUtc < DateTime.UtcNow)
+        {
             return ProgramErrors.StartDateInPast;
+        }
 
         if (productNames is null || !productNames.Any())
+        {
             return ProgramErrors.AtLeastOneProductRequired;
+        }
 
-        var validationResult = ValidateAssignment(
+        Result validationResult = ValidateAssignment(
             assignments.Count(a => a.RoleName == RoleNames.Coordinator),
             assignments.Count(a => a.RoleName == RoleNames.ProgramOwner),
             assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador),
@@ -56,7 +62,9 @@ public class Program : Entity
         );
 
         if (validationResult.IsFailure)
+        {
             return validationResult.Error;
+        }
 
         var program = new Program
         {
@@ -70,15 +78,19 @@ public class Program : Entity
         };
 
         foreach (var productName in productNames)
+        {
             program.AddProduct(productName);
+        }
 
         var assignmentEntities = new List<ProgramAssignment>();
 
-        foreach (var (userId, roleName) in assignments)
+        foreach ((Guid userId, string? roleName) in assignments)
         {
-            var assignmentResult = ProgramAssignment.Create(program.Id, userId, roleName);
+            Result<ProgramAssignment> assignmentResult = ProgramAssignment.Create(program.Id, userId, roleName);
             if (assignmentResult.IsFailure)
+            {
                 return assignmentResult.Error;
+            }
 
             assignmentEntities.Add(assignmentResult.Value);
         }
@@ -99,15 +111,21 @@ public class Program : Entity
     )
     {
         if (endsAtUtc < startsAtUtc)
+        {
             return new(ProgramErrors.EndDatePrecedesStartDate, Array.Empty<ProgramAssignment>());
+        }
 
         if (startsAtUtc < DateTime.UtcNow)
+        {
             return new(ProgramErrors.StartDateInPast, Array.Empty<ProgramAssignment>());
+        }
 
         if (productNames is null || !productNames.Any())
+        {
             return new(ProgramErrors.AtLeastOneProductRequired, Array.Empty<ProgramAssignment>());
+        }
 
-        var validation = ValidateAssignment(
+        Result validation = ValidateAssignment(
             desired.Count(a => a.RoleName == RoleNames.Coordinator),
             desired.Count(a => a.RoleName == RoleNames.ProgramOwner),
             desired.Count(a => a.RoleName == RoleNames.BrandAmbassador),
@@ -115,7 +133,9 @@ public class Program : Entity
         );
 
         if (validation.IsFailure)
+        {
             return new(validation, Array.Empty<ProgramAssignment>());
+        }
 
         Name = name;
         Description = description;
@@ -126,9 +146,13 @@ public class Program : Entity
 
         var desiredSet = desired.Select(a => (a.UserId, a.RoleName)).ToHashSet();
 
-        foreach (var existing in existingAssignments)
+        foreach (ProgramAssignment existing in existingAssignments)
+        {
             if (!desiredSet.Contains((existing.UserId, existing.Role.Name)))
+            {
                 existing.SetActive(false);
+            }
+        }
 
         var existingSet = existingAssignments
             .Where(a => a.IsActive)
@@ -137,11 +161,13 @@ public class Program : Entity
 
         var toCreate = new List<ProgramAssignment>();
 
-        foreach (var (userId, roleName) in desiredSet.Except(existingSet))
+        foreach ((Guid userId, string? roleName) in desiredSet.Except(existingSet))
         {
-            var createResult = ProgramAssignment.Create(Id, userId, roleName);
+            Result<ProgramAssignment> createResult = ProgramAssignment.Create(Id, userId, roleName);
             if (createResult.IsFailure)
+            {
                 return new(createResult, Array.Empty<ProgramAssignment>());
+            }
 
             toCreate.Add(createResult.Value);
         }
@@ -159,13 +185,19 @@ public class Program : Entity
     )
     {
         if (programStatus == ProgramStatus.InProgress && brandAmbassadorCount < 1)
+        {
             return ProgramErrors.BrandAmbassadorRequired;
+        }
 
         if (coordinatorCount < 1)
+        {
             return ProgramErrors.CoordinatorRequired;
+        }
 
         if (coOwnerCount > 2)
+        {
             return ProgramErrors.TooManyCoOwners;
+        }
 
         return Result.Success();
     }
@@ -175,11 +207,10 @@ public class Program : Entity
         _products.Clear();
 
         foreach (var name in productNames)
+        {
             _products.Add(ProgramProduct.Create(Id, name));
+        }
     }
 
-    private void AddProduct(string productName)
-    {
-        _products.Add(ProgramProduct.Create(Id, productName));
-    }
+    private void AddProduct(string productName) => _products.Add(ProgramProduct.Create(Id, productName));
 }

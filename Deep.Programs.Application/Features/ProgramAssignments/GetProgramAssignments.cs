@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Text;
 using Dapper;
 using Deep.Common.Application.Api.ApiResults;
@@ -36,7 +37,7 @@ public static class GetProgramAssignments
             CancellationToken cancellationToken
         )
         {
-            await using var connection = await dbConnectionFactory.OpenConnectionAsync();
+            await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
 
             var sql = new StringBuilder(
                 $"""
@@ -75,7 +76,7 @@ public static class GetProgramAssignments
             }
 
             sql.Append(" ORDER BY p.starts_at_utc");
-            var assignments = (
+            List<Response> assignments = (
                 await connection.QueryAsync<Response>(sql.ToString(), parameters)
             ).AsList();
 
@@ -95,7 +96,7 @@ public static class GetProgramAssignments
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(new Query(userId, programId), ct);
+                        Result<IReadOnlyList<Response>> result = await handler.Handle(new Query(userId, programId), ct);
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

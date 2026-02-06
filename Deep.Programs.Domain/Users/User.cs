@@ -30,7 +30,7 @@ public sealed class User : Entity
             Email = email,
         };
 
-        foreach (var role in roles)
+        foreach (Role role in roles)
         {
             account.AddRole(role);
         }
@@ -41,7 +41,9 @@ public sealed class User : Entity
     private void AddRole(Role role)
     {
         if (_roles.Any(r => r.Name == role.Name))
+        {
             return;
+        }
 
         _roles.Add(role);
     }

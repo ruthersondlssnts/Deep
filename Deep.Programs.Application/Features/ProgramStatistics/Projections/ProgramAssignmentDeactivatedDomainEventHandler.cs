@@ -17,15 +17,17 @@ internal sealed class ProgramAssignmentDeactivatedDomainEventHandler(IRequestBus
         CancellationToken cancellationToken = default
     )
     {
-        var program = await requestBus.Send<GetProgram.Response>(
+        Result<GetProgram.Response> program = await requestBus.Send<GetProgram.Response>(
             new GetProgram.Query(domainEvent.ProgramId),
             cancellationToken
         );
 
         if (program == null)
+        {
             return;
+        }
 
-        var result = await requestBus.Send<UpsertProgramStatistic.Response>(
+        Result<UpsertProgramStatistic.Response> result = await requestBus.Send<UpsertProgramStatistic.Response>(
             new UpsertProgramStatistic.Command(
                 ProgramId: program.Value.Id,
                 TotalCoordinators: program.Value.Assignments.Count(a =>
@@ -38,6 +40,8 @@ internal sealed class ProgramAssignmentDeactivatedDomainEventHandler(IRequestBus
         );
 
         if (result.IsFailure)
+        {
             throw new DeepException(nameof(UpsertProgramStatistic), result.Error);
+        }
     }
 }

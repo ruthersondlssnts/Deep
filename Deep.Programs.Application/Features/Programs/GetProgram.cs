@@ -39,7 +39,7 @@ public static class GetProgram
     {
         public async Task<Result<Response>> Handle(Query query, CancellationToken ct = default)
         {
-            var program = await context
+            Response? program = await context
                 .Programs.AsNoTracking()
                 .Where(p => p.Id == query.Id)
                 .Select(p => new Response(
@@ -79,9 +79,7 @@ public static class GetProgram
 
     public sealed class Endpoint : IEndpoint
     {
-        public void MapEndpoint(IEndpointRouteBuilder app)
-        {
-            app.MapGet(
+        public void MapEndpoint(IEndpointRouteBuilder app) => app.MapGet(
                     "/programs/{id:guid}",
                     async (
                         Guid id,
@@ -89,12 +87,11 @@ public static class GetProgram
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(new Query(id), ct);
+                        Result<Response> result = await handler.Handle(new Query(id), ct);
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }
                 )
                 .WithTags("Programs");
-        }
     }
 }

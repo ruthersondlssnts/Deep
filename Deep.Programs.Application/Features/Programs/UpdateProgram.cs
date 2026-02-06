@@ -3,7 +3,9 @@ using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
+using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
+using Deep.Programs.Domain.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -64,14 +66,16 @@ public static class UpdateProgram
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            var program = await context
+            Program? program = await context
                 .Programs.Include(p => p.Products)
                 .SingleOrDefaultAsync(p => p.Id == c.ProgramId, ct);
 
             if (program is null)
+            {
                 return ProgramErrors.NotFound(c.ProgramId);
+            }
 
-            var users = await context
+            List<User> users = await context
                 .Users.Include(u => u.Roles)
                 .Where(u =>
                     c.Users.Any(cu => cu.UserId == u.Id && u.Roles.Any(r => r.Name == cu.RoleName))
@@ -79,15 +83,17 @@ public static class UpdateProgram
                 .ToListAsync(ct);
 
             if (users.Count != c.Users.Count)
+            {
                 return ProgramErrors.ProgramUserNotFound;
+            }
 
-            var existingAssignments = await context
+            List<ProgramAssignment> existingAssignments = await context
                 .ProgramAssignments.Where(a => a.ProgramId == program.Id)
                 .ToListAsync(ct);
 
             var desired = c.Users.Select(u => (u.UserId, u.RoleName)).ToList();
 
-            var update = program.UpdateDetails(
+            ProgramUpdateResult update = program.UpdateDetails(
                 c.Name,
                 c.Description,
                 c.StartsAtUtc,
@@ -98,7 +104,9 @@ public static class UpdateProgram
             );
 
             if (update.Result.IsFailure)
+            {
                 return update.Result.Error;
+            }
 
             context.ProgramAssignments.AddRange(update.NewAssignments);
 
@@ -120,7 +128,7 @@ public static class UpdateProgram
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(
+                        Result<Response> result = await handler.Handle(
                             command with
                             {
                                 ProgramId = programId,

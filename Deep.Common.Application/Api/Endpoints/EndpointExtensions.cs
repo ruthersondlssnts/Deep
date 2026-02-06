@@ -13,7 +13,7 @@ public static class EndpointExtensions
         params Assembly[] assemblies
     )
     {
-        var serviceDescriptors = assemblies
+        ServiceDescriptor[] serviceDescriptors = assemblies
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type =>
                 type is { IsAbstract: false, IsInterface: false }
@@ -32,11 +32,11 @@ public static class EndpointExtensions
         RouteGroupBuilder? routeGroupBuilder = null
     )
     {
-        var endpoints = app.Services.GetRequiredService<IEnumerable<IEndpoint>>();
+        IEnumerable<IEndpoint> endpoints = app.Services.GetRequiredService<IEnumerable<IEndpoint>>();
 
         IEndpointRouteBuilder builder = routeGroupBuilder is null ? app : routeGroupBuilder;
 
-        foreach (var endpoint in endpoints)
+        foreach (IEndpoint endpoint in endpoints)
         {
             endpoint.MapEndpoint(builder);
         }

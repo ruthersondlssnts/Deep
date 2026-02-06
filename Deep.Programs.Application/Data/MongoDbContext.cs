@@ -7,10 +7,7 @@ public sealed class MongoDbContext
 {
     private readonly IMongoDatabase _database;
 
-    public MongoDbContext(IMongoDatabase database)
-    {
-        _database = database;
-    }
+    public MongoDbContext(IMongoDatabase database) => _database = database;
 
     public IMongoCollection<ProgramStatistic> ProgramStatistics =>
         _database.GetCollection<ProgramStatistic>("program-statistics");

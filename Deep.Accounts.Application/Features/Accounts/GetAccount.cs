@@ -27,7 +27,7 @@ public static class GetAccount
     {
         public async Task<Result<Response>> Handle(Query query, CancellationToken ct = default)
         {
-            var user = await context
+            Response? user = await context
                 .Accounts.Where(u => u.Id == query.Id)
                 .Include(u => u.Roles)
                 .Select(u => new Response(u.Id, u.FirstName, u.LastName, u.Email, u.Roles))
@@ -48,7 +48,7 @@ public static class GetAccount
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(new Query(id), ct);
+                        Result<Response> result = await handler.Handle(new Query(id), ct);
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

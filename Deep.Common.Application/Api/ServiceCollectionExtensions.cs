@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
         string databaseConnectionString
     )
     {
-        var npgsqlDataSource = new NpgsqlDataSourceBuilder(databaseConnectionString).Build();
+        NpgsqlDataSource npgsqlDataSource = new NpgsqlDataSourceBuilder(databaseConnectionString).Build();
         services.TryAddSingleton(npgsqlDataSource);
         services.AddScoped<IDbConnectionFactory, NpgsqlConnectionFactory>();
         return services;
@@ -49,7 +49,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddMassTransit(configurator =>
         {
-            foreach (var configureConsumer in configureConsumers)
+            foreach (Action<IRegistrationConfigurator> configureConsumer in configureConsumers)
             {
                 configureConsumer(configurator);
             }

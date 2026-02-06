@@ -15,7 +15,7 @@ internal sealed class ProgramUpdatedDomainEventHandler(IRequestBus requestBus)
         CancellationToken cancellationToken = default
     )
     {
-        var program = await requestBus.Send<GetProgram.Response>(
+        Result<GetProgram.Response> program = await requestBus.Send<GetProgram.Response>(
             new GetProgram.Query(domainEvent.ProgramId),
             cancellationToken
         );
@@ -25,7 +25,7 @@ internal sealed class ProgramUpdatedDomainEventHandler(IRequestBus requestBus)
             return;
         }
 
-        var result = await requestBus.Send<UpsertProgramStatistic.Response>(
+        Result<UpsertProgramStatistic.Response> result = await requestBus.Send<UpsertProgramStatistic.Response>(
             new UpsertProgramStatistic.Command(
                 program.Value.Id,
                 program.Value.Name,
@@ -41,6 +41,8 @@ internal sealed class ProgramUpdatedDomainEventHandler(IRequestBus requestBus)
         );
 
         if (result.IsFailure)
+        {
             throw new DeepException(nameof(UpsertProgramStatistic), result.Error);
+        }
     }
 }

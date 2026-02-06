@@ -41,27 +41,29 @@ public class PublishDomainEventsInterceptor(
             .Select(entry => entry.Entity)
             .SelectMany(entity =>
             {
-                var domainEvents = entity.GetDomainEvents();
+                IReadOnlyCollection<IDomainEvent> domainEvents = entity.GetDomainEvents();
                 entity.ClearDomainEvents();
                 return domainEvents;
             })
             .ToList();
 
-        foreach (var domainEvent in domainEvents)
+        foreach (IDomainEvent? domainEvent in domainEvents)
+        {
             await PublishDomainEvent(domainEvent);
+        }
     }
 
     private async Task PublishDomainEvent(IDomainEvent domainEvent)
     {
-        using var scope = serviceScopeFactory.CreateScope();
+        using IServiceScope scope = serviceScopeFactory.CreateScope();
 
-        var domainEventHandlers = DomainEventHandlersFactory.GetHandlers(
+        IEnumerable<IDomainEventHandler> domainEventHandlers = DomainEventHandlersFactory.GetHandlers(
             domainEvent.GetType(),
             scope.ServiceProvider,
             assembly
         );
 
-        foreach (var domainEventHandler in domainEventHandlers)
+        foreach (IDomainEventHandler domainEventHandler in domainEventHandlers)
         {
             await domainEventHandler.Handle(domainEvent);
         }

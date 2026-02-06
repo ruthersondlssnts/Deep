@@ -34,15 +34,17 @@ public static class GetProgramStatistic
     {
         public async Task<Result<Response>> Handle(Query request, CancellationToken ct)
         {
-            var stat = await context
+            ProgramStatistic? stat = await context
                 .ProgramStatistics.Find(x => x.ProgramId == request.ProgramId)
                 .FirstOrDefaultAsync(ct);
 
             if (stat is null)
+            {
                 return Error.NotFound(
                     "ProgramStatistic.NotFound",
                     $"The program statistic with the identifier {request.ProgramId} was not found"
                 );
+            }
 
             return new Response(
                 stat.ProgramId,
@@ -72,7 +74,7 @@ public static class GetProgramStatistic
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(new Query(programId), ct);
+                        Result<Response> result = await handler.Handle(new Query(programId), ct);
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

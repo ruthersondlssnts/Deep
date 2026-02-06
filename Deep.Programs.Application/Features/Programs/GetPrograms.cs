@@ -31,7 +31,7 @@ public static class GetPrograms
             CancellationToken ct = default
         )
         {
-            var programs = await context
+            List<Response> programs = await context
                 .Programs.OrderBy(p => p.StartsAtUtc)
                 .Select(p => new Response(
                     p.Id,
@@ -49,21 +49,18 @@ public static class GetPrograms
 
     public sealed class Endpoint : IEndpoint
     {
-        public void MapEndpoint(IEndpointRouteBuilder app)
-        {
-            app.MapGet(
+        public void MapEndpoint(IEndpointRouteBuilder app) => app.MapGet(
                     "/programs",
                     async (
                         IRequestHandler<Query, IReadOnlyList<Response>> handler,
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(new Query(), ct);
+                        Result<IReadOnlyList<Response>> result = await handler.Handle(new Query(), ct);
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }
                 )
                 .WithTags("Programs");
-        }
     }
 }

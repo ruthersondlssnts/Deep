@@ -5,8 +5,5 @@ namespace Deep.Common.Application.Dapper;
 
 public sealed class NpgsqlConnectionFactory(NpgsqlDataSource dataSource) : IDbConnectionFactory
 {
-    public async ValueTask<DbConnection> OpenConnectionAsync()
-    {
-        return await dataSource.OpenConnectionAsync();
-    }
+    public async ValueTask<DbConnection> OpenConnectionAsync() => await dataSource.OpenConnectionAsync();
 }

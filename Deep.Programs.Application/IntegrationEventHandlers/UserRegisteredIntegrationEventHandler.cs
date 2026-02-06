@@ -1,6 +1,7 @@
 using Deep.Accounts.IntegrationEvents;
 using Deep.Common.Application.Exceptions;
 using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Domain;
 using Deep.Programs.Application.Features.Users;
 using MassTransit;
 
@@ -12,7 +13,7 @@ public sealed class UserRegisteredIntegrationEventConsumer(
 {
     public async Task Consume(ConsumeContext<AccountRegisteredIntegrationEvent> context)
     {
-        var result = await handler.Handle(
+        Result<CreateUser.Response> result = await handler.Handle(
             new CreateUser.Command(
                 context.Message.AccountId,
                 context.Message.FirstName,
@@ -24,6 +25,8 @@ public sealed class UserRegisteredIntegrationEventConsumer(
         );
 
         if (result.IsFailure)
+        {
             throw new DeepException(nameof(CreateUser), result.Error);
+        }
     }
 }

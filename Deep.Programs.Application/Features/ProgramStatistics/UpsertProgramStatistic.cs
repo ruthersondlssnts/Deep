@@ -34,14 +34,18 @@ public static class UpsertProgramStatistic
     {
         public async Task<Result<Response>> Handle(Command request, CancellationToken ct)
         {
-            var u = Builders<ProgramStatistic>.Update;
+            UpdateDefinitionBuilder<ProgramStatistic> u = Builders<ProgramStatistic>.Update;
             var updates = new List<UpdateDefinition<ProgramStatistic>>();
 
             if (request.Name is not null)
+            {
                 updates.Add(u.Set(x => x.Name, request.Name));
+            }
 
             if (request.Description is not null)
+            {
                 updates.Add(u.Set(x => x.Description, request.Description));
+            }
 
             if (request.ProgramStatus is not null)
             {
@@ -52,42 +56,64 @@ public static class UpsertProgramStatistic
             }
 
             if (request.StartsAtUtc is not null)
+            {
                 updates.Add(u.Set(x => x.StartsAtUtc, request.StartsAtUtc.Value));
+            }
 
             if (request.EndsAtUtc is not null)
+            {
                 updates.Add(u.Set(x => x.EndsAtUtc, request.EndsAtUtc.Value));
+            }
 
             if (request.OwnerId is not null)
+            {
                 updates.Add(u.Set(x => x.OwnerId, request.OwnerId.Value));
+            }
 
             if (request.Owner is not null)
+            {
                 updates.Add(u.Set(x => x.Owner, request.Owner));
+            }
 
             if (request.TotalCoordinators is not null)
+            {
                 updates.Add(u.Set(x => x.TotalCoordinators, request.TotalCoordinators.Value));
+            }
 
             if (request.TotalBrandAmbassadors is not null)
+            {
                 updates.Add(
                     u.Set(x => x.TotalBrandAmbassadors, request.TotalBrandAmbassadors.Value)
                 );
+            }
 
             if (request.TotalTransactions is not null)
+            {
                 updates.Add(u.Set(x => x.TotalTransactions, request.TotalTransactions.Value));
+            }
 
             if (request.TotalCustomers is not null)
+            {
                 updates.Add(u.Set(x => x.TotalCustomers, request.TotalCustomers.Value));
+            }
 
             // defaults on insert
             updates.Add(u.SetOnInsert(x => x.ProgramId, request.ProgramId));
 
             if (request.TotalTransactions is null)
+            {
                 updates.Add(u.SetOnInsert(x => x.TotalTransactions, 0));
+            }
 
             if (request.TotalCustomers is null)
+            {
                 updates.Add(u.SetOnInsert(x => x.TotalCustomers, 0));
+            }
 
             if (updates.Count == 0)
+            {
                 return new Response(request.ProgramId);
+            }
 
             await context.ProgramStatistics.UpdateOneAsync(
                 x => x.ProgramId == request.ProgramId,
@@ -112,7 +138,7 @@ public static class UpsertProgramStatistic
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(
+                        Result<Response> result = await handler.Handle(
                             command with
                             {
                                 ProgramId = programId,

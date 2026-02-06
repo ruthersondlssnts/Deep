@@ -15,8 +15,10 @@ public sealed class ProgramAssignment : Entity
 
     public static Result<ProgramAssignment> Create(Guid programId, Guid userId, string roleName)
     {
-        if (!Role.TryFromName(roleName, out var role) && !IsAllowedProgramRole(role))
+        if (!Role.TryFromName(roleName, out Role? role) && !IsAllowedProgramRole(role))
+        {
             return ProgramAssignmentErrors.InvalidRole;
+        }
 
         return new ProgramAssignment
         {
@@ -28,15 +30,14 @@ public sealed class ProgramAssignment : Entity
         };
     }
 
-    public void SetActive(bool isActive)
-    {
-        IsActive = isActive;
-    }
+    public void SetActive(bool isActive) => IsActive = isActive;
 
     public void Deactivate()
     {
         if (!IsActive)
+        {
             return;
+        }
 
         IsActive = false;
 

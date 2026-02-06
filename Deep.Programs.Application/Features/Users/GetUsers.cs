@@ -3,6 +3,7 @@ using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
+using Deep.Programs.Domain.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -31,14 +32,14 @@ public static class GetUsers
             CancellationToken ct
         )
         {
-            var accountsQuery = context.Users.Include(a => a.Roles).AsQueryable();
+            IQueryable<User> accountsQuery = context.Users.Include(a => a.Roles).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(request.Role))
             {
                 accountsQuery = accountsQuery.Where(a => a.Roles.Any(r => r.Name == request.Role));
             }
 
-            var accounts = await accountsQuery
+            List<Response> accounts = await accountsQuery
                 .OrderBy(a => a.LastName)
                 .ThenBy(a => a.FirstName)
                 .Select(a => new Response(
@@ -65,7 +66,7 @@ public static class GetUsers
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(new Query(role), ct);
+                        Result<IReadOnlyList<Response>> result = await handler.Handle(new Query(role), ct);
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

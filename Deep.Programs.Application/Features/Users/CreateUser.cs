@@ -43,8 +43,11 @@ public static class CreateUser
             var roles = new List<Role>();
             foreach (var roleName in c.Roles)
             {
-                if (!Role.TryFromName(roleName, out var role))
+                if (!Role.TryFromName(roleName, out Role? role))
+                {
                     return UserErrors.InvalidRole;
+                }
+
                 roles.Add(role);
             }
 

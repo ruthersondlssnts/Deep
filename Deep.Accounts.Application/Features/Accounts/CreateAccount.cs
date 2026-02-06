@@ -45,8 +45,11 @@ public static class CreateAccount
             var roles = new List<Role>();
             foreach (var roleName in c.Roles)
             {
-                if (!Role.TryFromName(roleName, out var role))
+                if (!Role.TryFromName(roleName, out Role? role))
+                {
                     return AccountErrors.InvalidRole;
+                }
+
                 roles.Add(role);
             }
 
@@ -70,7 +73,7 @@ public static class CreateAccount
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(command, ct);
+                        Result<Response> result = await handler.Handle(command, ct);
 
                         return result.Match(
                             () => Results.Created($"/accounts/{result.Value.Id}", result.Value),

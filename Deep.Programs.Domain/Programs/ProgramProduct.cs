@@ -12,7 +12,9 @@ public class ProgramProduct
     internal static Result<ProgramProduct> Create(Guid programId, string productName)
     {
         if (string.IsNullOrWhiteSpace(productName))
+        {
             return ProgramErrors.InvalidProduct;
+        }
 
         return new ProgramProduct { ProgramId = programId, ProductName = productName };
     }

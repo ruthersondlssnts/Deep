@@ -1,6 +1,7 @@
-var builder = DistributedApplication.CreateBuilder(args);
 
-var postgres = builder
+IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
+
+IResourceBuilder<PostgresServerResource> postgres = builder
     .AddPostgres("postgres")
     .WithPgAdmin(pgAdmin =>
     {
@@ -11,7 +12,7 @@ var postgres = builder
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent);
 
-var mongo = builder
+IResourceBuilder<MongoDBServerResource> mongo = builder
     .AddMongoDB("mongo")
     .WithMongoExpress(mongoExpress =>
     {
@@ -22,15 +23,15 @@ var mongo = builder
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent);
 
-var rabbitmq = builder
+IResourceBuilder<RabbitMQServerResource> rabbitmq = builder
     .AddRabbitMQ("rabbitmq")
     .WithManagementPlugin(8003)
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent);
 
-var deepDb = postgres.AddDatabase("deep-db");
+IResourceBuilder<PostgresDatabaseResource> deepDb = postgres.AddDatabase("deep-db");
 
-var deepMongoDb = mongo.AddDatabase("deep-docs");
+IResourceBuilder<MongoDBDatabaseResource> deepMongoDb = mongo.AddDatabase("deep-docs");
 
 builder
     .AddProject<Projects.Deep_Api>("deep-api")

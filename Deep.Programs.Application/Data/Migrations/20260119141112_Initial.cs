@@ -39,11 +39,7 @@ public partial class Initial : Migration
                 ),
                 owner_id = table.Column<Guid>(type: "uuid", nullable: false),
             },
-            constraints: table =>
-            {
-                table.PrimaryKey("pk_programs", x => x.id);
-            }
-        );
+            constraints: table => table.PrimaryKey("pk_programs", x => x.id));
 
         migrationBuilder.CreateTable(
             name: "users",
@@ -68,11 +64,7 @@ public partial class Initial : Migration
                 ),
                 role = table.Column<string>(type: "text", nullable: false),
             },
-            constraints: table =>
-            {
-                table.PrimaryKey("pk_users", x => x.id);
-            }
-        );
+            constraints: table => table.PrimaryKey("pk_users", x => x.id));
 
         migrationBuilder.CreateTable(
             name: "program_assignments",

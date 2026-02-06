@@ -64,14 +64,16 @@ public static class CreateProgram
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            var currentUserEntity = await context
+            User? currentUserEntity = await context
                 .Users.Include(u => u.Roles)
                 .SingleOrDefaultAsync(u => u.Roles.Any(r => r == Role.ProgramOwner));
 
             if (currentUserEntity is null)
+            {
                 return UserErrors.UserRoleNotFound(currentUserEntity!.Id, Role.ProgramOwner.Name);
+            }
 
-            var users = await context
+            List<User> users = await context
                 .Users.Include(u => u.Roles)
                 .Where(u =>
                     c.Users.Any(cu => cu.UserId == u.Id && u.Roles.Any(r => r.Name == cu.RoleName))
@@ -79,9 +81,11 @@ public static class CreateProgram
                 .ToListAsync(ct);
 
             if (c.Users.Count != users.Count)
+            {
                 return ProgramErrors.ProgramUserNotFound;
+            }
 
-            var createResult = Program.Create(
+            Result<ProgramCreateResult> createResult = Program.Create(
                 c.Name,
                 c.Description,
                 c.StartsAtUtc,
@@ -92,9 +96,11 @@ public static class CreateProgram
             );
 
             if (createResult.IsFailure)
+            {
                 return createResult.Error;
+            }
 
-            var result = createResult.Value;
+            ProgramCreateResult result = createResult.Value;
 
             context.Programs.Add(result.Program);
             context.ProgramAssignments.AddRange(result.Assignments);
@@ -116,7 +122,7 @@ public static class CreateProgram
                         CancellationToken ct
                     ) =>
                     {
-                        var result = await handler.Handle(command, ct);
+                        Result<Response> result = await handler.Handle(command, ct);
 
                         return result.Match(
                             () => Results.Created($"/programs/{result.Value.Id}", result.Value),
