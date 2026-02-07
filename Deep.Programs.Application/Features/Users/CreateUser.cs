@@ -26,6 +26,7 @@ public static class CreateUser
             RuleFor(x => x.Id).NotNull().NotEmpty();
 
             RuleFor(x => x.Roles).NotNull().NotEmpty();
+
             RuleForEach(x => x.Roles).NotEmpty();
 
             RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
@@ -40,18 +41,12 @@ public static class CreateUser
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            var roles = new List<Role>();
-            foreach (var roleName in c.Roles)
+            User account = User.Create(c.Id, c.FirstName, c.LastName, c.Email, c.Roles);
+
+            foreach (Role role in account.Roles)
             {
-                if (!Role.TryFromName(roleName, out Role? role))
-                {
-                    return UserErrors.InvalidRole;
-                }
-
-                roles.Add(role);
+                context.Attach(role);
             }
-
-            var account = User.Create(c.Id, c.FirstName, c.LastName, c.Email, roles);
 
             context.Users.Add(account);
             await context.SaveChangesAsync(ct);

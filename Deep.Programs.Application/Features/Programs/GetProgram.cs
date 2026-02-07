@@ -66,7 +66,7 @@ public static class GetProgram
                                     u.Id,
                                     u.FirstName + " " + u.LastName,
                                     u.Email,
-                                    pa.Role.Name
+                                    pa.RoleName
                                 )
                         )
                         .ToList()

@@ -7,7 +7,6 @@ using Deep.Common.Domain;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
@@ -64,12 +63,12 @@ public static class GetAccounts
             app.MapGet(
                     "/accounts",
                     async (
-                        [FromQuery] string? role,
-                        [FromServices] IRequestHandler<Query, IReadOnlyList<Response>> handler,
+                        string? role,
+                        IRequestHandler<Query, IReadOnlyCollection<Response>> handler,
                         CancellationToken ct
                     ) =>
                     {
-                        Result<IReadOnlyList<Response>> result = await handler.Handle(
+                        Result<IReadOnlyCollection<Response>> result = await handler.Handle(
                             new Query(role),
                             ct
                         );

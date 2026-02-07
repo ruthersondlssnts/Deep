@@ -7,7 +7,6 @@ using Deep.Programs.Domain.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,13 +21,13 @@ public static class GetUsers
         string FirstName,
         string LastName,
         string Email,
-        IReadOnlyCollection<string> Roles
+        IReadOnlyList<string> Roles
     );
 
     public sealed class Handler(ProgramsDbContext context)
-        : IRequestHandler<Query, IReadOnlyCollection<Response>>
+        : IRequestHandler<Query, IReadOnlyList<Response>>
     {
-        public async Task<Result<IReadOnlyCollection<Response>>> Handle(
+        public async Task<Result<IReadOnlyList<Response>>> Handle(
             Query request,
             CancellationToken ct
         )
@@ -62,8 +61,8 @@ public static class GetUsers
             app.MapGet(
                     "/users",
                     async (
-                        [FromQuery] string? role,
-                        [FromServices] IRequestHandler<Query, IReadOnlyList<Response>> handler,
+                        string? role,
+                        IRequestHandler<Query, IReadOnlyList<Response>> handler,
                         CancellationToken ct
                     ) =>
                     {

@@ -8,14 +8,14 @@ public sealed class ProgramAssignment : Entity
     public Guid Id { get; private set; }
     public Guid ProgramId { get; private set; }
     public Guid UserId { get; private set; }
-    public Role Role { get; private set; } = default!;
+    public string RoleName { get; private set; } = string.Empty;
     public bool IsActive { get; private set; }
 
     private ProgramAssignment() { }
 
     public static Result<ProgramAssignment> Create(Guid programId, Guid userId, string roleName)
     {
-        if (!Role.TryFromName(roleName, out Role? role) && !IsAllowedProgramRole(role))
+        if (!Role.TryFromName(roleName) && IsAllowedProgramRole(roleName))
         {
             return ProgramAssignmentErrors.InvalidRole;
         }
@@ -25,7 +25,7 @@ public sealed class ProgramAssignment : Entity
             Id = Guid.CreateVersion7(),
             ProgramId = programId,
             UserId = userId,
-            Role = role,
+            RoleName = roleName,
             IsActive = true,
         };
     }
@@ -44,6 +44,8 @@ public sealed class ProgramAssignment : Entity
         RaiseDomainEvent(new ProgramAssignmentDeactivatedDomainEvent(ProgramId, UserId));
     }
 
-    private static bool IsAllowedProgramRole(Role role) =>
-        role == Role.Coordinator || role == Role.ProgramOwner || role == Role.BrandAmbassador;
+    private static bool IsAllowedProgramRole(string role) =>
+        role == RoleNames.Coordinator
+        || role == RoleNames.ProgramOwner
+        || role == RoleNames.BrandAmbassador;
 }

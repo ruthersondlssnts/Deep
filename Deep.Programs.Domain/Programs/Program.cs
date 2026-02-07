@@ -34,8 +34,8 @@ public class Program : Entity
         string description,
         DateTime startsAtUtc,
         DateTime endsAtUtc,
-        Guid ownerId,
         IReadOnlyCollection<string> productNames,
+        Guid ownerId,
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments
     )
     {
@@ -77,7 +77,7 @@ public class Program : Entity
             ProgramStatus = ProgramStatus.New,
         };
 
-        foreach (var productName in productNames)
+        foreach (string productName in productNames)
         {
             program.AddProduct(productName);
         }
@@ -86,7 +86,11 @@ public class Program : Entity
 
         foreach ((Guid userId, string? roleName) in assignments)
         {
-            Result<ProgramAssignment> assignmentResult = ProgramAssignment.Create(program.Id, userId, roleName);
+            Result<ProgramAssignment> assignmentResult = ProgramAssignment.Create(
+                program.Id,
+                userId,
+                roleName
+            );
             if (assignmentResult.IsFailure)
             {
                 return assignmentResult.Error;
@@ -106,7 +110,7 @@ public class Program : Entity
         DateTime startsAtUtc,
         DateTime endsAtUtc,
         IEnumerable<string> productNames,
-        List<(Guid UserId, string RoleName)> desired,
+        List<(Guid UserId, string RoleName)> assignments,
         List<ProgramAssignment> existingAssignments
     )
     {
@@ -126,9 +130,9 @@ public class Program : Entity
         }
 
         Result validation = ValidateAssignment(
-            desired.Count(a => a.RoleName == RoleNames.Coordinator),
-            desired.Count(a => a.RoleName == RoleNames.ProgramOwner),
-            desired.Count(a => a.RoleName == RoleNames.BrandAmbassador),
+            assignments.Count(a => a.RoleName == RoleNames.Coordinator),
+            assignments.Count(a => a.RoleName == RoleNames.ProgramOwner),
+            assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador),
             ProgramStatus
         );
 
@@ -144,37 +148,69 @@ public class Program : Entity
 
         ReplaceProducts(productNames);
 
-        var desiredSet = desired.Select(a => (a.UserId, a.RoleName)).ToHashSet();
+        Result<List<ProgramAssignment>> assignmentResult = UpdateAssignments(
+            assignments,
+            existingAssignments
+        );
 
-        foreach (ProgramAssignment existing in existingAssignments)
+        if (assignmentResult.IsFailure)
         {
-            if (!desiredSet.Contains((existing.UserId, existing.Role.Name)))
-            {
-                existing.SetActive(false);
-            }
-        }
-
-        var existingSet = existingAssignments
-            .Where(a => a.IsActive)
-            .Select(a => (a.UserId, a.Role.Name))
-            .ToHashSet();
-
-        var toCreate = new List<ProgramAssignment>();
-
-        foreach ((Guid userId, string? roleName) in desiredSet.Except(existingSet))
-        {
-            Result<ProgramAssignment> createResult = ProgramAssignment.Create(Id, userId, roleName);
-            if (createResult.IsFailure)
-            {
-                return new(createResult, Array.Empty<ProgramAssignment>());
-            }
-
-            toCreate.Add(createResult.Value);
+            return new(assignmentResult.Error, Array.Empty<ProgramAssignment>());
         }
 
         RaiseDomainEvent(new ProgramUpdatedDomainEvent(Id));
 
-        return new(Result.Success(), toCreate);
+        return new(Result.Success(), assignmentResult.Value);
+    }
+
+    private Result<List<ProgramAssignment>> UpdateAssignments(
+        List<(Guid UserId, string RoleName)> assignments,
+        List<ProgramAssignment> existingAssignments
+    )
+    {
+        var desired = assignments.Select(a => (a.UserId, a.RoleName)).ToHashSet();
+
+        var existing = existingAssignments.ToDictionary(a => (a.UserId, a.RoleName), a => a);
+
+        var created = new List<ProgramAssignment>();
+
+        foreach ((Guid UserId, string RoleName) key in desired)
+        {
+            if (existing.ContainsKey(key))
+            {
+                ProgramAssignment assignment = existing[key];
+
+                if (!assignment.IsActive)
+                {
+                    assignment.SetActive(true);
+                }
+            }
+            else
+            {
+                Result<ProgramAssignment> result = ProgramAssignment.Create(
+                    Id,
+                    key.UserId,
+                    key.RoleName
+                );
+
+                if (result.IsFailure)
+                {
+                    return result.Error;
+                }
+
+                created.Add(result.Value);
+            }
+        }
+
+        foreach (ProgramAssignment assignment in existingAssignments)
+        {
+            if (assignment.IsActive && !desired.Contains((assignment.UserId, assignment.RoleName)))
+            {
+                assignment.SetActive(false);
+            }
+        }
+
+        return Result.Success(created);
     }
 
     public static Result ValidateAssignment(
@@ -206,11 +242,12 @@ public class Program : Entity
     {
         _products.Clear();
 
-        foreach (var name in productNames)
+        foreach (string name in productNames)
         {
             _products.Add(ProgramProduct.Create(Id, name));
         }
     }
 
-    private void AddProduct(string productName) => _products.Add(ProgramProduct.Create(Id, productName));
+    private void AddProduct(string productName) =>
+        _products.Add(ProgramProduct.Create(Id, productName));
 }

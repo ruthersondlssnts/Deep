@@ -16,30 +16,26 @@ internal sealed class ProgramAssignmentsConfiguration : IEntityTypeConfiguration
         builder.Property(a => a.UserId).IsRequired();
         builder.Property(a => a.IsActive).IsRequired();
 
-        builder
-            .Property<string>("RoleName")
-            .HasColumnName("role_name")
-            .HasMaxLength(50)
-            .IsRequired();
+        builder.Property(a => a.RoleName).HasMaxLength(50).IsRequired();
 
         builder
-            .HasOne(a => a.Role)
-            .WithMany()
-            .HasForeignKey("RoleName")
-            .HasPrincipalKey(r => r.Name)
-            .IsRequired()
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder
-            .HasIndex(
-                nameof(ProgramAssignment.ProgramId),
-                nameof(ProgramAssignment.UserId),
-                "RoleName"
-            )
+            .HasIndex(a => new
+            {
+                a.ProgramId,
+                a.UserId,
+                a.RoleName,
+            })
             .IsUnique();
 
         builder.HasIndex(a => a.ProgramId);
         builder.HasIndex(a => a.UserId);
+
+        builder
+            .HasOne<Role>()
+            .WithMany()
+            .HasForeignKey(a => a.RoleName)
+            .HasPrincipalKey(r => r.Name)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder
             .HasOne<Program>()

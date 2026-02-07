@@ -5,7 +5,6 @@ using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
-using Deep.Programs.Domain.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -62,7 +61,8 @@ public static class UpdateProgram
         }
     }
 
-    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
+    public sealed class Handler(ProgramsDbContext context, IProgramRepository programRepository)
+        : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
@@ -75,23 +75,12 @@ public static class UpdateProgram
                 return ProgramErrors.NotFound(c.ProgramId);
             }
 
-            List<User> users = await context
-                .Users.Include(u => u.Roles)
-                .Where(u =>
-                    c.Users.Any(cu => cu.UserId == u.Id && u.Roles.Any(r => r.Name == cu.RoleName))
-                )
-                .ToListAsync(ct);
+            var assignmentPairs = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
-            if (users.Count != c.Users.Count)
+            if (!await AreAllUsersValid(assignmentPairs, programRepository))
             {
                 return ProgramErrors.ProgramUserNotFound;
             }
-
-            List<ProgramAssignment> existingAssignments = await context
-                .ProgramAssignments.Where(a => a.ProgramId == program.Id)
-                .ToListAsync(ct);
-
-            var desired = c.Users.Select(u => (u.UserId, u.RoleName)).ToList();
 
             ProgramUpdateResult update = program.UpdateDetails(
                 c.Name,
@@ -99,8 +88,8 @@ public static class UpdateProgram
                 c.StartsAtUtc,
                 c.EndsAtUtc,
                 c.ProductNames,
-                desired,
-                existingAssignments
+                assignmentPairs,
+                await GetExistingAssignments(program.Id, ct)
             );
 
             if (update.Result.IsFailure)
@@ -108,12 +97,29 @@ public static class UpdateProgram
                 return update.Result.Error;
             }
 
-            context.ProgramAssignments.AddRange(update.NewAssignments);
+            if (update.NewAssignments.Count > 0)
+            {
+                context.ProgramAssignments.AddRange(update.NewAssignments);
+            }
 
             await context.SaveChangesAsync(ct);
-
             return new Response(program.Id);
         }
+
+        private async Task<bool> AreAllUsersValid(
+            List<(Guid UserId, string RoleName)> assignmentPairs,
+            IProgramRepository programRepository
+        )
+        {
+            int expected = assignmentPairs.Select(a => a.UserId).Distinct().Count();
+            int valid = await programRepository.CountMatchingUserRolePairs(assignmentPairs);
+            return valid == expected;
+        }
+
+        private Task<List<ProgramAssignment>> GetExistingAssignments(
+            Guid programId,
+            CancellationToken ct
+        ) => context.ProgramAssignments.Where(a => a.ProgramId == programId).ToListAsync(ct);
     }
 
     public sealed class Endpoint : IEndpoint

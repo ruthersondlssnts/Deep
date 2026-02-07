@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 
 namespace Deep.Programs.Application.Features.Programs;
 
@@ -60,27 +61,23 @@ public static class CreateProgram
         }
     }
 
-    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
+    public sealed class Handler(ProgramsDbContext context, IProgramRepository programRepository)
+        : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
             User? currentUserEntity = await context
                 .Users.Include(u => u.Roles)
-                .SingleOrDefaultAsync(u => u.Roles.Any(r => r == Role.ProgramOwner));
+                .SingleOrDefaultAsync(u => u.Roles.Any(r => r.Name == Role.ProgramOwner.Name), ct);
 
             if (currentUserEntity is null)
             {
-                return UserErrors.UserRoleNotFound(currentUserEntity!.Id, Role.ProgramOwner.Name);
+                return UserErrors.UserRoleNotFound(Guid.Empty, Role.ProgramOwner.Name);
             }
 
-            List<User> users = await context
-                .Users.Include(u => u.Roles)
-                .Where(u =>
-                    c.Users.Any(cu => cu.UserId == u.Id && u.Roles.Any(r => r.Name == cu.RoleName))
-                )
-                .ToListAsync(ct);
+            var assignmentPairs = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
-            if (c.Users.Count != users.Count)
+            if (!await AreAllUsersValid(assignmentPairs, programRepository))
             {
                 return ProgramErrors.ProgramUserNotFound;
             }
@@ -90,9 +87,9 @@ public static class CreateProgram
                 c.Description,
                 c.StartsAtUtc,
                 c.EndsAtUtc,
-                currentUserEntity.Id,
                 c.ProductNames,
-                c.Users.Select(u => (u.UserId, u.RoleName)).ToList()
+                currentUserEntity.Id,
+                assignmentPairs
             );
 
             if (createResult.IsFailure)
@@ -104,10 +101,19 @@ public static class CreateProgram
 
             context.Programs.Add(result.Program);
             context.ProgramAssignments.AddRange(result.Assignments);
-
             await context.SaveChangesAsync(ct);
 
             return new Response(result.Program.Id);
+        }
+
+        private async Task<bool> AreAllUsersValid(
+            List<(Guid UserId, string RoleName)> assignmentPairs,
+            IProgramRepository programRepository
+        )
+        {
+            int expected = assignmentPairs.Select(a => a.UserId).Distinct().Count();
+            int valid = await programRepository.CountMatchingUserRolePairs(assignmentPairs);
+            return valid == expected;
         }
     }
 

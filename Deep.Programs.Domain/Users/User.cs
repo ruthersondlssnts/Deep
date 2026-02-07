@@ -14,12 +14,12 @@ public sealed class User : Entity
 
     private User() { }
 
-    public static User Create(
+    public static Result<User> Create(
         Guid id,
         string firstName,
         string lastName,
         string email,
-        IEnumerable<Role> roles
+        IReadOnlyCollection<string> roleNames
     )
     {
         var account = new User
@@ -30,7 +30,14 @@ public sealed class User : Entity
             Email = email,
         };
 
-        foreach (Role role in roles)
+        Result<IReadOnlyCollection<Role>> roles = CreateRolesFromNames(roleNames);
+
+        if (roles.IsFailure)
+        {
+            return roles.Error;
+        }
+
+        foreach (Role role in roles.Value)
         {
             account.AddRole(role);
         }
@@ -49,4 +56,20 @@ public sealed class User : Entity
     }
 
     public bool HasRole(Role role) => _roles.Any(r => r == role);
+
+    public static Result<IReadOnlyCollection<Role>> CreateRolesFromNames(
+        IReadOnlyCollection<string> roleNames
+    )
+    {
+        var roles = new List<Role>();
+        foreach (string roleName in roleNames)
+        {
+            if (!Role.TryFromName(roleName, out Role? role))
+            {
+                return UserErrors.InvalidRole;
+            }
+            roles.Add(role);
+        }
+        return roles;
+    }
 }

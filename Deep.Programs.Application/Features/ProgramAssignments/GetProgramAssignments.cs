@@ -48,10 +48,10 @@ public static class GetProgramAssignments
                         p.description     AS {nameof(Response.ProgramDescription)},
                         p.starts_at_utc   AS {nameof(Response.StartsAtUtc)},
                         p.ends_at_utc     AS {nameof(Response.EndsAtUtc)},
-                        u.role            AS {nameof(Response.Role)},
+                        pa.role_name      AS {nameof(Response.Role)},
                         u.first_name      AS {nameof(Response.Firstname)},
                         u.last_name       AS {nameof(Response.Lastname)},    
-                        pa.is_active       AS {nameof(Response.isActive)}
+                        pa.is_active      AS {nameof(Response.isActive)}
                     FROM programs.program_assignments pa
                     INNER JOIN programs.programs p
                         ON p.id = pa.program_id
@@ -96,7 +96,10 @@ public static class GetProgramAssignments
                         CancellationToken ct
                     ) =>
                     {
-                        Result<IReadOnlyList<Response>> result = await handler.Handle(new Query(userId, programId), ct);
+                        Result<IReadOnlyList<Response>> result = await handler.Handle(
+                            new Query(userId, programId),
+                            ct
+                        );
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }
