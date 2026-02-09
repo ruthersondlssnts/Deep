@@ -1,12 +1,7 @@
-using Deep.Common.Application.Api.ApiResults;
-using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.Programs;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using MongoDB.Driver;
 
 namespace Deep.Programs.Application.Features.ProgramStatistics;
@@ -126,29 +121,29 @@ public static class UpsertProgramStatistic
         }
     }
 
-    public sealed class Endpoint : IEndpoint
-    {
-        public void MapEndpoint(IEndpointRouteBuilder app) =>
-            app.MapPost(
-                    "/program-statistics/{programId:guid}",
-                    async (
-                        Guid programId,
-                        Command command,
-                        IRequestHandler<Command, Response> handler,
-                        CancellationToken ct
-                    ) =>
-                    {
-                        Result<Response> result = await handler.Handle(
-                            command with
-                            {
-                                ProgramId = programId,
-                            },
-                            ct
-                        );
+    //public sealed class Endpoint : IEndpoint
+    //{
+    //    public void MapEndpoint(IEndpointRouteBuilder app) =>
+    //        app.MapPost(
+    //                "/program-statistics/{programId:guid}",
+    //                async (
+    //                    Guid programId,
+    //                    Command command,
+    //                    IRequestHandler<Command, Response> handler,
+    //                    CancellationToken ct
+    //                ) =>
+    //                {
+    //                    Result<Response> result = await handler.Handle(
+    //                        command with
+    //                        {
+    //                            ProgramId = programId,
+    //                        },
+    //                        ct
+    //                    );
 
-                        return result.Match(() => Results.NoContent(), ApiResults.Problem);
-                    }
-                )
-                .WithTags("ProgramStatistics");
-    }
+    //                    return result.Match(() => Results.NoContent(), ApiResults.Problem);
+    //                }
+    //            )
+    //            .WithTags("ProgramStatistics");
+    //}
 }

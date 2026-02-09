@@ -19,6 +19,7 @@ public static class GetProgramAssignments
     public sealed record Response(
         Guid AssignmentId,
         Guid ProgramId,
+        Guid UserId,
         string ProgramName,
         string ProgramDescription,
         DateTime StartsAtUtc,
@@ -44,6 +45,7 @@ public static class GetProgramAssignments
                     SELECT
                         pa.id             AS {nameof(Response.AssignmentId)},
                         p.id              AS {nameof(Response.ProgramId)},
+                        u.id              AS {nameof(Response.UserId)},
                         p.name            AS {nameof(Response.ProgramName)},
                         p.description     AS {nameof(Response.ProgramDescription)},
                         p.starts_at_utc   AS {nameof(Response.StartsAtUtc)},

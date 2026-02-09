@@ -2,17 +2,13 @@ using System.Data.Common;
 using System.Text;
 using Dapper;
 using Deep.Common.Application.Dapper;
-using Deep.Programs.Domain.Programs;
 using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Features.Programs;
 
-public class ProgramRepository(IDbConnectionFactory dbConnectionFactory) : IProgramRepository
+public class ProgramRepository(IDbConnectionFactory dbConnectionFactory)
 {
-    public async Task<int> CountMatchingUserRolePairs(
-        List<(Guid UserId, string RoleName)> users,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<int> CountMatchingUserRolePairs(List<(Guid UserId, string RoleName)> users)
     {
         await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
 

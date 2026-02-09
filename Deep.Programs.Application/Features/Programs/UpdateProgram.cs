@@ -61,7 +61,7 @@ public static class UpdateProgram
         }
     }
 
-    public sealed class Handler(ProgramsDbContext context, IProgramRepository programRepository)
+    public sealed class Handler(ProgramsDbContext context, ProgramRepository programRepository)
         : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
@@ -108,7 +108,7 @@ public static class UpdateProgram
 
         private async Task<bool> AreAllUsersValid(
             List<(Guid UserId, string RoleName)> assignmentPairs,
-            IProgramRepository programRepository
+            ProgramRepository programRepository
         )
         {
             int expected = assignmentPairs.Select(a => a.UserId).Distinct().Count();
