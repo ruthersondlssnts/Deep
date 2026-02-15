@@ -18,7 +18,9 @@ public static class ServiceCollectionExtensions
         string databaseConnectionString
     )
     {
-        NpgsqlDataSource npgsqlDataSource = new NpgsqlDataSourceBuilder(databaseConnectionString).Build();
+        NpgsqlDataSource npgsqlDataSource = new NpgsqlDataSourceBuilder(
+            databaseConnectionString
+        ).Build();
         services.TryAddSingleton(npgsqlDataSource);
         services.AddScoped<IDbConnectionFactory, NpgsqlConnectionFactory>();
         return services;
@@ -59,7 +61,7 @@ public static class ServiceCollectionExtensions
             configurator.UsingRabbitMq(
                 (context, cfg) =>
                 {
-                    var connectionString = mqConnectionString;
+                    string connectionString = mqConnectionString;
                     cfg.Host(new Uri(connectionString));
                     cfg.ConfigureEndpoints(context);
                 }

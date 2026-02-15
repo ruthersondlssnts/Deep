@@ -8,7 +8,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Accounts.Application.Features.Accounts;
 
@@ -39,18 +38,15 @@ public static class RegisterAccount
         }
     }
 
-    public sealed class Handler(AccountsDbContext context) : IRequestHandler<Command, Response>
+    public sealed class Handler(AccountsDbContext context, IAccountRepository accountRepository)
+        : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
             Account account = Account.Create(c.FirstName, c.LastName, c.Email, c.Roles);
 
-            foreach (Role role in account.Roles)
-            {
-                context.Attach(role);
-            }
+            accountRepository.Insert(account);
 
-            context.Accounts.Add(account);
             await context.SaveChangesAsync(ct);
 
             return new Response(account.Id);

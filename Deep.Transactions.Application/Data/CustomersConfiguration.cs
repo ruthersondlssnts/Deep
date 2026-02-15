@@ -2,7 +2,7 @@ using Deep.Transactions.Domain.Customer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Deep.Transactions.Data;
+namespace Deep.Transactions.Application.Data;
 
 internal sealed class CustomersConfiguration : IEntityTypeConfiguration<Customer>
 {

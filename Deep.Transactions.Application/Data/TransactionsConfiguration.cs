@@ -3,7 +3,7 @@ using Deep.Transactions.Domain.Transaction;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Deep.Transactions.Data;
+namespace Deep.Transactions.Application.Data;
 
 internal sealed class TransactionsConfiguration : IEntityTypeConfiguration<Transaction>
 {

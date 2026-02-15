@@ -3,16 +3,6 @@ using Deep.Programs.Domain.ProgramAssignments;
 
 namespace Deep.Programs.Domain.Programs;
 
-public sealed record ProgramCreateResult(
-    Program Program,
-    IReadOnlyCollection<ProgramAssignment> Assignments
-);
-
-public sealed record ProgramUpdateResult(
-    Result Result,
-    IReadOnlyList<ProgramAssignment> NewAssignments
-);
-
 public class Program : Entity
 {
     private readonly List<ProgramProduct> _products = [];

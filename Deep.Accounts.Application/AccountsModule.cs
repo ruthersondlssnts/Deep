@@ -1,4 +1,5 @@
 using Deep.Accounts.Application.Data;
+using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application;
 using Deep.Common.Application.Database;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,8 @@ public static class AccountsModule
             .AddDomainEventHandlers(AssemblyReference.Assembly)
             .AddPostgresDbContextWithSchema<AccountsDbContext>(Schemas.Accounts)
             .AddEndpoints(AssemblyReference.Assembly)
-            .AddDomainEventInterceptor<AccountsDbContext>(AssemblyReference.Assembly);
+            .AddDomainEventInterceptor<AccountsDbContext>(AssemblyReference.Assembly)
+            .AddScoped<IAccountRepository, AccountRepository>();
         return services;
     }
 
