@@ -1,4 +1,3 @@
-
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
 IResourceBuilder<PostgresServerResource> postgres = builder
@@ -24,7 +23,7 @@ IResourceBuilder<MongoDBServerResource> mongo = builder
     .WithLifetime(ContainerLifetime.Persistent);
 
 IResourceBuilder<RabbitMQServerResource> rabbitmq = builder
-    .AddRabbitMQ("rabbitmq")
+    .AddRabbitMQ("broker")
     .WithManagementPlugin(8003)
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent);

@@ -3,6 +3,7 @@ using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
+using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
 using Deep.Programs.Domain.Users;
 using FluentValidation;
@@ -61,8 +62,11 @@ public static class CreateProgram
         }
     }
 
-    public sealed class Handler(ProgramsDbContext context, ProgramRepository programRepository)
-        : IRequestHandler<Command, Response>
+    public sealed class Handler(
+        ProgramsDbContext context,
+        IProgramRepository programRepository,
+        IProgramAssignmentRepository programAssignmentRepository
+    ) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
@@ -77,12 +81,7 @@ public static class CreateProgram
 
             var assignmentPairs = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
-            if (!await AreAllUsersValid(assignmentPairs, programRepository))
-            {
-                return ProgramErrors.ProgramUserNotFound;
-            }
-
-            Result<ProgramCreateResult> createResult = Program.Create(
+            Result<Program> program = Program.Create(
                 c.Name,
                 c.Description,
                 c.StartsAtUtc,
@@ -92,28 +91,27 @@ public static class CreateProgram
                 assignmentPairs
             );
 
-            if (createResult.IsFailure)
+            if (!program.IsSuccess)
             {
-                return createResult.Error;
+                return program.Error;
             }
 
-            ProgramCreateResult result = createResult.Value;
+            Result<IEnumerable<ProgramAssignment>> programAssignmentsResult =
+                ProgramAssignment.CreateRange(program.Value.Id, assignmentPairs);
 
-            context.Programs.Add(result.Program);
-            context.ProgramAssignments.AddRange(result.Assignments);
+            if (!programAssignmentsResult.IsSuccess)
+            {
+                return programAssignmentsResult.Error;
+            }
+
+            IEnumerable<ProgramAssignment> programAssignments = programAssignmentsResult.Value;
+
+            programRepository.Insert(program);
+            programAssignmentRepository.InsertRange(programAssignments);
+
             await context.SaveChangesAsync(ct);
 
-            return new Response(result.Program.Id);
-        }
-
-        private async Task<bool> AreAllUsersValid(
-            List<(Guid UserId, string RoleName)> assignmentPairs,
-            ProgramRepository programRepository
-        )
-        {
-            int expected = assignmentPairs.Select(a => a.UserId).Distinct().Count();
-            int valid = await programRepository.CountMatchingUserRolePairs(assignmentPairs);
-            return valid == expected;
+            return new Response(program.Value.Id);
         }
     }
 

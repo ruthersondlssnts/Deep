@@ -3,5 +3,5 @@
 public interface ITransactionRepository
 {
     Task<Transaction?> GetAsync(Guid id, CancellationToken cancellationToken = default);
-    void Insert(Transaction @event);
+    void Insert(Transaction transaction);
 }

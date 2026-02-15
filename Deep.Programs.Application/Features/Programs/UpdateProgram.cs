@@ -1,5 +1,9 @@
+using System.Data.Common;
+using System.Text;
+using Dapper;
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
+using Deep.Common.Application.Dapper;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
@@ -61,14 +65,16 @@ public static class UpdateProgram
         }
     }
 
-    public sealed class Handler(ProgramsDbContext context, ProgramRepository programRepository)
-        : IRequestHandler<Command, Response>
+    public sealed class Handler(
+        ProgramsDbContext context,
+        IProgramAssignmentRepository programAssignmentRepository,
+        IProgramRepository programRepository,
+        IDbConnectionFactory dbConnectionFactory
+    ) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            Program? program = await context
-                .Programs.Include(p => p.Products)
-                .SingleOrDefaultAsync(p => p.Id == c.ProgramId, ct);
+            Program? program = await programRepository.GetAsync(c.ProgramId, ct);
 
             if (program is null)
             {
@@ -77,29 +83,35 @@ public static class UpdateProgram
 
             var assignmentPairs = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
-            if (!await AreAllUsersValid(assignmentPairs, programRepository))
+            if (!await AreAllUsersValid(assignmentPairs))
             {
                 return ProgramErrors.ProgramUserNotFound;
             }
 
-            ProgramUpdateResult update = program.UpdateDetails(
+            program.UpdateDetails(
                 c.Name,
                 c.Description,
                 c.StartsAtUtc,
                 c.EndsAtUtc,
                 c.ProductNames,
-                assignmentPairs,
-                await GetExistingAssignments(program.Id, ct)
+                assignmentPairs
             );
 
-            if (update.Result.IsFailure)
+            Result<IReadOnlyList<ProgramAssignment>> newAssignments =
+                ProgramAssignment.UpdateAssignments(
+                    program.Id,
+                    assignmentPairs,
+                    await programAssignmentRepository.GetAssignmentsByProgramId(program.Id, ct)
+                );
+
+            if (newAssignments.IsFailure)
             {
-                return update.Result.Error;
+                return newAssignments.Error;
             }
 
-            if (update.NewAssignments.Count > 0)
+            if (newAssignments.Value.Count > 0)
             {
-                context.ProgramAssignments.AddRange(update.NewAssignments);
+                programAssignmentRepository.InsertRange(newAssignments.Value);
             }
 
             await context.SaveChangesAsync(ct);
@@ -107,19 +119,45 @@ public static class UpdateProgram
         }
 
         private async Task<bool> AreAllUsersValid(
-            List<(Guid UserId, string RoleName)> assignmentPairs,
-            ProgramRepository programRepository
+            List<(Guid UserId, string RoleName)> assignmentPairs
         )
         {
             int expected = assignmentPairs.Select(a => a.UserId).Distinct().Count();
-            int valid = await programRepository.CountMatchingUserRolePairs(assignmentPairs);
+            int valid = await CountMatchingUserRolePairs(assignmentPairs);
             return valid == expected;
         }
 
-        private Task<List<ProgramAssignment>> GetExistingAssignments(
-            Guid programId,
-            CancellationToken ct
-        ) => context.ProgramAssignments.Where(a => a.ProgramId == programId).ToListAsync(ct);
+        public async Task<int> CountMatchingUserRolePairs(
+            List<(Guid UserId, string RoleName)> users
+        )
+        {
+            await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
+
+            var sql = new StringBuilder(
+                @"SELECT COUNT(DISTINCT u.id)
+                  FROM programs.users u
+                  JOIN programs.user_roles ur ON ur.user_id = u.id
+                  JOIN programs.roles r ON r.name = ur.role_name
+                  WHERE (u.id, r.name) IN ("
+            );
+
+            var parameters = new Dapper.DynamicParameters();
+            for (int i = 0; i < users.Count; i++)
+            {
+                sql.Append(
+                    i == 0 ? $"(@UserId{i}, @RoleName{i})" : $", (@UserId{i}, @RoleName{i})"
+                );
+                parameters.Add($"UserId{i}", users[i].UserId);
+                parameters.Add($"RoleName{i}", users[i].RoleName);
+            }
+            sql.Append(")");
+
+            int validUserCount = await connection.ExecuteScalarAsync<int>(
+                sql.ToString(),
+                parameters
+            );
+            return validUserCount;
+        }
     }
 
     public sealed class Endpoint : IEndpoint

@@ -3,7 +3,6 @@ using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.Users;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Features.Users;
 
@@ -37,7 +36,8 @@ public static class CreateUser
         }
     }
 
-    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
+    public sealed class Handler(ProgramsDbContext context, IUserRepository userRepository)
+        : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
@@ -48,7 +48,7 @@ public static class CreateUser
                 context.Attach(role);
             }
 
-            context.Users.Add(account);
+            userRepository.Insert(account);
             await context.SaveChangesAsync(ct);
 
             return new Response(account.Id);

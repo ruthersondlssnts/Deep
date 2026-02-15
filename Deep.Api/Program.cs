@@ -6,19 +6,19 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 //Aspire Connections
-string postgresDb = "deep-db";
-string mongoDb = "deep-docs";
-string rabbitmq = "rabbitmq";
+string sql = "deep-db";
+string mongo = "deep-docs";
+string broker = "broker";
 
-string databaseConnectionString = builder.Configuration.GetConnectionString(postgresDb)!;
-string mqConnectionString = builder.Configuration.GetConnectionString(rabbitmq)!;
+string databaseConnectionString = builder.Configuration.GetConnectionString(sql)!;
+string mqConnectionString = builder.Configuration.GetConnectionString(broker)!;
 
 builder
     .Services.AddOpenApiAndSwagger()
     .AddExceptionAndProblemDetails()
     .AddModules(databaseConnectionString, mqConnectionString);
 
-builder.ApplyAspire(postgresDb, mongoDb, rabbitmq);
+builder.ApplyAspire(sql, mongo, broker);
 
 WebApplication app = builder.Build();
 

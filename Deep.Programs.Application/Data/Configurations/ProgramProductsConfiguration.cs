@@ -2,7 +2,7 @@ using Deep.Programs.Domain.Programs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Deep.Programs.Application.Data;
+namespace Deep.Programs.Application.Data.Configurations;
 
 internal sealed class ProgramProductsConfiguration : IEntityTypeConfiguration<ProgramProduct>
 {

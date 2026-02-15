@@ -1,7 +1,10 @@
 using Deep.Common.Application;
 using Deep.Common.Application.Database;
 using Deep.Programs.Application.Data;
-using Deep.Programs.Application.Features.Programs;
+using Deep.Programs.Application.Data.Repositories;
+using Deep.Programs.Domain.ProgramAssignments;
+using Deep.Programs.Domain.Programs;
+using Deep.Programs.Domain.Users;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -25,7 +28,9 @@ public static class ProgramsModule
                     )
             )
             .AddDomainEventInterceptor<ProgramsDbContext>(AssemblyReference.Assembly)
-            .AddScoped<ProgramRepository>();
+            .AddScoped<IUserRepository, UserRepository>()
+            .AddScoped<IProgramAssignmentRepository, ProgramAssignmentRepository>()
+            .AddScoped<IProgramRepository, ProgramRepository>();
         return services;
     }
 
