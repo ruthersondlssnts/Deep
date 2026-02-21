@@ -1,9 +1,5 @@
-using System.Data.Common;
-using System.Text;
-using Dapper;
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
-using Deep.Common.Application.Dapper;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
@@ -68,8 +64,7 @@ public static class UpdateProgram
     public sealed class Handler(
         ProgramsDbContext context,
         IProgramAssignmentRepository programAssignmentRepository,
-        IProgramRepository programRepository,
-        IDbConnectionFactory dbConnectionFactory
+        IProgramRepository programRepository
     ) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
@@ -83,7 +78,7 @@ public static class UpdateProgram
 
             var assignmentPairs = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
-            if (!await AreAllUsersValid(assignmentPairs))
+            if (!await programRepository.AreAllUsersValid(assignmentPairs, ct))
             {
                 return ProgramErrors.ProgramUserNotFound;
             }
@@ -116,47 +111,6 @@ public static class UpdateProgram
 
             await context.SaveChangesAsync(ct);
             return new Response(program.Id);
-        }
-
-        private async Task<bool> AreAllUsersValid(
-            List<(Guid UserId, string RoleName)> assignmentPairs
-        )
-        {
-            int expected = assignmentPairs.Select(a => a.UserId).Distinct().Count();
-            int valid = await CountMatchingUserRolePairs(assignmentPairs);
-            return valid == expected;
-        }
-
-        public async Task<int> CountMatchingUserRolePairs(
-            List<(Guid UserId, string RoleName)> users
-        )
-        {
-            await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
-
-            var sql = new StringBuilder(
-                @"SELECT COUNT(DISTINCT u.id)
-                  FROM programs.users u
-                  JOIN programs.user_roles ur ON ur.user_id = u.id
-                  JOIN programs.roles r ON r.name = ur.role_name
-                  WHERE (u.id, r.name) IN ("
-            );
-
-            var parameters = new Dapper.DynamicParameters();
-            for (int i = 0; i < users.Count; i++)
-            {
-                sql.Append(
-                    i == 0 ? $"(@UserId{i}, @RoleName{i})" : $", (@UserId{i}, @RoleName{i})"
-                );
-                parameters.Add($"UserId{i}", users[i].UserId);
-                parameters.Add($"RoleName{i}", users[i].RoleName);
-            }
-            sql.Append(")");
-
-            int validUserCount = await connection.ExecuteScalarAsync<int>(
-                sql.ToString(),
-                parameters
-            );
-            return validUserCount;
         }
     }
 

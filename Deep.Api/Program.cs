@@ -31,8 +31,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 app.MapDefaultEndpoints();
-app.MapEndpoints();
 app.UseHttpsRedirection();
 
-//app.UseAuthorization();
-app.Run();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapEndpoints();
+
+await app.RunAsync();

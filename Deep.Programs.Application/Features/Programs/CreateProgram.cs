@@ -81,6 +81,11 @@ public static class CreateProgram
 
             var assignmentPairs = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
+            if (!await programRepository.AreAllUsersValid(assignmentPairs, ct))
+            {
+                return ProgramErrors.ProgramUserNotFound;
+            }
+
             Result<Program> program = Program.Create(
                 c.Name,
                 c.Description,

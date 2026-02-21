@@ -8,9 +8,15 @@ public sealed class Account : Entity
     public string FirstName { get; private set; } = string.Empty;
     public string LastName { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
+    public string PasswordHash { get; private set; } = string.Empty;
+    public string SecurityStamp { get; private set; } = string.Empty;
+    public bool IsActive { get; private set; } = true;
 
     public IReadOnlyCollection<Role> Roles => _roles.AsReadOnly();
     private readonly List<Role> _roles = [];
+
+    public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
+    private readonly List<RefreshToken> _refreshTokens = [];
 
     private Account() { }
 
@@ -18,6 +24,7 @@ public sealed class Account : Entity
         string firstName,
         string lastName,
         string email,
+        string passwordHash,
         IReadOnlyCollection<string> roleNames
     )
     {
@@ -27,6 +34,9 @@ public sealed class Account : Entity
             FirstName = firstName,
             LastName = lastName,
             Email = email,
+            PasswordHash = passwordHash,
+            SecurityStamp = Guid.CreateVersion7().ToString(),
+            IsActive = true,
         };
 
         Result<IReadOnlyCollection<Role>> roles = CreateRolesFromNames(roleNames);
@@ -44,6 +54,50 @@ public sealed class Account : Entity
         account.RaiseDomainEvent(new AccountRegisteredDomainEvent(account.Id));
 
         return account;
+    }
+
+    public RefreshToken AddRefreshToken(TimeSpan lifetime)
+    {
+        RefreshToken refreshToken = RefreshToken.Create(Id, lifetime);
+        _refreshTokens.Add(refreshToken);
+        return refreshToken;
+    }
+
+    public void RevokeRefreshToken(RefreshToken token)
+    {
+        token.Revoke();
+    }
+
+    public void RevokeAllRefreshTokens()
+    {
+        foreach (RefreshToken token in _refreshTokens.Where(t => t.IsActive))
+        {
+            token.Revoke();
+        }
+    }
+
+    public RefreshToken? GetActiveRefreshToken(string token)
+    {
+        return _refreshTokens.FirstOrDefault(t => t.Token == token && t.IsActive);
+    }
+
+    public void UpdateSecurityStamp()
+    {
+        SecurityStamp = Guid.CreateVersion7().ToString();
+    }
+
+    public void SetPasswordHash(string passwordHash)
+    {
+        PasswordHash = passwordHash;
+        UpdateSecurityStamp();
+    }
+
+    public void Activate() => IsActive = true;
+
+    public void Deactivate()
+    {
+        IsActive = false;
+        RevokeAllRefreshTokens();
     }
 
     private void AddRole(Role role)

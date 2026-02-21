@@ -1,7 +1,11 @@
+using Deep.Accounts.Application.Authentication;
+using Deep.Accounts.Application.Authorization;
 using Deep.Accounts.Application.Data;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application;
+using Deep.Common.Application.Authorization;
 using Deep.Common.Application.Database;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Accounts.Application;
@@ -16,6 +20,16 @@ public static class AccountsModule
             .AddEndpoints(AssemblyReference.Assembly)
             .AddDomainEventInterceptor<AccountsDbContext>(AssemblyReference.Assembly)
             .AddScoped<IAccountRepository, AccountRepository>();
+
+        services
+            .AddOptions<JwtSettings>()
+            .BindConfiguration(JwtSettings.SectionName)
+            .ValidateDataAnnotations();
+
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IPasswordHasher<Account>, PasswordHasher<Account>>();
+        services.AddScoped<IPermissionService, PermissionService>();
+
         return services;
     }
 

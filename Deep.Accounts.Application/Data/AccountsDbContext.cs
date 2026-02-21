@@ -7,6 +7,7 @@ namespace Deep.Accounts.Application.Data;
 public class AccountsDbContext(DbContextOptions<AccountsDbContext> options) : DbContext(options)
 {
     internal DbSet<Account> Accounts => Set<Account>();
+    internal DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

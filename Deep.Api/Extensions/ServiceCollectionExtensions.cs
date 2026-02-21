@@ -2,13 +2,14 @@ using Deep.Accounts.Application;
 using Deep.Accounts.Application.Data;
 using Deep.Common.Api.Middleware;
 using Deep.Common.Application.Api;
+using Deep.Common.Application.Authentication;
+using Deep.Common.Application.Authorization;
 using Deep.Programs.Application;
 using Deep.Programs.Application.Data;
 using Deep.Transactions.Application;
 using Deep.Transactions.Application.Data;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
-
+using Microsoft.OpenApi;
 namespace Deep.Api.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -18,7 +19,22 @@ public static class ServiceCollectionExtensions
         services.AddOpenApi();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(options =>
-            options.CustomSchemaIds(t => t.FullName?.Replace("+", "."))
+        {
+            options.CustomSchemaIds(t => t.FullName?.Replace("+", "."));
+
+            options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Description = "JWT Authorization header using the Bearer scheme."
+            });
+
+            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("bearer", document)] = []
+            });
+        }
         );
         return services;
     }
@@ -51,6 +67,9 @@ public static class ServiceCollectionExtensions
                     TransactionsModule.ConfigureConsumers,
                 ]
             );
+
+        services.AddAuthenticationInternal();
+        services.AddAuthorizationInternal();
 
         services.AddProgramsModule().AddAccountsModule().AddTransactionsModule();
 

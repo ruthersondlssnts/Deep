@@ -7,6 +7,7 @@ using Deep.Common.Domain;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 
 namespace Deep.Accounts.Application.Features.Accounts;
@@ -17,6 +18,7 @@ public static class RegisterAccount
         string FirstName,
         string LastName,
         string Email,
+        string Password,
         IReadOnlyCollection<string> Roles
     );
 
@@ -34,16 +36,45 @@ public static class RegisterAccount
 
             RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
 
-            RuleFor(x => x.Email).NotEmpty();
+            RuleFor(x => x.Email).NotEmpty().EmailAddress();
+
+            RuleFor(x => x.Password)
+                .NotEmpty()
+                .MinimumLength(8)
+                .WithMessage("Password must be at least 8 characters long");
         }
     }
 
-    public sealed class Handler(AccountsDbContext context, IAccountRepository accountRepository)
-        : IRequestHandler<Command, Response>
+    public sealed class Handler(
+        AccountsDbContext context,
+        IAccountRepository accountRepository,
+        IPasswordHasher<Account> passwordHasher
+    ) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            Account account = Account.Create(c.FirstName, c.LastName, c.Email, c.Roles);
+            bool emailExists = await accountRepository.ExistsByEmailAsync(c.Email, ct);
+            if (emailExists)
+            {
+                return AuthErrors.EmailAlreadyExists;
+            }
+
+            string passwordHash = passwordHasher.HashPassword(null!, c.Password);
+
+            Result<Account> accountResult = Account.Create(
+                c.FirstName,
+                c.LastName,
+                c.Email,
+                passwordHash,
+                c.Roles
+            );
+
+            if (accountResult.IsFailure)
+            {
+                return accountResult.Error;
+            }
+
+            Account account = accountResult.Value;
 
             accountRepository.Insert(account);
 
