@@ -29,7 +29,8 @@ public partial class Initial : Migration
                     nullable: false
                 ),
             },
-            constraints: table => table.PrimaryKey("pk_customers", x => x.id));
+            constraints: table => table.PrimaryKey("pk_customers", x => x.id)
+        );
 
         migrationBuilder.CreateTable(
             name: "transactions",

@@ -19,7 +19,7 @@ public sealed class PasswordResetToken
 
     public static PasswordResetToken Create(Guid accountId, TimeSpan lifetime)
     {
-        var tokenBytes = new byte[32];
+        byte[] tokenBytes = new byte[32];
         RandomNumberGenerator.Fill(tokenBytes);
 
         return new PasswordResetToken
@@ -34,9 +34,6 @@ public sealed class PasswordResetToken
 
     public void MarkAsUsed()
     {
-        if (UsedAtUtc is null)
-        {
-            UsedAtUtc = DateTime.UtcNow;
-        }
+        UsedAtUtc ??= DateTime.UtcNow;
     }
 }

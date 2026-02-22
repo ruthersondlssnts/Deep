@@ -47,10 +47,7 @@ public partial class AddProgramProducts : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey(
-                    "pk_program_products",
-                    x => new { x.program_id, x.product_name }
-                );
+                table.PrimaryKey("pk_program_products", x => new { x.program_id, x.product_name });
                 table.ForeignKey(
                     name: "fk_program_products_programs_program_id",
                     column: x => x.program_id,

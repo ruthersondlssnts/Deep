@@ -25,10 +25,7 @@ public static class RefreshAccessToken
 
     public sealed class Validator : AbstractValidator<Command>
     {
-        public Validator()
-        {
-            RuleFor(x => x.RefreshToken).NotEmpty();
-        }
+        public Validator() => RuleFor(x => x.RefreshToken).NotEmpty();
     }
 
     public sealed class Handler(
@@ -43,7 +40,10 @@ public static class RefreshAccessToken
 
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
-            RefreshToken? existingToken = await refreshTokenRepository.GetByTokenAsync(c.RefreshToken, ct);
+            RefreshToken? existingToken = await refreshTokenRepository.GetByTokenAsync(
+                c.RefreshToken,
+                ct
+            );
 
             if (existingToken is null || !existingToken.IsActive)
             {

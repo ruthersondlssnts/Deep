@@ -25,7 +25,8 @@ public partial class AddRolesPermissions : Migration
                     nullable: false
                 ),
             },
-            constraints: table => table.PrimaryKey("pk_permissions", x => x.code));
+            constraints: table => table.PrimaryKey("pk_permissions", x => x.code)
+        );
 
         migrationBuilder.CreateTable(
             name: "roles",
@@ -38,7 +39,8 @@ public partial class AddRolesPermissions : Migration
                     nullable: false
                 ),
             },
-            constraints: table => table.PrimaryKey("pk_roles", x => x.name));
+            constraints: table => table.PrimaryKey("pk_roles", x => x.name)
+        );
 
         migrationBuilder.CreateTable(
             name: "account_roles",
@@ -46,10 +48,7 @@ public partial class AddRolesPermissions : Migration
             columns: table => new
             {
                 account_id = table.Column<Guid>(type: "uuid", nullable: false),
-                role_name = table.Column<string>(
-                    type: "character varying(50)",
-                    nullable: false
-                ),
+                role_name = table.Column<string>(type: "character varying(50)", nullable: false),
             },
             constraints: table =>
             {
@@ -82,10 +81,7 @@ public partial class AddRolesPermissions : Migration
                     type: "character varying(100)",
                     nullable: false
                 ),
-                role_name = table.Column<string>(
-                    type: "character varying(50)",
-                    nullable: false
-                ),
+                role_name = table.Column<string>(type: "character varying(50)", nullable: false),
             },
             constraints: table =>
             {

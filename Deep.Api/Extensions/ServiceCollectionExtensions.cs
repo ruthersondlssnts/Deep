@@ -10,6 +10,7 @@ using Deep.Transactions.Application;
 using Deep.Transactions.Application.Data;
 using MassTransit;
 using Microsoft.OpenApi;
+
 namespace Deep.Api.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -22,20 +23,22 @@ public static class ServiceCollectionExtensions
         {
             options.CustomSchemaIds(t => t.FullName?.Replace("+", "."));
 
-            options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
-            {
-                Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT",
-                Description = "JWT Authorization header using the Bearer scheme."
-            });
+            options.AddSecurityDefinition(
+                "bearer",
+                new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    Description = "JWT Authorization header using the Bearer scheme.",
+                }
+            );
 
             options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
             {
-                [new OpenApiSecuritySchemeReference("bearer", document)] = []
+                [new OpenApiSecuritySchemeReference("bearer", document)] = [],
             });
-        }
-        );
+        });
         return services;
     }
 

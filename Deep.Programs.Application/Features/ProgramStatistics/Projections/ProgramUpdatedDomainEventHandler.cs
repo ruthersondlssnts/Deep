@@ -25,20 +25,21 @@ internal sealed class ProgramUpdatedDomainEventHandler(IRequestBus requestBus)
             return;
         }
 
-        Result<UpsertProgramStatistic.Response> result = await requestBus.Send<UpsertProgramStatistic.Response>(
-            new UpsertProgramStatistic.Command(
-                program.Value.Id,
-                program.Value.Name,
-                program.Value.Description,
-                program.Value.ProgramStatus,
-                program.Value.StartsAtUtc,
-                program.Value.EndsAtUtc,
-                program.Value.OwnerId,
-                program.Value.OwnerName,
-                program.Value.Assignments.Count(a => a.RoleName == RoleNames.Coordinator),
-                program.Value.Assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador)
-            )
-        );
+        Result<UpsertProgramStatistic.Response> result =
+            await requestBus.Send<UpsertProgramStatistic.Response>(
+                new UpsertProgramStatistic.Command(
+                    program.Value.Id,
+                    program.Value.Name,
+                    program.Value.Description,
+                    program.Value.ProgramStatus,
+                    program.Value.StartsAtUtc,
+                    program.Value.EndsAtUtc,
+                    program.Value.OwnerId,
+                    program.Value.OwnerName,
+                    program.Value.Assignments.Count(a => a.RoleName == RoleNames.Coordinator),
+                    program.Value.Assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador)
+                )
+            );
 
         if (result.IsFailure)
         {

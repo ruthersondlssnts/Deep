@@ -68,5 +68,6 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
             });
     }
 
-    private static object CreateRolePermission(Role role, Permission permission) => new { RoleName = role.Name, PermissionCode = permission.Code };
+    private static object CreateRolePermission(Role role, Permission permission) =>
+        new { RoleName = role.Name, PermissionCode = permission.Code };
 }

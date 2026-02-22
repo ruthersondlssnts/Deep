@@ -1,101 +1,108 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Deep.Accounts.Application.Data.Migrations
+namespace Deep.Accounts.Application.Data.Migrations;
+
+/// <inheritdoc />
+public partial class AddRefreshToken : Migration
 {
     /// <inheritdoc />
-    public partial class AddRefreshToken : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<bool>(
-                name: "is_active",
-                schema: "accounts",
-                table: "accounts",
-                type: "boolean",
-                nullable: false,
-                defaultValue: true);
+        migrationBuilder.AddColumn<bool>(
+            name: "is_active",
+            schema: "accounts",
+            table: "accounts",
+            type: "boolean",
+            nullable: false,
+            defaultValue: true
+        );
 
-            migrationBuilder.AddColumn<string>(
-                name: "password_hash",
-                schema: "accounts",
-                table: "accounts",
-                type: "character varying(500)",
-                maxLength: 500,
-                nullable: false,
-                defaultValue: "");
+        migrationBuilder.AddColumn<string>(
+            name: "password_hash",
+            schema: "accounts",
+            table: "accounts",
+            type: "character varying(500)",
+            maxLength: 500,
+            nullable: false,
+            defaultValue: ""
+        );
 
-            migrationBuilder.AddColumn<string>(
-                name: "security_stamp",
-                schema: "accounts",
-                table: "accounts",
-                type: "character varying(100)",
-                maxLength: 100,
-                nullable: false,
-                defaultValue: "");
+        migrationBuilder.AddColumn<string>(
+            name: "security_stamp",
+            schema: "accounts",
+            table: "accounts",
+            type: "character varying(100)",
+            maxLength: 100,
+            nullable: false,
+            defaultValue: ""
+        );
 
-            migrationBuilder.CreateTable(
-                name: "refresh_tokens",
-                schema: "accounts",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    token = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    created_at_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    expiry_date_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    revoked_at_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    account_id = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_refresh_tokens", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_refresh_tokens_accounts_account_id",
-                        column: x => x.account_id,
-                        principalSchema: "accounts",
-                        principalTable: "accounts",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+        migrationBuilder.CreateTable(
+            name: "refresh_tokens",
+            schema: "accounts",
+            columns: table => new
+            {
+                id = table.Column<Guid>(type: "uuid", nullable: false),
+                token = table.Column<string>(
+                    type: "character varying(100)",
+                    maxLength: 100,
+                    nullable: false
+                ),
+                created_at_utc = table.Column<DateTime>(
+                    type: "timestamp with time zone",
+                    nullable: false
+                ),
+                expiry_date_utc = table.Column<DateTime>(
+                    type: "timestamp with time zone",
+                    nullable: false
+                ),
+                revoked_at_utc = table.Column<DateTime>(
+                    type: "timestamp with time zone",
+                    nullable: true
+                ),
+                account_id = table.Column<Guid>(type: "uuid", nullable: false),
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("pk_refresh_tokens", x => x.id);
+                table.ForeignKey(
+                    name: "fk_refresh_tokens_accounts_account_id",
+                    column: x => x.account_id,
+                    principalSchema: "accounts",
+                    principalTable: "accounts",
+                    principalColumn: "id",
+                    onDelete: ReferentialAction.Cascade
+                );
+            }
+        );
 
-            migrationBuilder.CreateIndex(
-                name: "ix_refresh_tokens_account_id",
-                schema: "accounts",
-                table: "refresh_tokens",
-                column: "account_id");
+        migrationBuilder.CreateIndex(
+            name: "ix_refresh_tokens_account_id",
+            schema: "accounts",
+            table: "refresh_tokens",
+            column: "account_id"
+        );
 
-            migrationBuilder.CreateIndex(
-                name: "ix_refresh_tokens_token",
-                schema: "accounts",
-                table: "refresh_tokens",
-                column: "token",
-                unique: true);
-        }
+        migrationBuilder.CreateIndex(
+            name: "ix_refresh_tokens_token",
+            schema: "accounts",
+            table: "refresh_tokens",
+            column: "token",
+            unique: true
+        );
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
-                name: "refresh_tokens",
-                schema: "accounts");
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropTable(name: "refresh_tokens", schema: "accounts");
 
-            migrationBuilder.DropColumn(
-                name: "is_active",
-                schema: "accounts",
-                table: "accounts");
+        migrationBuilder.DropColumn(name: "is_active", schema: "accounts", table: "accounts");
 
-            migrationBuilder.DropColumn(
-                name: "password_hash",
-                schema: "accounts",
-                table: "accounts");
+        migrationBuilder.DropColumn(name: "password_hash", schema: "accounts", table: "accounts");
 
-            migrationBuilder.DropColumn(
-                name: "security_stamp",
-                schema: "accounts",
-                table: "accounts");
-        }
+        migrationBuilder.DropColumn(name: "security_stamp", schema: "accounts", table: "accounts");
     }
 }

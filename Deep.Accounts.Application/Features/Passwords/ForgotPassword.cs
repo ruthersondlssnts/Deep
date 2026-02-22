@@ -19,10 +19,7 @@ public static class ForgotPassword
 
     public sealed class Validator : AbstractValidator<Command>
     {
-        public Validator()
-        {
-            RuleFor(x => x.Email).NotEmpty().EmailAddress();
-        }
+        public Validator() => RuleFor(x => x.Email).NotEmpty().EmailAddress();
     }
 
     public sealed class Handler(

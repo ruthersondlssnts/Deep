@@ -4,7 +4,6 @@ using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Features.Programs;
 using Deep.Programs.Domain.ProgramAssignments;
-using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 
 namespace Deep.Programs.Application.Features.ProgramStatistics.Projections;
@@ -27,17 +26,18 @@ internal sealed class ProgramAssignmentDeactivatedDomainEventHandler(IRequestBus
             return;
         }
 
-        Result<UpsertProgramStatistic.Response> result = await requestBus.Send<UpsertProgramStatistic.Response>(
-            new UpsertProgramStatistic.Command(
-                ProgramId: program.Value.Id,
-                TotalCoordinators: program.Value.Assignments.Count(a =>
-                    a.RoleName == RoleNames.Coordinator
-                ),
-                TotalBrandAmbassadors: program.Value.Assignments.Count(a =>
-                    a.RoleName == RoleNames.BrandAmbassador
+        Result<UpsertProgramStatistic.Response> result =
+            await requestBus.Send<UpsertProgramStatistic.Response>(
+                new UpsertProgramStatistic.Command(
+                    ProgramId: program.Value.Id,
+                    TotalCoordinators: program.Value.Assignments.Count(a =>
+                        a.RoleName == RoleNames.Coordinator
+                    ),
+                    TotalBrandAmbassadors: program.Value.Assignments.Count(a =>
+                        a.RoleName == RoleNames.BrandAmbassador
+                    )
                 )
-            )
-        );
+            );
 
         if (result.IsFailure)
         {

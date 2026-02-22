@@ -11,9 +11,13 @@ public static class GetAccountPermissions
 {
     public sealed record Query(string IdentityId);
 
-    public sealed class Handler(IDbConnectionFactory dbConnectionFactory) : IRequestHandler<Query, PermissionsResponse>
+    public sealed class Handler(IDbConnectionFactory dbConnectionFactory)
+        : IRequestHandler<Query, PermissionsResponse>
     {
-        public async Task<Result<PermissionsResponse>> Handle(Query query, CancellationToken ct = default)
+        public async Task<Result<PermissionsResponse>> Handle(
+            Query query,
+            CancellationToken ct = default
+        )
         {
             if (!Guid.TryParse(query.IdentityId, out Guid accountId))
             {
@@ -32,8 +36,9 @@ public static class GetAccountPermissions
                 WHERE a.id = @AccountId
                 """;
 
-            var permissionResults = (await connection.QueryAsync<AccountPermission>(sql, new { AccountId = accountId }))
-                .ToList();
+            var permissionResults = (
+                await connection.QueryAsync<AccountPermission>(sql, new { AccountId = accountId })
+            ).ToList();
 
             if (permissionResults.Count == 0)
             {

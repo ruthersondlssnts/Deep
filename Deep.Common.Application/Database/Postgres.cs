@@ -12,7 +12,8 @@ public static class Postgres
         IConfiguration configuration,
         string schema
     ) =>
-        (serviceProvider, options) => options
+        (serviceProvider, options) =>
+            options
                 .UseNpgsql(
                     configuration.GetConnectionString("deep-db")!,
                     npgsql =>

@@ -49,14 +49,18 @@ public static class GetPrograms
 
     public sealed class Endpoint : IEndpoint
     {
-        public void MapEndpoint(IEndpointRouteBuilder app) => app.MapGet(
+        public void MapEndpoint(IEndpointRouteBuilder app) =>
+            app.MapGet(
                     "/programs",
                     async (
                         IRequestHandler<Query, IReadOnlyList<Response>> handler,
                         CancellationToken ct
                     ) =>
                     {
-                        Result<IReadOnlyList<Response>> result = await handler.Handle(new Query(), ct);
+                        Result<IReadOnlyList<Response>> result = await handler.Handle(
+                            new Query(),
+                            ct
+                        );
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

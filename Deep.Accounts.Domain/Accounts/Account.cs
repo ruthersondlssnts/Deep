@@ -59,8 +59,7 @@ public sealed class Account : Entity
         UpdateSecurityStamp();
     }
 
-    public void UpdateSecurityStamp() =>
-        SecurityStamp = Guid.CreateVersion7().ToString();
+    public void UpdateSecurityStamp() => SecurityStamp = Guid.CreateVersion7().ToString();
 
     public void Activate() => IsActive = true;
 

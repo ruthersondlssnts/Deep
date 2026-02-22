@@ -44,7 +44,10 @@ public static class ResetPassword
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
             // Query reset token directly
-            PasswordResetToken? resetToken = await passwordResetTokenRepository.GetByTokenAsync(c.ResetToken, ct);
+            PasswordResetToken? resetToken = await passwordResetTokenRepository.GetByTokenAsync(
+                c.ResetToken,
+                ct
+            );
 
             if (resetToken is null || !resetToken.IsValid)
             {
@@ -71,8 +74,10 @@ public static class ResetPassword
             );
 
             // Check if new password matches current password
-            if (passwordHasher.VerifyHashedPassword(account, account.PasswordHash, c.NewPassword)
-                != PasswordVerificationResult.Failed)
+            if (
+                passwordHasher.VerifyHashedPassword(account, account.PasswordHash, c.NewPassword)
+                != PasswordVerificationResult.Failed
+            )
             {
                 return AuthErrors.PasswordRecentlyUsed;
             }
@@ -80,8 +85,13 @@ public static class ResetPassword
             // Check against password history
             foreach (var history in passwordHistory)
             {
-                if (passwordHasher.VerifyHashedPassword(account, history.PasswordHash, c.NewPassword)
-                    != PasswordVerificationResult.Failed)
+                if (
+                    passwordHasher.VerifyHashedPassword(
+                        account,
+                        history.PasswordHash,
+                        c.NewPassword
+                    ) != PasswordVerificationResult.Failed
+                )
                 {
                     return AuthErrors.PasswordRecentlyUsed;
                 }

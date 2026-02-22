@@ -35,7 +35,8 @@ public partial class Initial : Migration
                 ),
                 role = table.Column<string>(type: "text", nullable: false),
             },
-            constraints: table => table.PrimaryKey("pk_accounts", x => x.id));
+            constraints: table => table.PrimaryKey("pk_accounts", x => x.id)
+        );
 
         migrationBuilder.CreateIndex(
             name: "ix_accounts_email",
@@ -47,5 +48,6 @@ public partial class Initial : Migration
     }
 
     /// <inheritdoc />
-    protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(name: "accounts", schema: "accounts");
+    protected override void Down(MigrationBuilder migrationBuilder) =>
+        migrationBuilder.DropTable(name: "accounts", schema: "accounts");
 }

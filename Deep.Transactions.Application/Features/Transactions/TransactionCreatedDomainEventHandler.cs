@@ -26,8 +26,8 @@ internal sealed class TransactionCreatedDomainEventHandler(
             })
             .FirstOrDefault();
 
-        var totalTransactions = stats?.TotalTransactions ?? 0;
-        var totalCustomers = stats?.TotalCustomers ?? 0;
+        int totalTransactions = stats?.TotalTransactions ?? 0;
+        int totalCustomers = stats?.TotalCustomers ?? 0;
 
         await eventBus.PublishAsync(
             new TransactionCreatedIntegrationEvent(

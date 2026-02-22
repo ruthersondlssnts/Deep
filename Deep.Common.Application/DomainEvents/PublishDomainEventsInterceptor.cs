@@ -57,11 +57,12 @@ public class PublishDomainEventsInterceptor(
     {
         using IServiceScope scope = serviceScopeFactory.CreateScope();
 
-        IEnumerable<IDomainEventHandler> domainEventHandlers = DomainEventHandlersFactory.GetHandlers(
-            domainEvent.GetType(),
-            scope.ServiceProvider,
-            assembly
-        );
+        IEnumerable<IDomainEventHandler> domainEventHandlers =
+            DomainEventHandlersFactory.GetHandlers(
+                domainEvent.GetType(),
+                scope.ServiceProvider,
+                assembly
+            );
 
         foreach (IDomainEventHandler domainEventHandler in domainEventHandlers)
         {

@@ -17,9 +17,9 @@ internal sealed class JwtBearerConfigureOptions(IConfiguration configuration)
     {
         var authSection = configuration.GetSection(ConfigurationSectionName);
 
-        var issuerSigningKey = authSection["TokenValidationParameters:IssuerSigningKey"];
-        var validIssuer = authSection["TokenValidationParameters:ValidIssuer"];
-        var validAudience = authSection["TokenValidationParameters:ValidAudience"];
+        string? issuerSigningKey = authSection["TokenValidationParameters:IssuerSigningKey"];
+        string? validIssuer = authSection["TokenValidationParameters:ValidIssuer"];
+        string? validAudience = authSection["TokenValidationParameters:ValidAudience"];
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -30,7 +30,7 @@ internal sealed class JwtBearerConfigureOptions(IConfiguration configuration)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(issuerSigningKey!)),
-            ClockSkew = TimeSpan.FromMinutes(5)
+            ClockSkew = TimeSpan.FromMinutes(5),
         };
 
         // Don't use Authority for symmetric key validation - disable HTTPS metadata requirement

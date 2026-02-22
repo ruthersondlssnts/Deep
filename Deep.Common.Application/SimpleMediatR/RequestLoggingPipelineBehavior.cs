@@ -16,11 +16,11 @@ public sealed class RequestLoggingPipelineBehavior<TRequest, TResponse>(
     {
         Type requestType = typeof(TRequest);
 
-        var requestName = requestType.DeclaringType is not null
+        string requestName = requestType.DeclaringType is not null
             ? $"{requestType.DeclaringType.Name}.{requestType.Name}"
             : requestType.Name;
 
-        var moduleName = GetModuleName(requestType.FullName!);
+        string moduleName = GetModuleName(requestType.FullName!);
 
         using (logger.BeginScope(new Dictionary<string, object> { ["Module"] = moduleName }))
         {

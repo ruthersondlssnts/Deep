@@ -15,20 +15,21 @@ public static class ClaimsPrincipalExtensions
     }
 
     public static string GetIdentityId(this ClaimsPrincipal? principal) =>
-        principal?.FindFirstValue(ClaimTypes.NameIdentifier) ??
-               throw new DeepException("User identity is unavailable");
+        principal?.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new DeepException("User identity is unavailable");
 
     public static HashSet<string> GetPermissions(this ClaimsPrincipal? principal)
     {
-        IEnumerable<Claim> permissionClaims = principal?.FindAll(CustomClaims.Permission) ??
-                               throw new DeepException("Permissions are unavailable");
+        IEnumerable<Claim> permissionClaims =
+            principal?.FindAll(CustomClaims.Permission)
+            ?? throw new DeepException("Permissions are unavailable");
         return permissionClaims.Select(claim => claim.Value).ToHashSet();
     }
 
     public static HashSet<string> GetRoles(this ClaimsPrincipal? principal)
     {
-        IEnumerable<Claim> roleClaims = principal?.FindAll(ClaimTypes.Role) ??
-                               throw new DeepException("Roles are unavailable");
+        IEnumerable<Claim> roleClaims =
+            principal?.FindAll(ClaimTypes.Role) ?? throw new DeepException("Roles are unavailable");
         return roleClaims.Select(claim => claim.Value).ToHashSet();
     }
 }

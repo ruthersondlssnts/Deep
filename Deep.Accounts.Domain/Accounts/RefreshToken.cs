@@ -15,9 +15,8 @@ public sealed class RefreshToken
 
     private RefreshToken() { }
 
-    public static RefreshToken Create(Guid accountId, TimeSpan lifetime)
-    {
-        return new RefreshToken
+    public static RefreshToken Create(Guid accountId, TimeSpan lifetime) =>
+        new RefreshToken
         {
             Id = Guid.CreateVersion7(),
             Token = Convert.ToBase64String(Guid.CreateVersion7().ToByteArray()),
@@ -25,13 +24,9 @@ public sealed class RefreshToken
             ExpiryDateUtc = DateTime.UtcNow.Add(lifetime),
             AccountId = accountId,
         };
-    }
 
     public void Revoke()
     {
-        if (RevokedAtUtc is null)
-        {
-            RevokedAtUtc = DateTime.UtcNow;
-        }
+        RevokedAtUtc ??= DateTime.UtcNow;
     }
 }

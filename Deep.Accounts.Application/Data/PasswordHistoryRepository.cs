@@ -8,9 +8,10 @@ internal sealed class PasswordHistoryRepository(AccountsDbContext db) : IPasswor
     public async Task<IReadOnlyCollection<PasswordHistory>> GetLastNByAccountIdAsync(
         Guid accountId,
         int count,
-        CancellationToken cancellationToken = default) =>
-        await db.PasswordHistories
-            .Where(ph => ph.AccountId == accountId)
+        CancellationToken cancellationToken = default
+    ) =>
+        await db
+            .PasswordHistories.Where(ph => ph.AccountId == accountId)
             .OrderByDescending(ph => ph.ChangedAtUtc)
             .Take(count)
             .ToListAsync(cancellationToken);
@@ -20,8 +21,8 @@ internal sealed class PasswordHistoryRepository(AccountsDbContext db) : IPasswor
 
     public void DeleteOldestBeyondLimit(Guid accountId, int keepCount)
     {
-        var toDelete = db.PasswordHistories
-            .Where(ph => ph.AccountId == accountId)
+        var toDelete = db
+            .PasswordHistories.Where(ph => ph.AccountId == accountId)
             .OrderByDescending(ph => ph.ChangedAtUtc)
             .Skip(keepCount)
             .ToList();

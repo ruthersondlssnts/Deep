@@ -72,16 +72,23 @@ public static class ChangePassword
 
             string newPasswordHash = passwordHasher.HashPassword(account, c.NewPassword);
 
-            if (passwordHasher.VerifyHashedPassword(account, account.PasswordHash, c.NewPassword)
-                != PasswordVerificationResult.Failed)
+            if (
+                passwordHasher.VerifyHashedPassword(account, account.PasswordHash, c.NewPassword)
+                != PasswordVerificationResult.Failed
+            )
             {
                 return AuthErrors.PasswordRecentlyUsed;
             }
 
             foreach (var history in passwordHistory)
             {
-                if (passwordHasher.VerifyHashedPassword(account, history.PasswordHash, c.NewPassword)
-                    != PasswordVerificationResult.Failed)
+                if (
+                    passwordHasher.VerifyHashedPassword(
+                        account,
+                        history.PasswordHash,
+                        c.NewPassword
+                    ) != PasswordVerificationResult.Failed
+                )
                 {
                     return AuthErrors.PasswordRecentlyUsed;
                 }

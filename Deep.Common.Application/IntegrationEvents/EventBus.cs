@@ -8,5 +8,6 @@ public sealed class EventBus(IBus bus) : IEventBus
         TIntegrationEvent integrationEvent,
         CancellationToken cancellationToken = default
     )
-        where TIntegrationEvent : IIntegrationEvent => await bus.Publish(integrationEvent, cancellationToken);
+        where TIntegrationEvent : IIntegrationEvent =>
+        await bus.Publish(integrationEvent, cancellationToken);
 }
