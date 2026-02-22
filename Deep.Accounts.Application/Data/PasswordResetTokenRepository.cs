@@ -24,7 +24,7 @@ internal sealed class PasswordResetTokenRepository(AccountsDbContext db)
             .PasswordResetTokens.Where(prt => prt.AccountId == accountId && prt.UsedAtUtc == null)
             .ToList();
 
-        foreach (var token in activeTokens)
+        foreach (PasswordResetToken? token in activeTokens)
         {
             token.MarkAsUsed();
         }

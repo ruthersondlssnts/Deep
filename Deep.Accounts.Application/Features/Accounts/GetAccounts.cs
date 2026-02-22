@@ -30,6 +30,7 @@ public static class GetAccounts
         public async Task<Result<IReadOnlyCollection<Response>>> Handle(
             Query request,
             CancellationToken ct
+= default
         )
         {
             IQueryable<Account> accountsQuery = context

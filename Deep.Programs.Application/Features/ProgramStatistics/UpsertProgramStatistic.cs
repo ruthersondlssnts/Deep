@@ -27,7 +27,7 @@ public static class UpsertProgramStatistic
 
     public sealed class Handler(MongoDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command request, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command request, CancellationToken ct = default)
         {
             UpdateDefinitionBuilder<ProgramStatistic> u = Builders<ProgramStatistic>.Update;
             var updates = new List<UpdateDefinition<ProgramStatistic>>();

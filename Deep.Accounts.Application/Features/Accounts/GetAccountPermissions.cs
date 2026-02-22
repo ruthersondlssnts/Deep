@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Dapper;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application.Authorization;
@@ -24,7 +25,7 @@ public static class GetAccountPermissions
                 return AccountErrors.NotFound(Guid.Empty);
             }
 
-            await using var connection = await dbConnectionFactory.OpenConnectionAsync();
+            await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
 
             const string sql = """
                 SELECT DISTINCT

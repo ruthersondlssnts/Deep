@@ -67,7 +67,7 @@ public static class UpdateProgram
         IProgramRepository programRepository
     ) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             Program? program = await programRepository.GetAsync(c.ProgramId, ct);
 

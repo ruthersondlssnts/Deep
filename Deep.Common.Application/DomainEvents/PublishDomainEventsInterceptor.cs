@@ -18,23 +18,17 @@ public class PublishDomainEventsInterceptor(
         CancellationToken cancellationToken = default
     )
     {
-        if (
-            eventData.Context is null
-            || !dbContextType.IsAssignableFrom(eventData.Context.GetType())
-        )
+        if (eventData.Context is null || !dbContextType.IsInstanceOfType(eventData.Context))
         {
             return await base.SavedChangesAsync(eventData, result, cancellationToken);
         }
 
-        await PublishDomainEventsAsync(eventData.Context, cancellationToken);
+        await PublishDomainEventsAsync(eventData.Context);
 
         return await base.SavedChangesAsync(eventData, result, cancellationToken);
     }
 
-    private async Task PublishDomainEventsAsync(
-        DbContext context,
-        CancellationToken cancellationToken
-    )
+    private async Task PublishDomainEventsAsync(DbContext context)
     {
         var domainEvents = context
             .ChangeTracker.Entries<Entity>()

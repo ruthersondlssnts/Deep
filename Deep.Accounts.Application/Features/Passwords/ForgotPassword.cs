@@ -30,7 +30,7 @@ public static class ForgotPassword
     {
         private static readonly TimeSpan ResetTokenLifetime = TimeSpan.FromMinutes(15);
 
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             Account? account = await accountRepository.GetByEmailAsync(c.Email, ct);
 

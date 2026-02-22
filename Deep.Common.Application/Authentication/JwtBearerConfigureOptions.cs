@@ -15,7 +15,7 @@ internal sealed class JwtBearerConfigureOptions(IConfiguration configuration)
 
     public void Configure(string? name, JwtBearerOptions options)
     {
-        var authSection = configuration.GetSection(ConfigurationSectionName);
+        IConfigurationSection authSection = configuration.GetSection(ConfigurationSectionName);
 
         string? issuerSigningKey = authSection["TokenValidationParameters:IssuerSigningKey"];
         string? validIssuer = authSection["TokenValidationParameters:ValidIssuer"];

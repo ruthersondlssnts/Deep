@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Deep.Programs.Application.Data.Configurations;
 
-internal sealed partial class UsersConfiguration : IEntityTypeConfiguration<User>
+internal sealed class UsersConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {

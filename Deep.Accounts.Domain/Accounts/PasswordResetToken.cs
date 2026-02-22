@@ -32,8 +32,5 @@ public sealed class PasswordResetToken
         };
     }
 
-    public void MarkAsUsed()
-    {
-        UsedAtUtc ??= DateTime.UtcNow;
-    }
+    public void MarkAsUsed() => UsedAtUtc ??= DateTime.UtcNow;
 }

@@ -36,6 +36,7 @@ public static class GetProgramAssignments
         public async Task<Result<IReadOnlyList<Response>>> Handle(
             Query request,
             CancellationToken cancellationToken
+= default
         )
         {
             await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();

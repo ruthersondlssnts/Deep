@@ -38,7 +38,7 @@ public static class RefreshAccessToken
     {
         private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             RefreshToken? existingToken = await refreshTokenRepository.GetByTokenAsync(
                 c.RefreshToken,

@@ -42,7 +42,7 @@ public static class ChangePassword
     {
         private const int PasswordHistoryLimit = 5;
 
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             Guid accountId = httpContextAccessor.HttpContext!.User.GetUserId();
 
@@ -64,7 +64,7 @@ public static class ChangePassword
                 return AuthErrors.CurrentPasswordIncorrect;
             }
 
-            var passwordHistory = await passwordHistoryRepository.GetLastNByAccountIdAsync(
+            IReadOnlyCollection<PasswordHistory> passwordHistory = await passwordHistoryRepository.GetLastNByAccountIdAsync(
                 accountId,
                 PasswordHistoryLimit,
                 ct
@@ -80,7 +80,7 @@ public static class ChangePassword
                 return AuthErrors.PasswordRecentlyUsed;
             }
 
-            foreach (var history in passwordHistory)
+            foreach (PasswordHistory history in passwordHistory)
             {
                 if (
                     passwordHasher.VerifyHashedPassword(

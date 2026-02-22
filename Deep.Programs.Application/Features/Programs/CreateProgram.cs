@@ -68,7 +68,7 @@ public static class CreateProgram
         IProgramAssignmentRepository programAssignmentRepository
     ) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             User? currentUserEntity = await context
                 .Users.Include(u => u.Roles)

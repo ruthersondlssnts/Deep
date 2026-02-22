@@ -25,8 +25,5 @@ public sealed class RefreshToken
             AccountId = accountId,
         };
 
-    public void Revoke()
-    {
-        RevokedAtUtc ??= DateTime.UtcNow;
-    }
+    public void Revoke() => RevokedAtUtc ??= DateTime.UtcNow;
 }

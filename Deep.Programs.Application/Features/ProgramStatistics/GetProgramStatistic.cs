@@ -32,7 +32,7 @@ public static class GetProgramStatistic
 
     public sealed class Handler(MongoDbContext context) : IRequestHandler<Query, Response>
     {
-        public async Task<Result<Response>> Handle(Query request, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Query request, CancellationToken ct = default)
         {
             ProgramStatistic? stat = await context
                 .ProgramStatistics.Find(x => x.ProgramId == request.ProgramId)

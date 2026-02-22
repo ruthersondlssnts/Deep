@@ -39,7 +39,7 @@ public static class CreateUser
     public sealed class Handler(ProgramsDbContext context, IUserRepository userRepository)
         : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             User account = User.Create(c.Id, c.FirstName, c.LastName, c.Email, c.Roles);
 

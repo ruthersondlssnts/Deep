@@ -51,7 +51,7 @@ public static class RegisterAccount
         IPasswordHasher<Account> passwordHasher
     ) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             bool emailExists = await accountRepository.ExistsByEmailAsync(c.Email, ct);
             if (emailExists)

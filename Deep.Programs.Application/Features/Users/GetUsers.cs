@@ -29,7 +29,7 @@ public static class GetUsers
     {
         public async Task<Result<IReadOnlyList<Response>>> Handle(
             Query request,
-            CancellationToken ct
+            CancellationToken ct = default
         )
         {
             IQueryable<User> accountsQuery = context.Users.Include(a => a.Roles).AsQueryable();

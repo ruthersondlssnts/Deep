@@ -30,7 +30,7 @@ internal sealed class RefreshTokenRepository(AccountsDbContext db) : IRefreshTok
             .RefreshTokens.Where(rt => rt.AccountId == accountId && rt.RevokedAtUtc == null)
             .ToList();
 
-        foreach (var token in activeTokens)
+        foreach (RefreshToken? token in activeTokens)
         {
             token.Revoke();
         }

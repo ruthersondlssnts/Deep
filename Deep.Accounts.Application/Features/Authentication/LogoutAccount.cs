@@ -27,7 +27,7 @@ public static class LogoutAccount
         IRefreshTokenRepository refreshTokenRepository
     ) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             RefreshToken? existingToken = await refreshTokenRepository.GetByTokenAsync(
                 c.RefreshToken,

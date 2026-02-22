@@ -26,7 +26,7 @@ public static class DeleteProgramAssignment
 
     public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             ProgramAssignment? assignment = await context.ProgramAssignments.FirstOrDefaultAsync(
                 a => a.Id == c.AssignmentId,

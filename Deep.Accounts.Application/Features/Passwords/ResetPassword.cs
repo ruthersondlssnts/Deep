@@ -41,7 +41,7 @@ public static class ResetPassword
     {
         private const int PasswordHistoryLimit = 5;
 
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             // Query reset token directly
             PasswordResetToken? resetToken = await passwordResetTokenRepository.GetByTokenAsync(
@@ -67,7 +67,7 @@ public static class ResetPassword
             }
 
             // Check password history - prevent reuse of last 5 passwords
-            var passwordHistory = await passwordHistoryRepository.GetLastNByAccountIdAsync(
+            IReadOnlyCollection<PasswordHistory> passwordHistory = await passwordHistoryRepository.GetLastNByAccountIdAsync(
                 account.Id,
                 PasswordHistoryLimit,
                 ct
@@ -83,7 +83,7 @@ public static class ResetPassword
             }
 
             // Check against password history
-            foreach (var history in passwordHistory)
+            foreach (PasswordHistory history in passwordHistory)
             {
                 if (
                     passwordHasher.VerifyHashedPassword(

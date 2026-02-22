@@ -44,7 +44,7 @@ public static class LoginAccount
     {
         private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
+        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             Account? account = await accountRepository.GetByEmailAsync(c.Email, ct);
 
