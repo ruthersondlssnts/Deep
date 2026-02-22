@@ -67,11 +67,12 @@ public static class ResetPassword
             }
 
             // Check password history - prevent reuse of last 5 passwords
-            IReadOnlyCollection<PasswordHistory> passwordHistory = await passwordHistoryRepository.GetLastNByAccountIdAsync(
-                account.Id,
-                PasswordHistoryLimit,
-                ct
-            );
+            IReadOnlyCollection<PasswordHistory> passwordHistory =
+                await passwordHistoryRepository.GetLastNByAccountIdAsync(
+                    account.Id,
+                    PasswordHistoryLimit,
+                    ct
+                );
 
             // Check if new password matches current password
             if (

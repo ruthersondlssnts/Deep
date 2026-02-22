@@ -64,11 +64,12 @@ public static class ChangePassword
                 return AuthErrors.CurrentPasswordIncorrect;
             }
 
-            IReadOnlyCollection<PasswordHistory> passwordHistory = await passwordHistoryRepository.GetLastNByAccountIdAsync(
-                accountId,
-                PasswordHistoryLimit,
-                ct
-            );
+            IReadOnlyCollection<PasswordHistory> passwordHistory =
+                await passwordHistoryRepository.GetLastNByAccountIdAsync(
+                    accountId,
+                    PasswordHistoryLimit,
+                    ct
+                );
 
             string newPasswordHash = passwordHasher.HashPassword(account, c.NewPassword);
 

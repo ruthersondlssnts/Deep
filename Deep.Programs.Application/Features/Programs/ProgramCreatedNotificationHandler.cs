@@ -9,6 +9,5 @@ internal sealed class ProgramCreatedNotificationHandler()
     public override async Task Handle(
         ProgramCreatedDomainEvent domainEvent,
         CancellationToken cancellationToken = default
-    )
-    { }
+    ) { }
 }
