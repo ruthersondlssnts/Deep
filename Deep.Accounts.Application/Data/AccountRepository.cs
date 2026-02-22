@@ -7,20 +7,13 @@ internal sealed class AccountRepository(AccountsDbContext db) : IAccountReposito
 {
     public async Task<Account?> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         await db.Accounts
-            .Include(a => a.RefreshTokens)
+            .Include(a => a.Roles)
             .SingleOrDefaultAsync(acct => acct.Id == id, cancellationToken);
 
     public async Task<Account?> GetByEmailAsync(string email, CancellationToken cancellationToken = default) =>
         await db.Accounts
             .Include(a => a.Roles)
-            .Include(a => a.RefreshTokens)
             .SingleOrDefaultAsync(acct => acct.Email == email, cancellationToken);
-
-    public async Task<Account?> GetByRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default) =>
-        await db.Accounts
-            .Include(a => a.Roles)
-            .Include(a => a.RefreshTokens)
-            .SingleOrDefaultAsync(a => a.RefreshTokens.Any(rt => rt.Token == refreshToken), cancellationToken);
 
     public async Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default) =>
         await db.Accounts.AnyAsync(a => a.Email == email, cancellationToken);

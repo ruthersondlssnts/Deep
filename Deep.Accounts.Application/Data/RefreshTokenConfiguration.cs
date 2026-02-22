@@ -8,6 +8,8 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
 {
     public void Configure(EntityTypeBuilder<RefreshToken> builder)
     {
+        builder.ToTable("refresh_tokens");
+
         builder.HasKey(rt => rt.Id);
 
         builder.Property(rt => rt.Token).IsRequired().HasMaxLength(100);
@@ -21,5 +23,7 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
         builder.Property(rt => rt.RevokedAtUtc);
 
         builder.Property(rt => rt.AccountId).IsRequired();
+
+        builder.HasIndex(rt => rt.AccountId);
     }
 }

@@ -15,9 +15,6 @@ public sealed class Account : Entity
     public IReadOnlyCollection<Role> Roles => _roles.AsReadOnly();
     private readonly List<Role> _roles = [];
 
-    public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
-    private readonly List<RefreshToken> _refreshTokens = [];
-
     private Account() { }
 
     public static Result<Account> Create(
@@ -56,49 +53,18 @@ public sealed class Account : Entity
         return account;
     }
 
-    public RefreshToken AddRefreshToken(TimeSpan lifetime)
+    public void UpdatePassword(string newPasswordHash)
     {
-        RefreshToken refreshToken = RefreshToken.Create(Id, lifetime);
-        _refreshTokens.Add(refreshToken);
-        return refreshToken;
-    }
-
-    public void RevokeRefreshToken(RefreshToken token)
-    {
-        token.Revoke();
-    }
-
-    public void RevokeAllRefreshTokens()
-    {
-        foreach (RefreshToken token in _refreshTokens.Where(t => t.IsActive))
-        {
-            token.Revoke();
-        }
-    }
-
-    public RefreshToken? GetActiveRefreshToken(string token)
-    {
-        return _refreshTokens.FirstOrDefault(t => t.Token == token && t.IsActive);
-    }
-
-    public void UpdateSecurityStamp()
-    {
-        SecurityStamp = Guid.CreateVersion7().ToString();
-    }
-
-    public void SetPasswordHash(string passwordHash)
-    {
-        PasswordHash = passwordHash;
+        PasswordHash = newPasswordHash;
         UpdateSecurityStamp();
     }
 
+    public void UpdateSecurityStamp() =>
+        SecurityStamp = Guid.CreateVersion7().ToString();
+
     public void Activate() => IsActive = true;
 
-    public void Deactivate()
-    {
-        IsActive = false;
-        RevokeAllRefreshTokens();
-    }
+    public void Deactivate() => IsActive = false;
 
     private void AddRole(Role role)
     {

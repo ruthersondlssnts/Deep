@@ -19,7 +19,10 @@ public static class AccountsModule
             .AddPostgresDbContextWithSchema<AccountsDbContext>(Schemas.Accounts)
             .AddEndpoints(AssemblyReference.Assembly)
             .AddDomainEventInterceptor<AccountsDbContext>(AssemblyReference.Assembly)
-            .AddScoped<IAccountRepository, AccountRepository>();
+            .AddScoped<IAccountRepository, AccountRepository>()
+            .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>()
+            .AddScoped<IPasswordHistoryRepository, PasswordHistoryRepository>()
+            .AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 
         services
             .AddOptions<JwtSettings>()

@@ -23,4 +23,19 @@ public static class AuthErrors
         "Auth.EmailAlreadyExists",
         "An account with this email already exists"
     );
+
+    public static readonly Error InvalidResetToken = Error.Authorization(
+        "Auth.InvalidResetToken",
+        "Invalid or expired password reset token"
+    );
+
+    public static readonly Error PasswordRecentlyUsed = Error.Problem(
+        "Auth.PasswordRecentlyUsed",
+        "Cannot reuse a recently used password"
+    );
+
+    public static readonly Error CurrentPasswordIncorrect = Error.Authorization(
+        "Auth.CurrentPasswordIncorrect",
+        "Current password is incorrect"
+    );
 }

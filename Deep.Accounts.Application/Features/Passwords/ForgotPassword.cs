@@ -1,4 +1,3 @@
-using Deep.Accounts.Application.Authentication;
 using Deep.Accounts.Application.Data;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application.Api.ApiResults;
@@ -8,40 +7,31 @@ using Deep.Common.Domain;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Options;
 
-namespace Deep.Accounts.Application.Features.Accounts;
+namespace Deep.Accounts.Application.Features.Passwords;
 
-public static class LoginAccount
+public static class ForgotPassword
 {
-    public sealed record Command(string Email, string Password);
+    public sealed record Command(string Email);
 
-    public sealed record Response(
-        string AccessToken,
-        string RefreshToken,
-        DateTime AccessTokenExpiry
-    );
+    public sealed record Response(string ResetToken, DateTime ExpiresAtUtc);
 
     public sealed class Validator : AbstractValidator<Command>
     {
         public Validator()
         {
             RuleFor(x => x.Email).NotEmpty().EmailAddress();
-            RuleFor(x => x.Password).NotEmpty();
         }
     }
 
     public sealed class Handler(
         AccountsDbContext context,
         IAccountRepository accountRepository,
-        IPasswordHasher<Account> passwordHasher,
-        IJwtTokenGenerator jwtTokenGenerator,
-        IOptions<JwtSettings> jwtSettings
+        IPasswordResetTokenRepository passwordResetTokenRepository
     ) : IRequestHandler<Command, Response>
     {
-        private readonly JwtSettings _jwtSettings = jwtSettings.Value;
+        private static readonly TimeSpan ResetTokenLifetime = TimeSpan.FromMinutes(15);
 
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct)
         {
@@ -49,7 +39,7 @@ public static class LoginAccount
 
             if (account is null)
             {
-                return AuthErrors.InvalidCredentials;
+                return AccountErrors.NotFound(Guid.Empty);
             }
 
             if (!account.IsActive)
@@ -57,30 +47,15 @@ public static class LoginAccount
                 return AuthErrors.AccountInactive;
             }
 
-            PasswordVerificationResult verificationResult = passwordHasher.VerifyHashedPassword(
-                account,
-                account.PasswordHash,
-                c.Password
-            );
+            passwordResetTokenRepository.InvalidateAllForAccount(account.Id);
 
-            if (verificationResult == PasswordVerificationResult.Failed)
-            {
-                return AuthErrors.InvalidCredentials;
-            }
-
-            string accessToken = jwtTokenGenerator.GenerateAccessToken(account);
-
-            // Create refresh token directly to avoid EF tracking issues with Account entity
-            var refreshToken = RefreshToken.Create(account.Id, TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays));
-            context.RefreshTokens.Add(refreshToken);
+            var resetToken = PasswordResetToken.Create(account.Id, ResetTokenLifetime);
+            passwordResetTokenRepository.Insert(resetToken);
 
             await context.SaveChangesAsync(ct);
 
-            return new Response(
-                accessToken,
-                refreshToken.Token,
-                DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes)
-            );
+            // In production, you would send this token via email
+            return new Response(resetToken.Token, resetToken.ExpiryDateUtc);
         }
     }
 
@@ -88,7 +63,7 @@ public static class LoginAccount
     {
         public void MapEndpoint(IEndpointRouteBuilder app) =>
             app.MapPost(
-                    "/accounts/login",
+                    "/accounts/forgot-password",
                     async (
                         Command command,
                         IRequestHandler<Command, Response> handler,

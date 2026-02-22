@@ -23,11 +23,5 @@ internal sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
         builder.Property(u => u.SecurityStamp).IsRequired().HasMaxLength(100);
 
         builder.Property(u => u.IsActive).IsRequired().HasDefaultValue(true);
-
-        builder
-            .HasMany(u => u.RefreshTokens)
-            .WithOne()
-            .HasForeignKey(rt => rt.AccountId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }
