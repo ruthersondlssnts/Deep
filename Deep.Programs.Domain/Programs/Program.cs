@@ -71,6 +71,9 @@ public class Program : Entity
         }
 
         program.RaiseDomainEvent(new ProgramCreatedDomainEvent(program.Id));
+        program.RaiseDomainEvent(
+            new ProgramAssignmentsRequestedDomainEvent(program.Id, assignments)
+        );
 
         return program;
     }
@@ -81,7 +84,7 @@ public class Program : Entity
         DateTime startsAtUtc,
         DateTime endsAtUtc,
         IEnumerable<string> productNames,
-        List<(Guid UserId, string RoleName)> assignments
+        IReadOnlyCollection<(Guid UserId, string RoleName)> assignments
     )
     {
         if (endsAtUtc < startsAtUtc)
@@ -119,11 +122,12 @@ public class Program : Entity
         ReplaceProducts(productNames);
 
         RaiseDomainEvent(new ProgramUpdatedDomainEvent(Id));
+        RaiseDomainEvent(new ProgramAssignmentsUpdatedDomainEvent(Id, assignments));
 
         return Result.Success();
     }
 
-    public static Result ValidateAssignment(
+    private static Result ValidateAssignment(
         int coordinatorCount,
         int coOwnerCount,
         int brandAmbassadorCount,

@@ -1,17 +1,15 @@
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
+using Deep.Common.Application.Authentication;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
-using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
 using Deep.Programs.Domain.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using MongoDB.Driver;
 
 namespace Deep.Programs.Application.Features.Programs;
 
@@ -65,58 +63,41 @@ public static class CreateProgram
     public sealed class Handler(
         ProgramsDbContext context,
         IProgramRepository programRepository,
-        IProgramAssignmentRepository programAssignmentRepository
+        IUserRepository userRepository,
+        IHttpContextAccessor httpContextAccessor
     ) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            User? currentUserEntity = await context
-                .Users.Include(u => u.Roles)
-                .SingleOrDefaultAsync(u => u.Roles.Any(r => r.Name == Role.ProgramOwner.Name), ct);
+            Guid currentUserId = httpContextAccessor.HttpContext!.User.GetUserId();
 
-            if (currentUserEntity is null)
-            {
-                return UserErrors.UserRoleNotFound(Guid.Empty, Role.ProgramOwner.Name);
-            }
+            var assignments = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
-            var assignmentPairs = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
-
-            if (!await programRepository.AreAllUsersValid(assignmentPairs, ct))
+            if (!await userRepository.ExistWithRolesAsync(assignments, ct))
             {
                 return ProgramErrors.ProgramUserNotFound;
             }
 
-            Result<Program> program = Program.Create(
+            Result<Program> programResult = Program.Create(
                 c.Name,
                 c.Description,
                 c.StartsAtUtc,
                 c.EndsAtUtc,
                 c.ProductNames,
-                currentUserEntity.Id,
-                assignmentPairs
+                currentUserId,
+                assignments
             );
 
-            if (!program.IsSuccess)
+            if (programResult.IsFailure)
             {
-                return program.Error;
+                return programResult.Error;
             }
 
-            Result<IEnumerable<ProgramAssignment>> programAssignmentsResult =
-                ProgramAssignment.CreateRange(program.Value.Id, assignmentPairs);
-
-            if (!programAssignmentsResult.IsSuccess)
-            {
-                return programAssignmentsResult.Error;
-            }
-
-            IEnumerable<ProgramAssignment> programAssignments = programAssignmentsResult.Value;
-
-            programRepository.Insert(program);
-            programAssignmentRepository.InsertRange(programAssignments);
+            programRepository.Insert(programResult.Value);
 
             await context.SaveChangesAsync(ct);
 
-            return new Response(program.Value.Id);
+            return new Response(programResult.Value.Id);
         }
     }
 
@@ -139,6 +120,7 @@ public static class CreateProgram
                         );
                     }
                 )
+                .RequireAuthorization()
                 .WithTags("Programs");
     }
 }

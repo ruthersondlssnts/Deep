@@ -3,13 +3,12 @@ using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
-using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
+using Deep.Programs.Domain.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Features.Programs;
 
@@ -63,8 +62,8 @@ public static class UpdateProgram
 
     public sealed class Handler(
         ProgramsDbContext context,
-        IProgramAssignmentRepository programAssignmentRepository,
-        IProgramRepository programRepository
+        IProgramRepository programRepository,
+        IUserRepository userRepository
     ) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
@@ -76,40 +75,29 @@ public static class UpdateProgram
                 return ProgramErrors.NotFound(c.ProgramId);
             }
 
-            var assignmentPairs = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
+            var assignments = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
-            if (!await programRepository.AreAllUsersValid(assignmentPairs, ct))
+            if (!await userRepository.ExistWithRolesAsync(assignments, ct))
             {
                 return ProgramErrors.ProgramUserNotFound;
             }
 
-            program.UpdateDetails(
+            Result updateResult = program.UpdateDetails(
                 c.Name,
                 c.Description,
                 c.StartsAtUtc,
                 c.EndsAtUtc,
                 c.ProductNames,
-                assignmentPairs
+                assignments
             );
 
-            Result<IReadOnlyList<ProgramAssignment>> newAssignments =
-                ProgramAssignment.UpdateAssignments(
-                    program.Id,
-                    assignmentPairs,
-                    await programAssignmentRepository.GetAssignmentsByProgramId(program.Id, ct)
-                );
-
-            if (newAssignments.IsFailure)
+            if (updateResult.IsFailure)
             {
-                return newAssignments.Error;
-            }
-
-            if (newAssignments.Value.Count > 0)
-            {
-                programAssignmentRepository.InsertRange(newAssignments.Value);
+                return updateResult.Error;
             }
 
             await context.SaveChangesAsync(ct);
+
             return new Response(program.Id);
         }
     }
