@@ -42,12 +42,7 @@ public class Program : Entity
             return ProgramErrors.AtLeastOneProductRequired;
         }
 
-        Result validationResult = ValidateAssignment(
-            assignments.Count(a => a.RoleName == RoleNames.Coordinator),
-            assignments.Count(a => a.RoleName == RoleNames.ProgramOwner),
-            assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador),
-            ProgramStatus.New
-        );
+        Result validationResult = ValidateAssignments(assignments, ProgramStatus.New);
 
         if (validationResult.IsFailure)
         {
@@ -71,9 +66,6 @@ public class Program : Entity
         }
 
         program.RaiseDomainEvent(new ProgramCreatedDomainEvent(program.Id));
-        program.RaiseDomainEvent(
-            new ProgramAssignmentsRequestedDomainEvent(program.Id, assignments)
-        );
 
         return program;
     }
@@ -102,12 +94,7 @@ public class Program : Entity
             return ProgramErrors.AtLeastOneProductRequired;
         }
 
-        Result validation = ValidateAssignment(
-            assignments.Count(a => a.RoleName == RoleNames.Coordinator),
-            assignments.Count(a => a.RoleName == RoleNames.ProgramOwner),
-            assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador),
-            ProgramStatus
-        );
+        Result validation = ValidateAssignments(assignments, ProgramStatus);
 
         if (validation.IsFailure)
         {
@@ -122,12 +109,25 @@ public class Program : Entity
         ReplaceProducts(productNames);
 
         RaiseDomainEvent(new ProgramUpdatedDomainEvent(Id));
-        RaiseDomainEvent(new ProgramAssignmentsUpdatedDomainEvent(Id, assignments));
 
         return Result.Success();
     }
 
-    private static Result ValidateAssignment(
+    public static Result ValidateAssignments(
+        IEnumerable<(Guid UserId, string RoleName)> assignments,
+        ProgramStatus programStatus)
+    {
+        List<(Guid UserId, string RoleName)> assignmentList = assignments.ToList();
+
+        return ValidateAssignmentCounts(
+            assignmentList.Count(a => a.RoleName == RoleNames.Coordinator),
+            assignmentList.Count(a => a.RoleName == RoleNames.ProgramOwner),
+            assignmentList.Count(a => a.RoleName == RoleNames.BrandAmbassador),
+            programStatus
+        );
+    }
+
+    private static Result ValidateAssignmentCounts(
         int coordinatorCount,
         int coOwnerCount,
         int brandAmbassadorCount,

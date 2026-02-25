@@ -3,6 +3,7 @@ using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
+using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
 using Deep.Programs.Domain.Users;
 using FluentValidation;
@@ -63,6 +64,7 @@ public static class UpdateProgram
     public sealed class Handler(
         ProgramsDbContext context,
         IProgramRepository programRepository,
+        IProgramAssignmentRepository assignmentRepository,
         IUserRepository userRepository
     ) : IRequestHandler<Command, Response>
     {
@@ -75,7 +77,10 @@ public static class UpdateProgram
                 return ProgramErrors.NotFound(c.ProgramId);
             }
 
-            var assignments = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
+            List<(Guid UserId, string RoleName)> assignments = c
+                .Users.Select(u => (u.UserId, u.RoleName))
+                .Distinct()
+                .ToList();
 
             if (!await userRepository.ExistWithRolesAsync(assignments, ct))
             {
@@ -94,6 +99,22 @@ public static class UpdateProgram
             if (updateResult.IsFailure)
             {
                 return updateResult.Error;
+            }
+
+            List<ProgramAssignment> existingAssignments =
+                await assignmentRepository.GetAssignmentsByProgramId(c.ProgramId, ct);
+
+            Result<IReadOnlyList<ProgramAssignment>> newAssignmentsResult =
+                ProgramAssignment.UpdateAssignments(c.ProgramId, assignments, existingAssignments);
+
+            if (newAssignmentsResult.IsFailure)
+            {
+                return newAssignmentsResult.Error;
+            }
+
+            if (newAssignmentsResult.Value.Count > 0)
+            {
+                assignmentRepository.InsertRange(newAssignmentsResult.Value);
             }
 
             await context.SaveChangesAsync(ct);
@@ -125,6 +146,7 @@ public static class UpdateProgram
                         return result.Match(() => Results.Ok(result.Value), ApiResults.Problem);
                     }
                 )
+                .RequireAuthorization()
                 .WithTags("Programs");
     }
 }

@@ -9,7 +9,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Features.ProgramAssignments;
 
@@ -24,18 +23,51 @@ public static class DeleteProgramAssignment
         public Validator() => RuleFor(x => x.AssignmentId).NotEmpty();
     }
 
-    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
+    public sealed class Handler(
+        ProgramsDbContext context,
+        IProgramAssignmentRepository assignmentRepository,
+        IProgramRepository programRepository
+    ) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            ProgramAssignment? assignment = await context.ProgramAssignments.FirstOrDefaultAsync(
-                a => a.Id == c.AssignmentId,
-                ct
-            );
+            ProgramAssignment? assignment = await assignmentRepository.GetAsync(c.AssignmentId, ct);
 
             if (assignment is null)
             {
-                return ProgramErrors.NotFound(c.AssignmentId);
+                return ProgramAssignmentErrors.NotFound(c.AssignmentId);
+            }
+
+            if (!assignment.IsActive)
+            {
+                return ProgramAssignmentErrors.AlreadyInactive(c.AssignmentId);
+            }
+
+            List<ProgramAssignment> currentAssignments =
+                await assignmentRepository.GetActiveAssignmentsByProgramId(
+                    assignment.ProgramId,
+                    ct
+                );
+
+            List<(Guid UserId, string RoleName)> assignmentsAfterDeactivation = currentAssignments
+                .Where(a => a.Id != c.AssignmentId)
+                .Select(a => (a.UserId, a.RoleName))
+                .ToList();
+
+            Program? program = await programRepository.GetAsync(assignment.ProgramId, ct);
+            if (program is null)
+            {
+                return ProgramErrors.NotFound(assignment.ProgramId);
+            }
+
+            Result validation = Program.ValidateAssignments(
+                assignmentsAfterDeactivation,
+                program.ProgramStatus
+            );
+
+            if (validation.IsFailure)
+            {
+                return validation.Error;
             }
 
             assignment.Deactivate();
@@ -62,6 +94,7 @@ public static class DeleteProgramAssignment
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }
                 )
+                .RequireAuthorization()
                 .WithTags("ProgramAssignments");
     }
 }
