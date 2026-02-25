@@ -10,9 +10,12 @@ public class ProgramRepository(ProgramsDbContext db) : IProgramRepository
             .Programs.Include(p => p.Products)
             .SingleOrDefaultAsync(p => p.Id == id, cancellationToken);
 
-    public async Task<ProgramStatus?> GetStatusAsync(Guid id, CancellationToken cancellationToken = default) =>
-        await db.Programs
-            .Where(p => p.Id == id)
+    public async Task<ProgramStatus?> GetStatusAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    ) =>
+        await db
+            .Programs.Where(p => p.Id == id)
             .Select(p => (ProgramStatus?)p.ProgramStatus)
             .FirstOrDefaultAsync(cancellationToken);
 

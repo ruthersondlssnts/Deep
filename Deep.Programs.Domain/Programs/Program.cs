@@ -115,7 +115,8 @@ public class Program : Entity
 
     public static Result ValidateAssignments(
         IEnumerable<(Guid UserId, string RoleName)> assignments,
-        ProgramStatus programStatus)
+        ProgramStatus programStatus
+    )
     {
         List<(Guid UserId, string RoleName)> assignmentList = assignments.ToList();
 

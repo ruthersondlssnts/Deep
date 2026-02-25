@@ -5,14 +5,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Data.Repositories;
 
-public class UserRepository(ProgramsDbContext db, IDbConnectionFactory dbConnectionFactory) : IUserRepository
+public class UserRepository(ProgramsDbContext db, IDbConnectionFactory dbConnectionFactory)
+    : IUserRepository
 {
     public async Task<User?> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         await db.Users.SingleOrDefaultAsync(u => u.Id == id, cancellationToken);
 
     public async Task<bool> ExistWithRolesAsync(
         IReadOnlyCollection<(Guid UserId, string RoleName)> userRoles,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (userRoles.Count == 0)
         {
@@ -35,12 +37,15 @@ public class UserRepository(ProgramsDbContext db, IDbConnectionFactory dbConnect
         var roleNames = userRoles.Select(r => r.RoleName).ToArray();
         var expected = userRoles.Select(r => r.UserId).Distinct().Count();
 
-        return await connection.QuerySingleAsync<bool>(sql, new
-        {
-            UserIds = userIds,
-            RoleNames = roleNames,
-            Expected = expected
-        });
+        return await connection.QuerySingleAsync<bool>(
+            sql,
+            new
+            {
+                UserIds = userIds,
+                RoleNames = roleNames,
+                Expected = expected,
+            }
+        );
     }
 
     public void Insert(User user)
