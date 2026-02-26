@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using System.Data.Common;
+using Dapper;
 using Deep.Common.Application.Dapper;
 using Deep.Programs.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,7 @@ public class UserRepository(ProgramsDbContext db, IDbConnectionFactory dbConnect
             return false;
         }
 
-        await using var connection = await dbConnectionFactory.OpenConnectionAsync();
+        await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
 
         // Use unnest to pass arrays and count matches in DB
         const string sql = """
@@ -33,9 +34,9 @@ public class UserRepository(ProgramsDbContext db, IDbConnectionFactory dbConnect
             )
             """;
 
-        var userIds = userRoles.Select(r => r.UserId).ToArray();
-        var roleNames = userRoles.Select(r => r.RoleName).ToArray();
-        var expected = userRoles.Select(r => r.UserId).Distinct().Count();
+        Guid[] userIds = userRoles.Select(r => r.UserId).ToArray();
+        string[] roleNames = userRoles.Select(r => r.RoleName).ToArray();
+        int expected = userRoles.Select(r => r.UserId).Distinct().Count();
 
         return await connection.QuerySingleAsync<bool>(
             sql,

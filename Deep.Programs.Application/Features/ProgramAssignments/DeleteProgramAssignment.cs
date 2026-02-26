@@ -49,7 +49,7 @@ public static class DeleteProgramAssignment
                     ct
                 );
 
-            List<(Guid UserId, string RoleName)> assignmentsAfterDeactivation = currentAssignments
+            var assignmentsAfterDeactivation = currentAssignments
                 .Where(a => a.Id != c.AssignmentId)
                 .Select(a => (a.UserId, a.RoleName))
                 .ToList();

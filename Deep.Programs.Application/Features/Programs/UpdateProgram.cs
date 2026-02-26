@@ -77,7 +77,7 @@ public static class UpdateProgram
                 return ProgramErrors.NotFound(c.ProgramId);
             }
 
-            List<(Guid UserId, string RoleName)> assignments = c
+            var assignments = c
                 .Users.Select(u => (u.UserId, u.RoleName))
                 .Distinct()
                 .ToList();

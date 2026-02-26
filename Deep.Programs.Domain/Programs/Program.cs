@@ -118,7 +118,7 @@ public class Program : Entity
         ProgramStatus programStatus
     )
     {
-        List<(Guid UserId, string RoleName)> assignmentList = assignments.ToList();
+        var assignmentList = assignments.ToList();
 
         return ValidateAssignmentCounts(
             assignmentList.Count(a => a.RoleName == RoleNames.Coordinator),
