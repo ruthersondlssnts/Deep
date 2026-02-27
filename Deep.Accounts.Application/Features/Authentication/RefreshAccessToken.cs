@@ -9,6 +9,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Deep.Accounts.Application.Features.Authentication;
@@ -30,8 +31,6 @@ public static class RefreshAccessToken
 
     public sealed class Handler(
         AccountsDbContext context,
-        IAccountRepository accountRepository,
-        IRefreshTokenRepository refreshTokenRepository,
         IJwtTokenGenerator jwtTokenGenerator,
         IOptions<JwtSettings> jwtSettings
     ) : IRequestHandler<Command, Response>
@@ -40,17 +39,17 @@ public static class RefreshAccessToken
 
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            RefreshToken? existingToken = await refreshTokenRepository.GetByTokenAsync(
-                c.RefreshToken,
-                ct
-            );
+            RefreshToken? existingToken = await context
+                .RefreshTokens.SingleOrDefaultAsync(rt => rt.Token == c.RefreshToken, ct);
 
             if (existingToken is null || !existingToken.IsActive)
             {
                 return AuthErrors.InvalidRefreshToken;
             }
 
-            Account? account = await accountRepository.GetAsync(existingToken.AccountId, ct);
+            Account? account = await context
+                .Accounts.Include(a => a.Roles)
+                .SingleOrDefaultAsync(acct => acct.Id == existingToken.AccountId, ct);
 
             if (account is null)
             {
@@ -70,7 +69,7 @@ public static class RefreshAccessToken
                 account.Id,
                 TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays)
             );
-            refreshTokenRepository.Insert(newRefreshToken);
+            context.RefreshTokens.Add(newRefreshToken);
 
             // Generate new access token
             string accessToken = jwtTokenGenerator.GenerateAccessToken(account);

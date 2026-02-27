@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Deep.Accounts.Application.Features.Authentication;
@@ -35,8 +36,6 @@ public static class LoginAccount
 
     public sealed class Handler(
         AccountsDbContext context,
-        IAccountRepository accountRepository,
-        IRefreshTokenRepository refreshTokenRepository,
         IPasswordHasher<Account> passwordHasher,
         IJwtTokenGenerator jwtTokenGenerator,
         IOptions<JwtSettings> jwtSettings
@@ -46,7 +45,9 @@ public static class LoginAccount
 
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            Account? account = await accountRepository.GetByEmailAsync(c.Email, ct);
+            Account? account = await context
+                .Accounts.Include(a => a.Roles)
+                .SingleOrDefaultAsync(acct => acct.Email == c.Email, ct);
 
             if (account is null)
             {
@@ -75,7 +76,7 @@ public static class LoginAccount
                 account.Id,
                 TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays)
             );
-            refreshTokenRepository.Insert(refreshToken);
+            context.RefreshTokens.Add(refreshToken);
 
             await context.SaveChangesAsync(ct);
 

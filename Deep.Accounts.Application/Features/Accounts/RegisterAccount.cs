@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Accounts.Application.Features.Accounts;
 
@@ -47,13 +48,12 @@ public static class RegisterAccount
 
     public sealed class Handler(
         AccountsDbContext context,
-        IAccountRepository accountRepository,
         IPasswordHasher<Account> passwordHasher
     ) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            bool emailExists = await accountRepository.ExistsByEmailAsync(c.Email, ct);
+            bool emailExists = await context.Accounts.AnyAsync(a => a.Email == c.Email, ct);
             if (emailExists)
             {
                 return AuthErrors.EmailAlreadyExists;
@@ -76,7 +76,12 @@ public static class RegisterAccount
 
             Account account = accountResult.Value;
 
-            accountRepository.Insert(account);
+            foreach (Role role in account.Roles)
+            {
+                context.Attach(role);
+            }
+
+            context.Accounts.Add(account);
 
             await context.SaveChangesAsync(ct);
 

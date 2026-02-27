@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Accounts.Application.Features.Passwords;
 
@@ -32,10 +33,6 @@ public static class ResetPassword
 
     public sealed class Handler(
         AccountsDbContext context,
-        IAccountRepository accountRepository,
-        IRefreshTokenRepository refreshTokenRepository,
-        IPasswordHistoryRepository passwordHistoryRepository,
-        IPasswordResetTokenRepository passwordResetTokenRepository,
         IPasswordHasher<Account> passwordHasher
     ) : IRequestHandler<Command, Response>
     {
@@ -44,17 +41,17 @@ public static class ResetPassword
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             // Query reset token directly
-            PasswordResetToken? resetToken = await passwordResetTokenRepository.GetByTokenAsync(
-                c.ResetToken,
-                ct
-            );
+            PasswordResetToken? resetToken = await context
+                .PasswordResetTokens.SingleOrDefaultAsync(prt => prt.Token == c.ResetToken, ct);
 
             if (resetToken is null || !resetToken.IsValid)
             {
                 return AuthErrors.InvalidResetToken;
             }
 
-            Account? account = await accountRepository.GetAsync(resetToken.AccountId, ct);
+            Account? account = await context
+                .Accounts.Include(a => a.Roles)
+                .SingleOrDefaultAsync(acct => acct.Id == resetToken.AccountId, ct);
 
             if (account is null)
             {
@@ -67,12 +64,11 @@ public static class ResetPassword
             }
 
             // Check password history - prevent reuse of last 5 passwords
-            IReadOnlyCollection<PasswordHistory> passwordHistory =
-                await passwordHistoryRepository.GetLastNByAccountIdAsync(
-                    account.Id,
-                    PasswordHistoryLimit,
-                    ct
-                );
+            List<PasswordHistory> passwordHistory = await context
+                .PasswordHistories.Where(ph => ph.AccountId == account.Id)
+                .OrderByDescending(ph => ph.ChangedAtUtc)
+                .Take(PasswordHistoryLimit)
+                .ToListAsync(ct);
 
             // Check if new password matches current password
             if (
@@ -100,17 +96,30 @@ public static class ResetPassword
 
             // Save current password to history
             var historyEntry = PasswordHistory.Create(account.Id, account.PasswordHash);
-            passwordHistoryRepository.Insert(historyEntry);
+            context.PasswordHistories.Add(historyEntry);
 
             // Delete oldest history beyond limit
-            passwordHistoryRepository.DeleteOldestBeyondLimit(account.Id, PasswordHistoryLimit);
+            var toDelete = await context
+                .PasswordHistories.Where(ph => ph.AccountId == account.Id)
+                .OrderByDescending(ph => ph.ChangedAtUtc)
+                .Skip(PasswordHistoryLimit)
+                .ToListAsync(ct);
+
+            context.PasswordHistories.RemoveRange(toDelete);
 
             // Update password
             string newPasswordHash = passwordHasher.HashPassword(account, c.NewPassword);
             account.UpdatePassword(newPasswordHash);
 
             // Revoke all refresh tokens
-            refreshTokenRepository.RevokeAllForAccount(account.Id);
+            var activeTokens = await context
+                .RefreshTokens.Where(rt => rt.AccountId == account.Id && rt.RevokedAtUtc == null)
+                .ToListAsync(ct);
+
+            foreach (RefreshToken token in activeTokens)
+            {
+                token.Revoke();
+            }
 
             // Mark reset token as used
             resetToken.MarkAsUsed();

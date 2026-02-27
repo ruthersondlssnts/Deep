@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Accounts.Application.Features.Passwords;
 
@@ -33,9 +34,6 @@ public static class ChangePassword
 
     public sealed class Handler(
         AccountsDbContext context,
-        IAccountRepository accountRepository,
-        IRefreshTokenRepository refreshTokenRepository,
-        IPasswordHistoryRepository passwordHistoryRepository,
         IPasswordHasher<Account> passwordHasher,
         IHttpContextAccessor httpContextAccessor
     ) : IRequestHandler<Command, Response>
@@ -46,7 +44,9 @@ public static class ChangePassword
         {
             Guid accountId = httpContextAccessor.HttpContext!.User.GetUserId();
 
-            Account? account = await accountRepository.GetAsync(accountId, ct);
+            Account? account = await context
+                .Accounts.Include(a => a.Roles)
+                .SingleOrDefaultAsync(acct => acct.Id == accountId, ct);
 
             if (account is null)
             {
@@ -64,12 +64,11 @@ public static class ChangePassword
                 return AuthErrors.CurrentPasswordIncorrect;
             }
 
-            IReadOnlyCollection<PasswordHistory> passwordHistory =
-                await passwordHistoryRepository.GetLastNByAccountIdAsync(
-                    accountId,
-                    PasswordHistoryLimit,
-                    ct
-                );
+            List<PasswordHistory> passwordHistory = await context
+                .PasswordHistories.Where(ph => ph.AccountId == accountId)
+                .OrderByDescending(ph => ph.ChangedAtUtc)
+                .Take(PasswordHistoryLimit)
+                .ToListAsync(ct);
 
             string newPasswordHash = passwordHasher.HashPassword(account, c.NewPassword);
 
@@ -96,13 +95,26 @@ public static class ChangePassword
             }
 
             var historyEntry = PasswordHistory.Create(accountId, account.PasswordHash);
-            passwordHistoryRepository.Insert(historyEntry);
+            context.PasswordHistories.Add(historyEntry);
 
-            passwordHistoryRepository.DeleteOldestBeyondLimit(accountId, PasswordHistoryLimit);
+            var toDelete = await context
+                .PasswordHistories.Where(ph => ph.AccountId == accountId)
+                .OrderByDescending(ph => ph.ChangedAtUtc)
+                .Skip(PasswordHistoryLimit)
+                .ToListAsync(ct);
+
+            context.PasswordHistories.RemoveRange(toDelete);
 
             account.UpdatePassword(newPasswordHash);
 
-            refreshTokenRepository.RevokeAllForAccount(accountId);
+            var activeTokens = await context
+                .RefreshTokens.Where(rt => rt.AccountId == accountId && rt.RevokedAtUtc == null)
+                .ToListAsync(ct);
+
+            foreach (RefreshToken token in activeTokens)
+            {
+                token.Revoke();
+            }
 
             await context.SaveChangesAsync(ct);
 

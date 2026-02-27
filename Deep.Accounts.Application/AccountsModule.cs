@@ -18,11 +18,7 @@ public static class AccountsModule
             .AddDomainEventHandlers(AssemblyReference.Assembly)
             .AddPostgresDbContextWithSchema<AccountsDbContext>(Schemas.Accounts)
             .AddEndpoints(AssemblyReference.Assembly)
-            .AddDomainEventInterceptor<AccountsDbContext>(AssemblyReference.Assembly)
-            .AddScoped<IAccountRepository, AccountRepository>()
-            .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>()
-            .AddScoped<IPasswordHistoryRepository, PasswordHistoryRepository>()
-            .AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+            .AddDomainEventInterceptor<AccountsDbContext>(AssemblyReference.Assembly);
 
         services
             .AddOptions<JwtSettings>()

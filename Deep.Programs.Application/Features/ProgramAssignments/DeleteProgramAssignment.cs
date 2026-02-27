@@ -9,6 +9,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Features.ProgramAssignments;
 
@@ -23,15 +24,12 @@ public static class DeleteProgramAssignment
         public Validator() => RuleFor(x => x.AssignmentId).NotEmpty();
     }
 
-    public sealed class Handler(
-        ProgramsDbContext context,
-        IProgramAssignmentRepository assignmentRepository,
-        IProgramRepository programRepository
-    ) : IRequestHandler<Command, Response>
+    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            ProgramAssignment? assignment = await assignmentRepository.GetAsync(c.AssignmentId, ct);
+            ProgramAssignment? assignment = await context
+                .ProgramAssignments.SingleOrDefaultAsync(pa => pa.Id == c.AssignmentId, ct);
 
             if (assignment is null)
             {
@@ -43,26 +41,28 @@ public static class DeleteProgramAssignment
                 return ProgramAssignmentErrors.AlreadyInactive(c.AssignmentId);
             }
 
-            List<ProgramAssignment> currentAssignments =
-                await assignmentRepository.GetActiveAssignmentsByProgramId(
-                    assignment.ProgramId,
-                    ct
-                );
+            ProgramStatus? programStatus = await context
+                .Programs.Where(p => p.Id == assignment.ProgramId)
+                .Select(p => (ProgramStatus?)p.ProgramStatus)
+                .FirstOrDefaultAsync(ct);
+
+            if (programStatus is null)
+            {
+                return ProgramErrors.NotFound(assignment.ProgramId);
+            }
+
+            List<ProgramAssignment> currentAssignments = await context
+                .ProgramAssignments.Where(a => a.ProgramId == assignment.ProgramId && a.IsActive)
+                .ToListAsync(ct);
 
             var assignmentsAfterDeactivation = currentAssignments
                 .Where(a => a.Id != c.AssignmentId)
                 .Select(a => (a.UserId, a.RoleName))
                 .ToList();
 
-            Program? program = await programRepository.GetAsync(assignment.ProgramId, ct);
-            if (program is null)
-            {
-                return ProgramErrors.NotFound(assignment.ProgramId);
-            }
-
             Result validation = Program.ValidateAssignments(
                 assignmentsAfterDeactivation,
-                program.ProgramStatus
+                programStatus.Value
             );
 
             if (validation.IsFailure)

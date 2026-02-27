@@ -29,11 +29,7 @@ public static class CreateTransaction
         }
     }
 
-    public sealed class Handler(
-        TransactionsDbContext context,
-        ICustomerRepository customerRepository,
-        ITransactionRepository transactionRepository
-    ) : IRequestHandler<Command, Response>
+    public sealed class Handler(TransactionsDbContext context) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command command, CancellationToken ct = default)
         {
@@ -45,11 +41,11 @@ public static class CreateTransaction
             if (customer is null)
             {
                 customer = Customer.Create(command.CustomerFullName, command.CustomerEmail).Value;
-                customerRepository.Insert(customer);
+                context.Customers.Add(customer);
             }
 
             Transaction transaction = Transaction.Create(command.ProgramId, customer.Id).Value;
-            transactionRepository.Insert(transaction);
+            context.Transactions.Add(transaction);
 
             await context.SaveChangesAsync(ct);
 

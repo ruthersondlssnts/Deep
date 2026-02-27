@@ -8,6 +8,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Accounts.Application.Features.Authentication;
 
@@ -22,17 +23,12 @@ public static class LogoutAccount
         public Validator() => RuleFor(x => x.RefreshToken).NotEmpty();
     }
 
-    public sealed class Handler(
-        AccountsDbContext context,
-        IRefreshTokenRepository refreshTokenRepository
-    ) : IRequestHandler<Command, Response>
+    public sealed class Handler(AccountsDbContext context) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            RefreshToken? existingToken = await refreshTokenRepository.GetByTokenAsync(
-                c.RefreshToken,
-                ct
-            );
+            RefreshToken? existingToken = await context
+                .RefreshTokens.SingleOrDefaultAsync(rt => rt.Token == c.RefreshToken, ct);
 
             if (existingToken is null)
             {

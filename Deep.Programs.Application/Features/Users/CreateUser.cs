@@ -36,8 +36,7 @@ public static class CreateUser
         }
     }
 
-    public sealed class Handler(ProgramsDbContext context, IUserRepository userRepository)
-        : IRequestHandler<Command, Response>
+    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
@@ -48,7 +47,7 @@ public static class CreateUser
                 context.Attach(role);
             }
 
-            userRepository.Insert(account);
+            context.Users.Add(account);
             await context.SaveChangesAsync(ct);
 
             return new Response(account.Id);

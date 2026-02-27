@@ -1,15 +1,18 @@
+using System.Data.Common;
+using Dapper;
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
+using Deep.Common.Application.Dapper;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
-using Deep.Programs.Domain.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Programs.Application.Features.Programs;
 
@@ -63,14 +66,14 @@ public static class UpdateProgram
 
     public sealed class Handler(
         ProgramsDbContext context,
-        IProgramRepository programRepository,
-        IProgramAssignmentRepository assignmentRepository,
-        IUserRepository userRepository
+        IDbConnectionFactory dbConnectionFactory
     ) : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            Program? program = await programRepository.GetAsync(c.ProgramId, ct);
+            Program? program = await context
+                .Programs.Include(p => p.Products)
+                .SingleOrDefaultAsync(p => p.Id == c.ProgramId, ct);
 
             if (program is null)
             {
@@ -82,7 +85,7 @@ public static class UpdateProgram
                 .Distinct()
                 .ToList();
 
-            if (!await userRepository.ExistWithRolesAsync(assignments, ct))
+            if (!await ExistWithRolesAsync(assignments, ct))
             {
                 return ProgramErrors.ProgramUserNotFound;
             }
@@ -101,8 +104,9 @@ public static class UpdateProgram
                 return updateResult.Error;
             }
 
-            List<ProgramAssignment> existingAssignments =
-                await assignmentRepository.GetAssignmentsByProgramId(c.ProgramId, ct);
+            List<ProgramAssignment> existingAssignments = await context
+                .ProgramAssignments.Where(a => a.ProgramId == c.ProgramId)
+                .ToListAsync(ct);
 
             Result<IReadOnlyList<ProgramAssignment>> newAssignmentsResult =
                 ProgramAssignment.UpdateAssignments(c.ProgramId, assignments, existingAssignments);
@@ -114,12 +118,48 @@ public static class UpdateProgram
 
             if (newAssignmentsResult.Value.Count > 0)
             {
-                assignmentRepository.InsertRange(newAssignmentsResult.Value);
+                context.ProgramAssignments.AddRange(newAssignmentsResult.Value);
             }
 
             await context.SaveChangesAsync(ct);
 
             return new Response(program.Id);
+        }
+
+        private async Task<bool> ExistWithRolesAsync(
+            IReadOnlyCollection<(Guid UserId, string RoleName)> userRoles,
+            CancellationToken cancellationToken = default
+        )
+        {
+            if (userRoles.Count == 0)
+            {
+                return false;
+            }
+
+            await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
+
+            const string sql = """
+                SELECT COUNT(DISTINCT u.id) = @Expected
+                FROM programs.users u
+                JOIN programs.user_roles ur ON ur.user_id = u.id
+                WHERE (u.id, ur.role_name) IN (
+                    SELECT * FROM unnest(@UserIds::uuid[], @RoleNames::text[])
+                )
+                """;
+
+            Guid[] userIds = userRoles.Select(r => r.UserId).ToArray();
+            string[] roleNames = userRoles.Select(r => r.RoleName).ToArray();
+            int expected = userRoles.Select(r => r.UserId).Distinct().Count();
+
+            return await connection.QuerySingleAsync<bool>(
+                sql,
+                new
+                {
+                    UserIds = userIds,
+                    RoleNames = roleNames,
+                    Expected = expected,
+                }
+            );
         }
     }
 

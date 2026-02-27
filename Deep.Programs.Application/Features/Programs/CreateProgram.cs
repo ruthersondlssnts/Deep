@@ -1,11 +1,13 @@
+using System.Data.Common;
+using Dapper;
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.Authentication;
+using Deep.Common.Application.Dapper;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.Programs;
-using Deep.Programs.Domain.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -62,8 +64,7 @@ public static class CreateProgram
 
     public sealed class Handler(
         ProgramsDbContext context,
-        IProgramRepository programRepository,
-        IUserRepository userRepository,
+        IDbConnectionFactory dbConnectionFactory,
         IHttpContextAccessor httpContextAccessor
     ) : IRequestHandler<Command, Response>
     {
@@ -73,7 +74,7 @@ public static class CreateProgram
 
             var assignments = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
-            if (!await userRepository.ExistWithRolesAsync(assignments, ct))
+            if (!await ExistWithRolesAsync(assignments, ct))
             {
                 return ProgramErrors.ProgramUserNotFound;
             }
@@ -93,11 +94,47 @@ public static class CreateProgram
                 return programResult.Error;
             }
 
-            programRepository.Insert(programResult.Value);
+            context.Programs.Add(programResult.Value);
 
             await context.SaveChangesAsync(ct);
 
             return new Response(programResult.Value.Id);
+        }
+
+        private async Task<bool> ExistWithRolesAsync(
+            IReadOnlyCollection<(Guid UserId, string RoleName)> userRoles,
+            CancellationToken cancellationToken = default
+        )
+        {
+            if (userRoles.Count == 0)
+            {
+                return false;
+            }
+
+            await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
+
+            const string sql = """
+                SELECT COUNT(DISTINCT u.id) = @Expected
+                FROM programs.users u
+                JOIN programs.user_roles ur ON ur.user_id = u.id
+                WHERE (u.id, ur.role_name) IN (
+                    SELECT * FROM unnest(@UserIds::uuid[], @RoleNames::text[])
+                )
+                """;
+
+            Guid[] userIds = userRoles.Select(r => r.UserId).ToArray();
+            string[] roleNames = userRoles.Select(r => r.RoleName).ToArray();
+            int expected = userRoles.Select(r => r.UserId).Distinct().Count();
+
+            return await connection.QuerySingleAsync<bool>(
+                sql,
+                new
+                {
+                    UserIds = userIds,
+                    RoleNames = roleNames,
+                    Expected = expected,
+                }
+            );
         }
     }
 

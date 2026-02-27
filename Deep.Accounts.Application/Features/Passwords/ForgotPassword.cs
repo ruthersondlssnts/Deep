@@ -8,6 +8,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Accounts.Application.Features.Passwords;
 
@@ -22,17 +23,15 @@ public static class ForgotPassword
         public Validator() => RuleFor(x => x.Email).NotEmpty().EmailAddress();
     }
 
-    public sealed class Handler(
-        AccountsDbContext context,
-        IAccountRepository accountRepository,
-        IPasswordResetTokenRepository passwordResetTokenRepository
-    ) : IRequestHandler<Command, Response>
+    public sealed class Handler(AccountsDbContext context) : IRequestHandler<Command, Response>
     {
         private static readonly TimeSpan ResetTokenLifetime = TimeSpan.FromMinutes(15);
 
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            Account? account = await accountRepository.GetByEmailAsync(c.Email, ct);
+            Account? account = await context
+                .Accounts.Include(a => a.Roles)
+                .SingleOrDefaultAsync(acct => acct.Email == c.Email, ct);
 
             if (account is null)
             {
@@ -44,10 +43,17 @@ public static class ForgotPassword
                 return AuthErrors.AccountInactive;
             }
 
-            passwordResetTokenRepository.InvalidateAllForAccount(account.Id);
+            var activeTokens = await context
+                .PasswordResetTokens.Where(prt => prt.AccountId == account.Id && prt.UsedAtUtc == null)
+                .ToListAsync(ct);
+
+            foreach (PasswordResetToken token in activeTokens)
+            {
+                token.MarkAsUsed();
+            }
 
             var resetToken = PasswordResetToken.Create(account.Id, ResetTokenLifetime);
-            passwordResetTokenRepository.Insert(resetToken);
+            context.PasswordResetTokens.Add(resetToken);
 
             await context.SaveChangesAsync(ct);
 
