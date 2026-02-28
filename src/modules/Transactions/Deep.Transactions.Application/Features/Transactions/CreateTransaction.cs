@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
@@ -5,7 +6,6 @@ using Deep.Common.Domain;
 using Deep.Transactions.Application.Data;
 using Deep.Transactions.Domain.Customer;
 using Deep.Transactions.Domain.Transaction;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -15,19 +15,13 @@ namespace Deep.Transactions.Application.Features.Transactions;
 
 public static class CreateTransaction
 {
-    public sealed record Command(Guid ProgramId, string CustomerEmail, string CustomerFullName);
+    public sealed record Command(
+        [property: Required] Guid ProgramId,
+        [property: Required, EmailAddress] string CustomerEmail,
+        [property: Required] string CustomerFullName
+    );
 
     public sealed record Response(Guid TransactionId, Guid? CustomerId);
-
-    public sealed class Validator : AbstractValidator<Command>
-    {
-        public Validator()
-        {
-            RuleFor(x => x.CustomerEmail).EmailAddress().NotEmpty();
-
-            RuleFor(x => x.CustomerFullName).NotEmpty();
-        }
-    }
 
     public sealed class Handler(TransactionsDbContext context) : IRequestHandler<Command, Response>
     {

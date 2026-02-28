@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Deep.Accounts.Application.Data;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application.Api.ApiResults;
@@ -5,7 +6,6 @@ using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.Authentication;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -16,21 +16,12 @@ namespace Deep.Accounts.Application.Features.Passwords;
 
 public static class ChangePassword
 {
-    public sealed record Command(string CurrentPassword, string NewPassword);
+    public sealed record Command(
+        [property: Required] string CurrentPassword,
+        [property: Required, MinLength(8, ErrorMessage = "Password must be at least 8 characters long")] string NewPassword
+    );
 
     public sealed record Response(bool Success);
-
-    public sealed class Validator : AbstractValidator<Command>
-    {
-        public Validator()
-        {
-            RuleFor(x => x.CurrentPassword).NotEmpty();
-            RuleFor(x => x.NewPassword)
-                .NotEmpty()
-                .MinimumLength(8)
-                .WithMessage("Password must be at least 8 characters long");
-        }
-    }
 
     public sealed class Handler(
         AccountsDbContext context,

@@ -1,55 +1,41 @@
+using System.ComponentModel.DataAnnotations;
 using Deep.Common.Domain;
-using FluentValidation;
-using FluentValidation.Results;
 
 namespace Deep.Common.Application.SimpleMediatR;
 
-public sealed class ValidationPipelineBehavior<TRequest, TResponse>
-    : IRequestHandler<TRequest, TResponse>
+public sealed class ValidationPipelineBehavior<TRequest, TResponse>(
+    IRequestHandler<TRequest, TResponse> inner
+) : IRequestHandler<TRequest, TResponse>
+    where TRequest : class
 {
-    private readonly IRequestHandler<TRequest, TResponse> _inner;
-    private readonly IEnumerable<IValidator<TRequest>> _validators;
-
-    public ValidationPipelineBehavior(
-        IRequestHandler<TRequest, TResponse> inner,
-        IEnumerable<IValidator<TRequest>> validators
-    )
-    {
-        _inner = inner;
-        _validators = validators;
-    }
-
     public async Task<Result<TResponse>> Handle(
         TRequest request,
         CancellationToken cancellationToken = default
     )
     {
-        if (!_validators.Any())
-        {
-            return await _inner.Handle(request, cancellationToken);
-        }
+        var validationResults = new List<ValidationResult>();
+        var validationContext = new ValidationContext(request);
 
-        ValidationFailure[] failures = await ValidateAsync(request, cancellationToken);
-
-        if (failures.Length == 0)
-        {
-            return await _inner.Handle(request, cancellationToken);
-        }
-
-        return Result<TResponse>.ValidationFailure(CreateValidationError(failures));
-    }
-
-    private async Task<ValidationFailure[]> ValidateAsync(TRequest request, CancellationToken ct)
-    {
-        var context = new ValidationContext<TRequest>(request);
-
-        ValidationResult[] results = await Task.WhenAll(
-            _validators.Select(v => v.ValidateAsync(context, ct))
+        bool isValid = Validator.TryValidateObject(
+            request,
+            validationContext,
+            validationResults,
+            validateAllProperties: true
         );
 
-        return results.Where(r => !r.IsValid).SelectMany(r => r.Errors).ToArray();
-    }
+        if (!isValid)
+        {
+            Error[] errors = validationResults
+                .Where(r => r.ErrorMessage is not null)
+                .Select(r => Error.Problem(
+                    string.Join(".", r.MemberNames),
+                    r.ErrorMessage!
+                ))
+                .ToArray();
 
-    private static ValidationError CreateValidationError(IEnumerable<ValidationFailure> failures) =>
-        new(failures.Select(f => Error.Problem(f.ErrorCode, f.ErrorMessage)).ToArray());
+            return Result<TResponse>.ValidationFailure(new ValidationError(errors));
+        }
+
+        return await inner.Handle(request, cancellationToken);
+    }
 }

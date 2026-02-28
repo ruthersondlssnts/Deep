@@ -1,10 +1,10 @@
+using System.ComponentModel.DataAnnotations;
 using Deep.Accounts.Application.Data;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -14,14 +14,9 @@ namespace Deep.Accounts.Application.Features.Authentication;
 
 public static class LogoutAccount
 {
-    public sealed record Command(string RefreshToken);
+    public sealed record Command([property: Required] string RefreshToken);
 
     public sealed record Response(bool Success);
-
-    public sealed class Validator : AbstractValidator<Command>
-    {
-        public Validator() => RuleFor(x => x.RefreshToken).NotEmpty();
-    }
 
     public sealed class Handler(AccountsDbContext context) : IRequestHandler<Command, Response>
     {

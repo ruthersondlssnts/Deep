@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Deep.Accounts.Application.Authentication;
 using Deep.Accounts.Application.Data;
 using Deep.Accounts.Domain.Accounts;
@@ -5,7 +6,6 @@ using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -17,22 +17,16 @@ namespace Deep.Accounts.Application.Features.Authentication;
 
 public static class LoginAccount
 {
-    public sealed record Command(string Email, string Password);
+    public sealed record Command(
+        [property: Required, EmailAddress] string Email,
+        [property: Required] string Password
+    );
 
     public sealed record Response(
         string AccessToken,
         string RefreshToken,
         DateTime AccessTokenExpiry
     );
-
-    public sealed class Validator : AbstractValidator<Command>
-    {
-        public Validator()
-        {
-            RuleFor(x => x.Email).NotEmpty().EmailAddress();
-            RuleFor(x => x.Password).NotEmpty();
-        }
-    }
 
     public sealed class Handler(
         AccountsDbContext context,

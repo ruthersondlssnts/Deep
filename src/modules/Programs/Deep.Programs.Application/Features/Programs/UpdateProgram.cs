@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Data.Common;
 using Dapper;
 using Deep.Common.Application.Api.ApiResults;
@@ -8,7 +9,6 @@ using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -18,51 +18,22 @@ namespace Deep.Programs.Application.Features.Programs;
 
 public static class UpdateProgram
 {
-    public sealed record ProgramUser(Guid UserId, string RoleName);
+    public sealed record ProgramUser(
+        [property: Required] Guid UserId,
+        [property: Required] string RoleName
+    );
 
     public sealed record Command(
-        Guid ProgramId,
-        string Name,
-        string Description,
-        DateTime StartsAtUtc,
-        DateTime EndsAtUtc,
-        IReadOnlyCollection<string> ProductNames,
-        IReadOnlyCollection<ProgramUser> Users
+        [property: Required] Guid ProgramId,
+        [property: Required] string Name,
+        [property: Required] string Description,
+        [property: Required] DateTime StartsAtUtc,
+        [property: Required] DateTime EndsAtUtc,
+        [property: Required, MinLength(1, ErrorMessage = "At least one product is required.")] IReadOnlyCollection<string> ProductNames,
+        [property: Required, MinLength(1, ErrorMessage = "At least one user is required.")] IReadOnlyCollection<ProgramUser> Users
     );
 
     public sealed record Response(Guid Id);
-
-    public sealed class Validator : AbstractValidator<Command>
-    {
-        public Validator()
-        {
-            RuleFor(x => x.Name).NotEmpty();
-
-            RuleFor(x => x.Description).NotEmpty();
-
-            RuleFor(x => x.StartsAtUtc)
-                .Must(x => x > DateTime.UtcNow)
-                .WithMessage("Start date must be in the future.");
-
-            RuleFor(x => x.EndsAtUtc)
-                .GreaterThan(x => x.StartsAtUtc)
-                .WithMessage("End date must be after start date.");
-
-            RuleFor(x => x.ProductNames)
-                .NotEmpty()
-                .WithMessage("At least one product is required.");
-
-            RuleFor(x => x.Users).NotEmpty().WithMessage("At least one user is required.");
-
-            RuleForEach(x => x.Users)
-                .ChildRules(user =>
-                {
-                    user.RuleFor(u => u.UserId).NotEmpty();
-
-                    user.RuleFor(u => u.RoleName).NotEmpty();
-                });
-        }
-    }
 
     public sealed class Handler(ProgramsDbContext context, IDbConnectionFactory dbConnectionFactory)
         : IRequestHandler<Command, Response>
@@ -80,7 +51,7 @@ public static class UpdateProgram
 
             var assignments = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
-            if (!await ExistWithRolesAsync(assignments, ct))
+            if (!await ExistWithRolesAsync(assignments))
             {
                 return ProgramErrors.ProgramUserNotFound;
             }

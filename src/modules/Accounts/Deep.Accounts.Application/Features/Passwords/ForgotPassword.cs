@@ -1,10 +1,10 @@
+using System.ComponentModel.DataAnnotations;
 using Deep.Accounts.Application.Data;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -14,14 +14,9 @@ namespace Deep.Accounts.Application.Features.Passwords;
 
 public static class ForgotPassword
 {
-    public sealed record Command(string Email);
+    public sealed record Command([property: Required, EmailAddress] string Email);
 
     public sealed record Response(string ResetToken, DateTime ExpiresAtUtc);
-
-    public sealed class Validator : AbstractValidator<Command>
-    {
-        public Validator() => RuleFor(x => x.Email).NotEmpty().EmailAddress();
-    }
 
     public sealed class Handler(AccountsDbContext context) : IRequestHandler<Command, Response>
     {

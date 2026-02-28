@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Deep.Common.Application.Api.ApiResults;
 using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.SimpleMediatR;
@@ -5,7 +6,6 @@ using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -15,14 +15,9 @@ namespace Deep.Programs.Application.Features.ProgramAssignments;
 
 public static class DeleteProgramAssignment
 {
-    public sealed record Command(Guid AssignmentId);
+    public sealed record Command([property: Required] Guid AssignmentId);
 
     public sealed record Response(Guid Id);
-
-    public sealed class Validator : AbstractValidator<Command>
-    {
-        public Validator() => RuleFor(x => x.AssignmentId).NotEmpty();
-    }
 
     public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {

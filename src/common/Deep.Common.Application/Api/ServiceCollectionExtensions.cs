@@ -2,7 +2,6 @@ using Deep.Common.Application.Api;
 using Deep.Common.Application.Dapper;
 using Deep.Common.Application.IntegrationEvents;
 using Deep.Common.Application.SimpleMediatR;
-using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +30,6 @@ public static class ServiceCollectionExtensions
         params System.Reflection.Assembly[] assemblies
     )
     {
-        services.AddValidatorsFromAssemblies(assemblies, includeInternalTypes: true);
         services.AddScoped<IRequestBus, RequestBus>();
         services.AddRequestHandlers(assemblies);
         services.AddRequestPipelines(
