@@ -14,8 +14,7 @@ string databaseConnectionString = builder.Configuration.GetConnectionString(sql)
 string mqConnectionString = builder.Configuration.GetConnectionString(broker)!;
 
 builder
-    .Services.AddValidation()
-    .AddOpenApiAndSwagger()
+    .Services.AddOpenApiAndSwagger()
     .AddExceptionAndProblemDetails()
     .AddModules(databaseConnectionString, mqConnectionString);
 

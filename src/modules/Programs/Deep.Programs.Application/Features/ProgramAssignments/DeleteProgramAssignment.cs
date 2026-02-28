@@ -15,7 +15,7 @@ namespace Deep.Programs.Application.Features.ProgramAssignments;
 
 public static class DeleteProgramAssignment
 {
-    public sealed record Command([property: Required] Guid AssignmentId);
+    public sealed record Command([Required] Guid AssignmentId);
 
     public sealed record Response(Guid Id);
 

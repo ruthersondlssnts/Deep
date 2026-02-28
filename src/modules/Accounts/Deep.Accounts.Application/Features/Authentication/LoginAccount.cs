@@ -18,8 +18,8 @@ namespace Deep.Accounts.Application.Features.Authentication;
 public static class LoginAccount
 {
     public sealed record Command(
-        [property: Required, EmailAddress] string Email,
-        [property: Required] string Password
+        [Required, EmailAddress] string Email,
+        [Required] string Password
     );
 
     public sealed record Response(

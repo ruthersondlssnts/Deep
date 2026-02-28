@@ -16,9 +16,9 @@ namespace Deep.Transactions.Application.Features.Transactions;
 public static class CreateTransaction
 {
     public sealed record Command(
-        [property: Required] Guid ProgramId,
-        [property: Required, EmailAddress] string CustomerEmail,
-        [property: Required] string CustomerFullName
+        [Required] Guid ProgramId,
+        [Required, EmailAddress] string CustomerEmail,
+        [Required] string CustomerFullName
     );
 
     public sealed record Response(Guid TransactionId, Guid? CustomerId);

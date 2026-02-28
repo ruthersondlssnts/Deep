@@ -17,8 +17,8 @@ namespace Deep.Accounts.Application.Features.Passwords;
 public static class ChangePassword
 {
     public sealed record Command(
-        [property: Required] string CurrentPassword,
-        [property: Required, MinLength(8, ErrorMessage = "Password must be at least 8 characters long")] string NewPassword
+        [Required] string CurrentPassword,
+        [Required, MinLength(8, ErrorMessage = "Password must be at least 8 characters long")] string NewPassword
     );
 
     public sealed record Response(bool Success);

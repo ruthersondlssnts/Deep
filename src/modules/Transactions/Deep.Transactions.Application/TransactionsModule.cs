@@ -10,6 +10,7 @@ public static class TransactionsModule
     public static IServiceCollection AddTransactionsModule(this IServiceCollection services)
     {
         services
+            .AddValidation()
             .AddDomainEventHandlers(AssemblyReference.Assembly)
             .AddPostgresDbContextWithSchema<TransactionsDbContext>(Schemas.Transactions)
             .AddEndpoints(AssemblyReference.Assembly)

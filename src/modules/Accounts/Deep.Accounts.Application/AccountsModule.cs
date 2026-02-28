@@ -15,6 +15,7 @@ public static class AccountsModule
     public static IServiceCollection AddAccountsModule(this IServiceCollection services)
     {
         services
+            .AddValidation()
             .AddDomainEventHandlers(AssemblyReference.Assembly)
             .AddPostgresDbContextWithSchema<AccountsDbContext>(Schemas.Accounts)
             .AddEndpoints(AssemblyReference.Assembly)

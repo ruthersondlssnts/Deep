@@ -16,8 +16,8 @@ namespace Deep.Accounts.Application.Features.Passwords;
 public static class ResetPassword
 {
     public sealed record Command(
-        [property: Required] string ResetToken,
-        [property: Required, MinLength(8, ErrorMessage = "Password must be at least 8 characters long")] string NewPassword
+        [Required] string ResetToken,
+        [Required, MinLength(8, ErrorMessage = "Password must be at least 8 characters long")] string NewPassword
     );
 
     public sealed record Response(bool Success);

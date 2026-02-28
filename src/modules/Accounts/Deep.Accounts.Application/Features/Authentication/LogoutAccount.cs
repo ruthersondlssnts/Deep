@@ -14,7 +14,7 @@ namespace Deep.Accounts.Application.Features.Authentication;
 
 public static class LogoutAccount
 {
-    public sealed record Command([property: Required] string RefreshToken);
+    public sealed record Command([Required] string RefreshToken);
 
     public sealed record Response(bool Success);
 

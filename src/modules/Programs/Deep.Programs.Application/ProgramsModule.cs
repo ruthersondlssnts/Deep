@@ -13,6 +13,7 @@ public static class ProgramsModule
     public static IServiceCollection AddProgramsModule(this IServiceCollection services)
     {
         services
+            .AddValidation()
             .AddDomainEventHandlers(AssemblyReference.Assembly)
             .AddPostgresDbContextWithSchema<ProgramsDbContext>(Schemas.Programs)
             .AddEndpoints(AssemblyReference.Assembly)

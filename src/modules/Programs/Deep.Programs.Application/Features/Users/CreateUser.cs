@@ -9,11 +9,11 @@ namespace Deep.Programs.Application.Features.Users;
 public static class CreateUser
 {
     public sealed record Command(
-        [property: Required] Guid Id,
-        [property: Required, MaxLength(100)] string FirstName,
-        [property: Required, MaxLength(100)] string LastName,
-        [property: Required] string Email,
-        [property: Required, MinLength(1)] IReadOnlyCollection<string> Roles
+        [Required] Guid Id,
+        [Required, MaxLength(100)] string FirstName,
+        [Required, MaxLength(100)] string LastName,
+        [Required] string Email,
+        [Required, MinLength(1)] IReadOnlyCollection<string> Roles
     );
 
     public sealed record Response(Guid Id);

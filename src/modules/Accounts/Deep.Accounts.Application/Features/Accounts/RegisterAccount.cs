@@ -14,12 +14,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Deep.Accounts.Application.Features.Accounts;
 
 public sealed record RegisterAccountCommand(
-    [property: Required] string FirstName,
-    [property: Required, MaxLength(100)] string LastName,
-    [property: Required, EmailAddress] string Email,
-    [property: Required, MinLength(8, ErrorMessage = "Password must be at least 8 characters long")]
+    [Required] string FirstName,
+    [Required, MaxLength(100)] string LastName,
+    [Required, EmailAddress] string Email,
+    [Required, MinLength(8, ErrorMessage = "Password must be at least 8 characters long")]
         string Password,
-    [property: Required, MinLength(1)] IReadOnlyCollection<string> Roles
+    [Required, MinLength(1)] IReadOnlyCollection<string> Roles
 );
 
 public sealed record RegisterAccountResponse(Guid Id);

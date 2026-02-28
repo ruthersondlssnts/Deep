@@ -33,7 +33,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRequestBus, RequestBus>();
         services.AddRequestHandlers(assemblies);
         services.AddRequestPipelines(
-            typeof(ValidationPipelineBehavior<,>),
             typeof(RequestLoggingPipelineBehavior<,>),
             typeof(ExceptionHandlingPipelineBehavior<,>)
         );

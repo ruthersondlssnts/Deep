@@ -14,7 +14,7 @@ namespace Deep.Accounts.Application.Features.Passwords;
 
 public static class ForgotPassword
 {
-    public sealed record Command([property: Required, EmailAddress] string Email);
+    public sealed record Command([Required, EmailAddress] string Email);
 
     public sealed record Response(string ResetToken, DateTime ExpiresAtUtc);
 

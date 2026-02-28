@@ -47,6 +47,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
+        services.AddSingleton<IProblemDetailsService, ValidationProblemDetailsWriter>();
         return services;
     }
 
