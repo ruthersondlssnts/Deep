@@ -14,6 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Deep.Api\Deep.Api.csproj" />
+    <ProjectReference Include="..\..\api\Deep.Api\Deep.Api.csproj" />
   </ItemGroup>
 </Project>

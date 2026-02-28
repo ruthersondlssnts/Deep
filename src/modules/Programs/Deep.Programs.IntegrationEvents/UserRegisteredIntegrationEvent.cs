@@ -1,4 +1,4 @@
-﻿using Deep.Common.EventBus;
+﻿using Deep.Common.Application.IntegrationEvents;
 
 namespace Deep.Programs.IntegrationEvents;
 

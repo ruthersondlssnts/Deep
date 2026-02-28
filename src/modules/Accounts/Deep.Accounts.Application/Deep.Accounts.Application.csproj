@@ -12,7 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Deep.Accounts.Domain\Deep.Accounts.Domain.csproj" />
     <ProjectReference Include="..\Deep.Accounts.IntegrationEvents\Deep.Accounts.IntegrationEvents.csproj" />
-    <ProjectReference Include="..\Deep.Common.Application\Deep.Common.Application.csproj" />
-    <ProjectReference Include="..\Deep.Common.Domain\Deep.Common.Domain.csproj" />
+    <ProjectReference Include="..\..\..\common\Deep.Common.Application\Deep.Common.Application.csproj" />
+    <ProjectReference Include="..\..\..\common\Deep.Common.Domain\Deep.Common.Domain.csproj" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\Deep.Common.Application\Deep.Common.Application.csproj" />
+    <ProjectReference Include="..\..\..\common\Deep.Common.Application\Deep.Common.Application.csproj" />
     <ProjectReference Include="..\Deep.Transactions.Domain\Deep.Transactions.Domain.csproj" />
     <ProjectReference Include="..\Deep.Transactions.IntegrationEvents\Deep.Transactions.IntegrationEvents.csproj" />
   </ItemGroup>
