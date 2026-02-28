@@ -1,8 +1,10 @@
 using Deep.Common.Domain;
+using Deep.Common.Domain.Auditing;
 using Deep.Programs.Domain.Users;
 
 namespace Deep.Programs.Domain.ProgramAssignments;
 
+[Auditable]
 public sealed class ProgramAssignment : Entity
 {
     public Guid Id { get; private set; }

@@ -2,6 +2,7 @@ using Deep.Accounts.Application;
 using Deep.Accounts.Application.Data;
 using Deep.Common.Api.Middleware;
 using Deep.Common.Application.Api;
+using Deep.Common.Application.Auditing;
 using Deep.Common.Application.Authentication;
 using Deep.Common.Application.Authorization;
 using Deep.Programs.Application;
@@ -55,6 +56,8 @@ public static class ServiceCollectionExtensions
         string messagingConnectionString
     )
     {
+        services.AddAuditing();
+
         services
             .AddDapperAndNpgsql(databaseConnectionString)
             .AddCustomMediatR(

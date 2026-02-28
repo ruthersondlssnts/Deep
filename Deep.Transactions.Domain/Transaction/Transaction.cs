@@ -1,7 +1,9 @@
 using Deep.Common.Domain;
+using Deep.Common.Domain.Auditing;
 
 namespace Deep.Transactions.Domain.Transaction;
 
+[Auditable]
 public sealed class Transaction : Entity
 {
     public Guid Id { get; private set; }

@@ -1,15 +1,22 @@
 using Deep.Common.Domain;
+using Deep.Common.Domain.Auditing;
 
 namespace Deep.Accounts.Domain.Accounts;
 
+[Auditable]
 public sealed class Account : Entity
 {
     public Guid Id { get; private set; }
     public string FirstName { get; private set; } = string.Empty;
     public string LastName { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
+
+    [NotAuditable]
     public string PasswordHash { get; private set; } = string.Empty;
+
+    [NotAuditable]
     public string SecurityStamp { get; private set; } = string.Empty;
+
     public bool IsActive { get; private set; } = true;
 
     public IReadOnlyCollection<Role> Roles => _roles.AsReadOnly();
