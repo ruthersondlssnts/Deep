@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Deep.Common.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,12 +12,12 @@ public sealed class ValidationProblemDetailsWriter : IProblemDetailsService
         HttpContext httpContext = context.HttpContext;
         ProblemDetails problemDetails = context.ProblemDetails;
 
-        // Check if this is HttpValidationProblemDetails (from built-in validation)
-        if (problemDetails is HttpValidationProblemDetails validationProblemDetails &&
-            validationProblemDetails.Errors.Count > 0)
+        if (
+            problemDetails is HttpValidationProblemDetails validationProblemDetails
+            && validationProblemDetails.Errors.Count > 0
+        )
         {
             List<Error> errors = [];
-
             foreach (KeyValuePair<string, string[]> kvp in validationProblemDetails.Errors)
             {
                 foreach (string message in kvp.Value)
@@ -25,38 +26,33 @@ public sealed class ValidationProblemDetailsWriter : IProblemDetailsService
                 }
             }
 
-            if (errors.Count > 0)
+            ValidationError validationError = new(errors.ToArray());
+            var result = Result.Failure(validationError);
+
+            problemDetails.Type = ApiResults.ApiResults.GetType(result.Error.Type);
+            problemDetails.Title = ApiResults.ApiResults.GetTitle(result.Error);
+            problemDetails.Status = ApiResults.ApiResults.GetStatusCode(result.Error.Type);
+            problemDetails.Detail = ApiResults.ApiResults.GetDetail(result.Error);
+
+            validationProblemDetails.Errors.Clear();
+            Dictionary<string, object?>? extensions = ApiResults.ApiResults.GetErrors(result);
+            if (extensions is not null)
             {
-                // Create ValidationError like ValidationPipelineBehavior does
-                ValidationError validationError = new(errors.ToArray());
-
-                // Clear the original errors and add formatted ones to extensions
-                validationProblemDetails.Errors.Clear();
-                problemDetails.Extensions["errors"] = validationError.Errors;
+                foreach (KeyValuePair<string, object?> kvp in extensions)
+                {
+                    problemDetails.Extensions[kvp.Key] = kvp.Value;
+                }
             }
-        }
 
-        // Set consistent type URL for validation errors
-        problemDetails.Type = problemDetails.Status switch
-        {
-            StatusCodes.Status400BadRequest => "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-            StatusCodes.Status403Forbidden => "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.3",
-            StatusCodes.Status404NotFound => "https://tools.ietf.org/html/rfc7231#section-6.5.4",
-            StatusCodes.Status409Conflict => "https://tools.ietf.org/html/rfc7231#section-6.5.8",
-            StatusCodes.Status422UnprocessableEntity => "https://datatracker.ietf.org/doc/html/rfc4918/#section-11.2",
-            _ => problemDetails.Type
-        };
-
-        // Update title to match your pattern
-        if (problemDetails.Status == StatusCodes.Status400BadRequest)
-        {
-            problemDetails.Title = "Validation";
+            string traceId = Activity.Current?.Id ?? httpContext.TraceIdentifier;
+            problemDetails.Extensions["traceId"] = traceId;
         }
 
         httpContext.Response.ContentType = "application/problem+json";
-        return new ValueTask(httpContext.Response.WriteAsJsonAsync(
-            problemDetails,
-            httpContext.RequestAborted
-        ));
+        httpContext.Response.StatusCode = problemDetails.Status ?? StatusCodes.Status400BadRequest;
+
+        return new ValueTask(
+            httpContext.Response.WriteAsJsonAsync(problemDetails, httpContext.RequestAborted)
+        );
     }
 }

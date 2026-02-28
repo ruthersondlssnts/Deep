@@ -21,7 +21,7 @@ public static class ApiResults
         );
     }
 
-    private static string GetTitle(Error error) =>
+    public static string GetTitle(Error error) =>
         error.Type switch
         {
             ErrorType.Validation => error.Code,
@@ -32,7 +32,7 @@ public static class ApiResults
             _ => "Server failure",
         };
 
-    private static string GetDetail(Error error) =>
+    public static string GetDetail(Error error) =>
         error.Type switch
         {
             ErrorType.Validation => error.Description,
@@ -43,7 +43,7 @@ public static class ApiResults
             _ => "An unexpected error occurred",
         };
 
-    private static string GetType(ErrorType errorType) =>
+    public static string GetType(ErrorType errorType) =>
         errorType switch
         {
             ErrorType.Validation => "https://tools.ietf.org/html/rfc7231#section-6.5.1",
@@ -55,7 +55,7 @@ public static class ApiResults
             _ => "https://tools.ietf.org/html/rfc7231#section-6.6.1",
         };
 
-    private static int GetStatusCode(ErrorType errorType) =>
+    public static int GetStatusCode(ErrorType errorType) =>
         errorType switch
         {
             ErrorType.Validation => StatusCodes.Status400BadRequest,
@@ -66,7 +66,7 @@ public static class ApiResults
             _ => StatusCodes.Status500InternalServerError,
         };
 
-    private static Dictionary<string, object?>? GetErrors(Result result)
+    public static Dictionary<string, object?>? GetErrors(Result result)
     {
         if (result.Error is not ValidationError validationError)
         {
