@@ -14,6 +14,7 @@ public class AccountsDbContext(DbContextOptions<AccountsDbContext> options) : Db
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schemas.Accounts);
+        modelBuilder.ApplyConfigurationsFromAssembly(Common.Application.AssemblyReference.Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(AssemblyReference.Assembly);
     }
 }

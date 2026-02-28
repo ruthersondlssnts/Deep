@@ -16,6 +16,7 @@ public class ProgramsDbContext(DbContextOptions<ProgramsDbContext> options) : Db
     {
         modelBuilder.HasDefaultSchema(Schemas.Programs);
 
+        modelBuilder.ApplyConfigurationsFromAssembly(Common.Application.AssemblyReference.Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(AssemblyReference.Assembly);
     }
 }
