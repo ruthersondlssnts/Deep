@@ -11,20 +11,15 @@ public sealed class AuditConfiguration : IEntityTypeConfiguration<Audit>
 
         builder.HasKey(a => a.Id);
 
-        builder.Property(a => a.Id)
-            .ValueGeneratedNever();
+        builder.Property(a => a.Id).ValueGeneratedNever();
 
         builder.Property(a => a.UserId);
 
-        builder.Property(a => a.AuditType)
-            .IsRequired();
+        builder.Property(a => a.AuditType).IsRequired();
 
-        builder.Property(a => a.TableName)
-            .IsRequired()
-            .HasMaxLength(256);
+        builder.Property(a => a.TableName).IsRequired().HasMaxLength(256);
 
-        builder.Property(a => a.PrimaryKey)
-            .IsRequired();
+        builder.Property(a => a.PrimaryKey).IsRequired();
 
         builder.Property(a => a.OldValues);
 
@@ -32,8 +27,7 @@ public sealed class AuditConfiguration : IEntityTypeConfiguration<Audit>
 
         builder.Property(a => a.ChangedColumns);
 
-        builder.Property(a => a.OccurredAtUtc)
-            .IsRequired();
+        builder.Property(a => a.OccurredAtUtc).IsRequired();
 
         builder.HasIndex(a => a.TableName);
         builder.HasIndex(a => a.UserId);

@@ -23,9 +23,9 @@ public sealed class Audit
         string primaryKey,
         string? oldValues,
         string? newValues,
-        string? changedColumns)
-    {
-        return new Audit
+        string? changedColumns
+    ) =>
+        new Audit
         {
             Id = Guid.CreateVersion7(),
             UserId = userId,
@@ -35,7 +35,6 @@ public sealed class Audit
             OldValues = oldValues,
             NewValues = newValues,
             ChangedColumns = changedColumns,
-            OccurredAtUtc = DateTime.UtcNow
+            OccurredAtUtc = DateTime.UtcNow,
         };
-    }
 }

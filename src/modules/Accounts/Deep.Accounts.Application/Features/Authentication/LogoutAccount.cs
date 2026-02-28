@@ -27,8 +27,10 @@ public static class LogoutAccount
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            RefreshToken? existingToken = await context
-                .RefreshTokens.SingleOrDefaultAsync(rt => rt.Token == c.RefreshToken, ct);
+            RefreshToken? existingToken = await context.RefreshTokens.SingleOrDefaultAsync(
+                rt => rt.Token == c.RefreshToken,
+                ct
+            );
 
             if (existingToken is null)
             {

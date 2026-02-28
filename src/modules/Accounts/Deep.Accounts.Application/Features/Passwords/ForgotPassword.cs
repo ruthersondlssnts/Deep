@@ -43,8 +43,10 @@ public static class ForgotPassword
                 return AuthErrors.AccountInactive;
             }
 
-            var activeTokens = await context
-                .PasswordResetTokens.Where(prt => prt.AccountId == account.Id && prt.UsedAtUtc == null)
+            List<PasswordResetToken> activeTokens = await context
+                .PasswordResetTokens.Where(prt =>
+                    prt.AccountId == account.Id && prt.UsedAtUtc == null
+                )
                 .ToListAsync(ct);
 
             foreach (PasswordResetToken token in activeTokens)

@@ -31,18 +31,18 @@ public static class ResetPassword
         }
     }
 
-    public sealed class Handler(
-        AccountsDbContext context,
-        IPasswordHasher<Account> passwordHasher
-    ) : IRequestHandler<Command, Response>
+    public sealed class Handler(AccountsDbContext context, IPasswordHasher<Account> passwordHasher)
+        : IRequestHandler<Command, Response>
     {
         private const int PasswordHistoryLimit = 5;
 
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
             // Query reset token directly
-            PasswordResetToken? resetToken = await context
-                .PasswordResetTokens.SingleOrDefaultAsync(prt => prt.Token == c.ResetToken, ct);
+            PasswordResetToken? resetToken = await context.PasswordResetTokens.SingleOrDefaultAsync(
+                prt => prt.Token == c.ResetToken,
+                ct
+            );
 
             if (resetToken is null || !resetToken.IsValid)
             {
@@ -99,7 +99,7 @@ public static class ResetPassword
             context.PasswordHistories.Add(historyEntry);
 
             // Delete oldest history beyond limit
-            var toDelete = await context
+            List<PasswordHistory> toDelete = await context
                 .PasswordHistories.Where(ph => ph.AccountId == account.Id)
                 .OrderByDescending(ph => ph.ChangedAtUtc)
                 .Skip(PasswordHistoryLimit)
@@ -112,7 +112,7 @@ public static class ResetPassword
             account.UpdatePassword(newPasswordHash);
 
             // Revoke all refresh tokens
-            var activeTokens = await context
+            List<RefreshToken> activeTokens = await context
                 .RefreshTokens.Where(rt => rt.AccountId == account.Id && rt.RevokedAtUtc == null)
                 .ToListAsync(ct);
 

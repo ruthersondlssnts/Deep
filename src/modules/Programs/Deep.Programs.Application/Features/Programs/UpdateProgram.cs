@@ -64,10 +64,8 @@ public static class UpdateProgram
         }
     }
 
-    public sealed class Handler(
-        ProgramsDbContext context,
-        IDbConnectionFactory dbConnectionFactory
-    ) : IRequestHandler<Command, Response>
+    public sealed class Handler(ProgramsDbContext context, IDbConnectionFactory dbConnectionFactory)
+        : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
@@ -80,10 +78,7 @@ public static class UpdateProgram
                 return ProgramErrors.NotFound(c.ProgramId);
             }
 
-            var assignments = c
-                .Users.Select(u => (u.UserId, u.RoleName))
-                .Distinct()
-                .ToList();
+            var assignments = c.Users.Select(u => (u.UserId, u.RoleName)).Distinct().ToList();
 
             if (!await ExistWithRolesAsync(assignments, ct))
             {
@@ -127,8 +122,7 @@ public static class UpdateProgram
         }
 
         private async Task<bool> ExistWithRolesAsync(
-            IReadOnlyCollection<(Guid UserId, string RoleName)> userRoles,
-            CancellationToken cancellationToken = default
+            IReadOnlyCollection<(Guid UserId, string RoleName)> userRoles
         )
         {
             if (userRoles.Count == 0)

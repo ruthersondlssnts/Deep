@@ -46,10 +46,8 @@ public static class RegisterAccount
         }
     }
 
-    public sealed class Handler(
-        AccountsDbContext context,
-        IPasswordHasher<Account> passwordHasher
-    ) : IRequestHandler<Command, Response>
+    public sealed class Handler(AccountsDbContext context, IPasswordHasher<Account> passwordHasher)
+        : IRequestHandler<Command, Response>
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {

@@ -97,7 +97,7 @@ public static class ChangePassword
             var historyEntry = PasswordHistory.Create(accountId, account.PasswordHash);
             context.PasswordHistories.Add(historyEntry);
 
-            var toDelete = await context
+            List<PasswordHistory> toDelete = await context
                 .PasswordHistories.Where(ph => ph.AccountId == accountId)
                 .OrderByDescending(ph => ph.ChangedAtUtc)
                 .Skip(PasswordHistoryLimit)
@@ -107,7 +107,7 @@ public static class ChangePassword
 
             account.UpdatePassword(newPasswordHash);
 
-            var activeTokens = await context
+            List<RefreshToken> activeTokens = await context
                 .RefreshTokens.Where(rt => rt.AccountId == accountId && rt.RevokedAtUtc == null)
                 .ToListAsync(ct);
 

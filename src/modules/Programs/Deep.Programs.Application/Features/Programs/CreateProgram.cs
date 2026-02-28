@@ -102,8 +102,7 @@ public static class CreateProgram
         }
 
         private async Task<bool> ExistWithRolesAsync(
-            IReadOnlyCollection<(Guid UserId, string RoleName)> userRoles,
-            CancellationToken cancellationToken = default
+            IReadOnlyCollection<(Guid UserId, string RoleName)> userRoles
         )
         {
             if (userRoles.Count == 0)

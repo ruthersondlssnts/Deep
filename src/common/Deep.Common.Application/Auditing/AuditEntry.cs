@@ -15,10 +15,7 @@ public sealed class AuditEntry
     public List<string> ChangedColumns { get; } = [];
     public List<PropertyEntry> TemporaryProperties { get; } = [];
 
-    public AuditEntry(EntityEntry entry)
-    {
-        Entry = entry;
-    }
+    public AuditEntry(EntityEntry entry) => Entry = entry;
 
     public bool HasTemporaryProperties => TemporaryProperties.Count > 0;
 

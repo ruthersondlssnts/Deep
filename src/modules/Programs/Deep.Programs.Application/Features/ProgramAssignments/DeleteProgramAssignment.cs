@@ -28,8 +28,10 @@ public static class DeleteProgramAssignment
     {
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            ProgramAssignment? assignment = await context
-                .ProgramAssignments.SingleOrDefaultAsync(pa => pa.Id == c.AssignmentId, ct);
+            ProgramAssignment? assignment = await context.ProgramAssignments.SingleOrDefaultAsync(
+                pa => pa.Id == c.AssignmentId,
+                ct
+            );
 
             if (assignment is null)
             {
