@@ -32,6 +32,9 @@
     <Project Path="src/modules/Transactions/Deep.Transactions.IntegrationEvents/Deep.Transactions.IntegrationEvents.csproj" Id="b15cc768-2dba-47b8-8a6a-702dcad895ca" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/architecture/">
+    <Project Path="tests/architecture/Deep.Architecture.Tests/Deep.Architecture.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/integration/">
     <Project Path="tests/integration/Deep.Accounts.Application.Tests/Deep.Accounts.Application.Tests.csproj" />
     <Project Path="tests/integration/Deep.Programs.Application.Tests/Deep.Programs.Application.Tests.csproj" />
