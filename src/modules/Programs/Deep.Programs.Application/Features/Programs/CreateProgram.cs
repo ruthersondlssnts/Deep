@@ -17,18 +17,17 @@ namespace Deep.Programs.Application.Features.Programs;
 
 public static class CreateProgram
 {
-    public sealed record ProgramUser(
-        [Required] Guid UserId,
-        [Required] string RoleName
-    );
+    public sealed record ProgramUser([Required] Guid UserId, [Required] string RoleName);
 
     public sealed record Command(
         [Required] string Name,
         [Required] string Description,
         [Required] DateTime StartsAtUtc,
         [Required] DateTime EndsAtUtc,
-        [Required, MinLength(1, ErrorMessage = "At least one product is required.")] IReadOnlyCollection<string> ProductNames,
-        [Required, MinLength(1, ErrorMessage = "At least one user is required.")] IReadOnlyCollection<ProgramUser> Users
+        [Required, MinLength(1, ErrorMessage = "At least one product is required.")]
+            IReadOnlyCollection<string> ProductNames,
+        [Required, MinLength(1, ErrorMessage = "At least one user is required.")]
+            IReadOnlyCollection<ProgramUser> Users
     );
 
     public sealed record Response(Guid Id);

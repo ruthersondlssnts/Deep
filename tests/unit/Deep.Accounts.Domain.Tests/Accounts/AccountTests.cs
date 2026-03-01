@@ -16,7 +16,13 @@ public class AccountTests
         var roleNames = new[] { RoleNames.ItAdmin };
 
         // Act
-        var result = Account.Create(firstName, lastName, email, passwordHash, roleNames);
+        Result<Account> result = Account.Create(
+            firstName,
+            lastName,
+            email,
+            passwordHash,
+            roleNames
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -40,7 +46,13 @@ public class AccountTests
         var roleNames = new[] { "InvalidRole" };
 
         // Act
-        var result = Account.Create(firstName, lastName, email, passwordHash, roleNames);
+        Result<Account> result = Account.Create(
+            firstName,
+            lastName,
+            email,
+            passwordHash,
+            roleNames
+        );
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -54,7 +66,13 @@ public class AccountTests
         var roleNames = new[] { RoleNames.ItAdmin, RoleNames.Manager };
 
         // Act
-        var result = Account.Create("John", "Doe", "john@example.com", "hash", roleNames);
+        Result<Account> result = Account.Create(
+            "John",
+            "Doe",
+            "john@example.com",
+            "hash",
+            roleNames
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -67,7 +85,9 @@ public class AccountTests
     public void UpdatePassword_ShouldUpdatePasswordHashAndSecurityStamp()
     {
         // Arrange
-        var account = Account.Create("John", "Doe", "john@example.com", "oldHash", [RoleNames.ItAdmin]).Value;
+        Account account = Account
+            .Create("John", "Doe", "john@example.com", "oldHash", [RoleNames.ItAdmin])
+            .Value;
         var originalSecurityStamp = account.SecurityStamp;
         var newPasswordHash = "newHashedPassword";
 
@@ -83,7 +103,9 @@ public class AccountTests
     public void Activate_ShouldSetIsActiveToTrue()
     {
         // Arrange
-        var account = Account.Create("John", "Doe", "john@example.com", "hash", [RoleNames.ItAdmin]).Value;
+        Account account = Account
+            .Create("John", "Doe", "john@example.com", "hash", [RoleNames.ItAdmin])
+            .Value;
         account.Deactivate();
 
         // Act
@@ -97,7 +119,9 @@ public class AccountTests
     public void Deactivate_ShouldSetIsActiveToFalse()
     {
         // Arrange
-        var account = Account.Create("John", "Doe", "john@example.com", "hash", [RoleNames.ItAdmin]).Value;
+        Account account = Account
+            .Create("John", "Doe", "john@example.com", "hash", [RoleNames.ItAdmin])
+            .Value;
 
         // Act
         account.Deactivate();
@@ -110,7 +134,9 @@ public class AccountTests
     public void Create_ShouldRaiseAccountRegisteredDomainEvent()
     {
         // Arrange & Act
-        var account = Account.Create("John", "Doe", "john@example.com", "hash", [RoleNames.ItAdmin]).Value;
+        Account account = Account
+            .Create("John", "Doe", "john@example.com", "hash", [RoleNames.ItAdmin])
+            .Value;
 
         // Assert
         account.GetDomainEvents().Should().ContainSingle();

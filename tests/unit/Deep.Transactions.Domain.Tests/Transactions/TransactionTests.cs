@@ -1,3 +1,4 @@
+using Deep.Common.Domain;
 using Deep.Transactions.Domain.Transaction;
 using TransactionEntity = Deep.Transactions.Domain.Transaction.Transaction;
 
@@ -13,7 +14,7 @@ public class TransactionTests
         var customerId = Guid.CreateVersion7();
 
         // Act
-        var result = TransactionEntity.Create(programId, customerId);
+        Result<TransactionEntity> result = TransactionEntity.Create(programId, customerId);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -30,8 +31,8 @@ public class TransactionTests
         var customerId = Guid.CreateVersion7();
 
         // Act
-        var result1 = TransactionEntity.Create(programId, customerId);
-        var result2 = TransactionEntity.Create(programId, customerId);
+        Result<TransactionEntity> result1 = TransactionEntity.Create(programId, customerId);
+        Result<TransactionEntity> result2 = TransactionEntity.Create(programId, customerId);
 
         // Assert
         result1.Value.Id.Should().NotBe(result2.Value.Id);
@@ -45,7 +46,7 @@ public class TransactionTests
         var customerId = Guid.CreateVersion7();
 
         // Act
-        var result = TransactionEntity.Create(programId, customerId);
+        Result<TransactionEntity> result = TransactionEntity.Create(programId, customerId);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -65,8 +66,8 @@ public class TransactionTests
         var customer2Id = Guid.CreateVersion7();
 
         // Act
-        var result1 = TransactionEntity.Create(programId, customer1Id);
-        var result2 = TransactionEntity.Create(programId, customer2Id);
+        Result<TransactionEntity> result1 = TransactionEntity.Create(programId, customer1Id);
+        Result<TransactionEntity> result2 = TransactionEntity.Create(programId, customer2Id);
 
         // Assert
         result1.Value.CustomerId.Should().Be(customer1Id);

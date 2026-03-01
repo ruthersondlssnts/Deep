@@ -25,7 +25,8 @@ public abstract class TransactionsIntegrationTestBase : IAsyncLifetime
     public virtual async Task InitializeAsync()
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        TransactionsDbContext db = scope.ServiceProvider.GetRequiredService<TransactionsDbContext>();
+        TransactionsDbContext db =
+            scope.ServiceProvider.GetRequiredService<TransactionsDbContext>();
         await db.Database.MigrateAsync();
     }
 
@@ -45,8 +46,9 @@ public abstract class TransactionsIntegrationTestBase : IAsyncLifetime
     protected async Task<Result<TResponse>> SendAsync<TRequest, TResponse>(TRequest request)
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        IRequestHandler<TRequest, TResponse> handler =
-            scope.ServiceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>();
+        IRequestHandler<TRequest, TResponse> handler = scope.ServiceProvider.GetRequiredService<
+            IRequestHandler<TRequest, TResponse>
+        >();
         return await handler.Handle(request);
     }
 }

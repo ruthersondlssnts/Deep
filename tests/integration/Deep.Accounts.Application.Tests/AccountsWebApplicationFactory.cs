@@ -26,9 +26,18 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        Environment.SetEnvironmentVariable("ConnectionStrings__deep-db", _postgres.GetConnectionString());
-        Environment.SetEnvironmentVariable("ConnectionStrings__broker", "amqp://guest:guest@localhost:5672");
-        Environment.SetEnvironmentVariable("ConnectionStrings__deep-docs", "mongodb://localhost:27017");
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__deep-db",
+            _postgres.GetConnectionString()
+        );
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__broker",
+            "amqp://guest:guest@localhost:5672"
+        );
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__deep-docs",
+            "mongodb://localhost:27017"
+        );
 
         builder.UseEnvironment("Testing");
 

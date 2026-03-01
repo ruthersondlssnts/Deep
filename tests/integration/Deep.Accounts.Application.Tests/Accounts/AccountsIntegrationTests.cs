@@ -30,11 +30,15 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
         );
 
         // Act
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/accounts/register", request);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/register",
+            request
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        RegisterAccountResponse? result = await response.Content.ReadFromJsonAsync<RegisterAccountResponse>();
+        RegisterAccountResponse? result =
+            await response.Content.ReadFromJsonAsync<RegisterAccountResponse>();
         result.Should().NotBeNull();
         result!.Id.Should().NotBeEmpty();
     }
@@ -62,7 +66,10 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
             "Test1234!",
             [RoleNames.Manager]
         );
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/accounts/register", duplicateRequest);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/register",
+            duplicateRequest
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -81,7 +88,10 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
         );
 
         // Act
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/accounts/register", request);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/register",
+            request
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
@@ -100,7 +110,10 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
         );
 
         // Act
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/accounts/register", request);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/register",
+            request
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -121,11 +134,15 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
         LoginAccount.Command loginRequest = new(email, password);
 
         // Act
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/accounts/login", loginRequest);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/login",
+            loginRequest
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        LoginAccount.Response? result = await response.Content.ReadFromJsonAsync<LoginAccount.Response>();
+        LoginAccount.Response? result =
+            await response.Content.ReadFromJsonAsync<LoginAccount.Response>();
         result.Should().NotBeNull();
         result!.AccessToken.Should().NotBeNullOrEmpty();
         result.RefreshToken.Should().NotBeNullOrEmpty();
@@ -141,7 +158,10 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
         LoginAccount.Command loginRequest = new(email, "WrongPassword!");
 
         // Act
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/accounts/login", loginRequest);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/login",
+            loginRequest
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -163,16 +183,21 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
             "/accounts/login",
             new LoginAccount.Command(email, password)
         );
-        LoginAccount.Response? loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginAccount.Response>();
+        LoginAccount.Response? loginResult =
+            await loginResponse.Content.ReadFromJsonAsync<LoginAccount.Response>();
 
         RefreshAccessToken.Command refreshRequest = new(loginResult!.RefreshToken);
 
         // Act
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/accounts/refresh-token", refreshRequest);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/refresh-token",
+            refreshRequest
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        RefreshAccessToken.Response? result = await response.Content.ReadFromJsonAsync<RefreshAccessToken.Response>();
+        RefreshAccessToken.Response? result =
+            await response.Content.ReadFromJsonAsync<RefreshAccessToken.Response>();
         result.Should().NotBeNull();
         result!.AccessToken.Should().NotBeNullOrEmpty();
         result.RefreshToken.Should().NotBe(loginResult.RefreshToken);
@@ -194,12 +219,16 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
             "/accounts/login",
             new LoginAccount.Command(email, password)
         );
-        LoginAccount.Response? loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginAccount.Response>();
+        LoginAccount.Response? loginResult =
+            await loginResponse.Content.ReadFromJsonAsync<LoginAccount.Response>();
 
         LogoutAccount.Command logoutRequest = new(loginResult!.RefreshToken);
 
         // Act
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/accounts/logout", logoutRequest);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/logout",
+            logoutRequest
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -219,11 +248,15 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
         ForgotPassword.Command request = new(email);
 
         // Act
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/accounts/forgot-password", request);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/forgot-password",
+            request
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        ForgotPassword.Response? result = await response.Content.ReadFromJsonAsync<ForgotPassword.Response>();
+        ForgotPassword.Response? result =
+            await response.Content.ReadFromJsonAsync<ForgotPassword.Response>();
         result.Should().NotBeNull();
         result!.ResetToken.Should().NotBeNullOrEmpty();
     }
@@ -239,12 +272,16 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
             "/accounts/forgot-password",
             new ForgotPassword.Command(email)
         );
-        ForgotPassword.Response? forgotResult = await forgotResponse.Content.ReadFromJsonAsync<ForgotPassword.Response>();
+        ForgotPassword.Response? forgotResult =
+            await forgotResponse.Content.ReadFromJsonAsync<ForgotPassword.Response>();
 
         ResetPassword.Command resetRequest = new(forgotResult!.ResetToken, "NewPassword1234!");
 
         // Act
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/accounts/reset-password", resetRequest);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/reset-password",
+            resetRequest
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -273,7 +310,9 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        List<GetAccounts.Response>? accounts = await response.Content.ReadFromJsonAsync<List<GetAccounts.Response>>();
+        List<GetAccounts.Response>? accounts = await response.Content.ReadFromJsonAsync<
+            List<GetAccounts.Response>
+        >();
         accounts.Should().NotBeNull();
         accounts!.Count.Should().BeGreaterThanOrEqualTo(2);
     }
@@ -297,7 +336,8 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
                 [RoleNames.ItAdmin]
             )
         );
-        RegisterAccountResponse? registered = await registerResponse.Content.ReadFromJsonAsync<RegisterAccountResponse>();
+        RegisterAccountResponse? registered =
+            await registerResponse.Content.ReadFromJsonAsync<RegisterAccountResponse>();
 
         // Act
         Result<GetAccount.Response> result = await SendAsync<GetAccount.Query, GetAccount.Response>(
@@ -313,7 +353,10 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
 
     #region Helpers
 
-    private async Task<RegisterAccountResponse> RegisterTestAccountAsync(string email, string password)
+    private async Task<RegisterAccountResponse> RegisterTestAccountAsync(
+        string email,
+        string password
+    )
     {
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
             "/accounts/register",

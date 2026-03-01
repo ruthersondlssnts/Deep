@@ -4,4 +4,5 @@ namespace Deep.Transactions.Application.Tests;
 /// xUnit collection definition for Transactions integration tests.
 /// </summary>
 [CollectionDefinition(nameof(TransactionsIntegrationCollection))]
-public sealed class TransactionsIntegrationCollection : ICollectionFixture<TransactionsWebApplicationFactory>;
+public sealed class TransactionsIntegrationCollection
+    : ICollectionFixture<TransactionsWebApplicationFactory>;

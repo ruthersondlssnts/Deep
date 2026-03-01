@@ -45,8 +45,9 @@ public abstract class AccountsIntegrationTestBase : IAsyncLifetime
     protected async Task<Result<TResponse>> SendAsync<TRequest, TResponse>(TRequest request)
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        IRequestHandler<TRequest, TResponse> handler =
-            scope.ServiceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>();
+        IRequestHandler<TRequest, TResponse> handler = scope.ServiceProvider.GetRequiredService<
+            IRequestHandler<TRequest, TResponse>
+        >();
         return await handler.Handle(request);
     }
 

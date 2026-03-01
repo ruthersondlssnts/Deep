@@ -17,10 +17,7 @@ namespace Deep.Accounts.Application.Features.Authentication;
 
 public static class LoginAccount
 {
-    public sealed record Command(
-        [Required, EmailAddress] string Email,
-        [Required] string Password
-    );
+    public sealed record Command([Required, EmailAddress] string Email, [Required] string Password);
 
     public sealed record Response(
         string AccessToken,

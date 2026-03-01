@@ -15,7 +15,9 @@ namespace Deep.Transactions.Application.Tests;
 /// <summary>
 /// WebApplicationFactory for Transactions integration tests with PostgreSQL Testcontainers.
 /// </summary>
-public sealed class TransactionsWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public sealed class TransactionsWebApplicationFactory
+    : WebApplicationFactory<Program>,
+        IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:latest")
@@ -26,9 +28,18 @@ public sealed class TransactionsWebApplicationFactory : WebApplicationFactory<Pr
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        Environment.SetEnvironmentVariable("ConnectionStrings__deep-db", _postgres.GetConnectionString());
-        Environment.SetEnvironmentVariable("ConnectionStrings__broker", "amqp://guest:guest@localhost:5672");
-        Environment.SetEnvironmentVariable("ConnectionStrings__deep-docs", "mongodb://localhost:27017");
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__deep-db",
+            _postgres.GetConnectionString()
+        );
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__broker",
+            "amqp://guest:guest@localhost:5672"
+        );
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__deep-docs",
+            "mongodb://localhost:27017"
+        );
 
         builder.UseEnvironment("Testing");
 

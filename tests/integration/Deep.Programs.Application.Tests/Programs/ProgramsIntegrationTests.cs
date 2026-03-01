@@ -39,7 +39,10 @@ public class ProgramsIntegrationTests(ProgramsWebApplicationFactory factory)
         );
 
         // Act
-        Result<CreateUser.Response> result = await SendAsync<CreateUser.Command, CreateUser.Response>(command);
+        Result<CreateUser.Response> result = await SendAsync<
+            CreateUser.Command,
+            CreateUser.Response
+        >(command);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -53,8 +56,10 @@ public class ProgramsIntegrationTests(ProgramsWebApplicationFactory factory)
         Guid userId = await SeedTestUserAsync(RoleNames.Coordinator);
 
         // Act
-        Result<IReadOnlyList<GetUsers.Response>> result =
-            await SendAsync<GetUsers.Query, IReadOnlyList<GetUsers.Response>>(new GetUsers.Query(null));
+        Result<IReadOnlyList<GetUsers.Response>> result = await SendAsync<
+            GetUsers.Query,
+            IReadOnlyList<GetUsers.Response>
+        >(new GetUsers.Query(null));
 
         // Assert
         result.IsSuccess.Should().BeTrue();

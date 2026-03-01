@@ -17,7 +17,8 @@ public static class ResetPassword
 {
     public sealed record Command(
         [Required] string ResetToken,
-        [Required, MinLength(8, ErrorMessage = "Password must be at least 8 characters long")] string NewPassword
+        [Required, MinLength(8, ErrorMessage = "Password must be at least 8 characters long")]
+            string NewPassword
     );
 
     public sealed record Response(bool Success);

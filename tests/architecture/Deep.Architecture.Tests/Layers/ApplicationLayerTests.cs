@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace Deep.Architecture.Tests.Layers;
 
 public sealed class ApplicationLayerTests
@@ -6,11 +8,7 @@ public sealed class ApplicationLayerTests
     public void AccountsApplication_ShouldNotDependOnOtherModuleDomains()
     {
         // Arrange
-        string[] forbiddenDomains =
-        [
-            "Deep.Programs.Domain",
-            "Deep.Transactions.Domain"
-        ];
+        string[] forbiddenDomains = ["Deep.Programs.Domain", "Deep.Transactions.Domain"];
 
         // Act
         TestResult result = Types
@@ -20,19 +18,16 @@ public sealed class ApplicationLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Deep.Accounts.Application", forbiddenDomains, result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(GetFailureMessage("Deep.Accounts.Application", forbiddenDomains, result));
     }
 
     [Fact]
     public void ProgramsApplication_ShouldNotDependOnOtherModuleDomains()
     {
         // Arrange
-        string[] forbiddenDomains =
-        [
-            "Deep.Accounts.Domain",
-            "Deep.Transactions.Domain"
-        ];
+        string[] forbiddenDomains = ["Deep.Accounts.Domain", "Deep.Transactions.Domain"];
 
         // Act
         TestResult result = Types
@@ -42,19 +37,16 @@ public sealed class ApplicationLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Deep.Programs.Application", forbiddenDomains, result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(GetFailureMessage("Deep.Programs.Application", forbiddenDomains, result));
     }
 
     [Fact]
     public void TransactionsApplication_ShouldNotDependOnOtherModuleDomains()
     {
         // Arrange
-        string[] forbiddenDomains =
-        [
-            "Deep.Accounts.Domain",
-            "Deep.Programs.Domain"
-        ];
+        string[] forbiddenDomains = ["Deep.Accounts.Domain", "Deep.Programs.Domain"];
 
         // Act
         TestResult result = Types
@@ -64,8 +56,9 @@ public sealed class ApplicationLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Deep.Transactions.Application", forbiddenDomains, result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(GetFailureMessage("Deep.Transactions.Application", forbiddenDomains, result));
     }
 
     [Theory]
@@ -75,12 +68,12 @@ public sealed class ApplicationLayerTests
     public void Application_MayDependOnCommon(string applicationNamespace)
     {
         // Arrange
-        var assembly = applicationNamespace switch
+        Assembly assembly = applicationNamespace switch
         {
             "Deep.Accounts.Application" => AssemblyReferences.AccountsApplication,
             "Deep.Programs.Application" => AssemblyReferences.ProgramsApplication,
             "Deep.Transactions.Application" => AssemblyReferences.TransactionsApplication,
-            _ => throw new ArgumentException($"Unknown application: {applicationNamespace}")
+            _ => throw new ArgumentException($"Unknown application: {applicationNamespace}"),
         };
 
         // Act - This test verifies allowed dependencies exist (no forbidden Common dependency)
@@ -103,7 +96,7 @@ public sealed class ApplicationLayerTests
             "Deep.Programs.Domain",
             "Deep.Transactions.Domain",
             "Deep.Programs.Application",
-            "Deep.Transactions.Application"
+            "Deep.Transactions.Application",
         ];
 
         // Act
@@ -114,8 +107,9 @@ public sealed class ApplicationLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Deep.Accounts.Application", forbiddenNamespaces, result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(GetFailureMessage("Deep.Accounts.Application", forbiddenNamespaces, result));
     }
 
     [Fact]
@@ -127,7 +121,7 @@ public sealed class ApplicationLayerTests
             "Deep.Accounts.Domain",
             "Deep.Transactions.Domain",
             "Deep.Accounts.Application",
-            "Deep.Transactions.Application"
+            "Deep.Transactions.Application",
         ];
 
         // Act
@@ -138,8 +132,9 @@ public sealed class ApplicationLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Deep.Programs.Application", forbiddenNamespaces, result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(GetFailureMessage("Deep.Programs.Application", forbiddenNamespaces, result));
     }
 
     [Fact]
@@ -151,7 +146,7 @@ public sealed class ApplicationLayerTests
             "Deep.Accounts.Domain",
             "Deep.Programs.Domain",
             "Deep.Accounts.Application",
-            "Deep.Programs.Application"
+            "Deep.Programs.Application",
         ];
 
         // Act
@@ -162,20 +157,23 @@ public sealed class ApplicationLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Deep.Transactions.Application", forbiddenNamespaces, result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                GetFailureMessage("Deep.Transactions.Application", forbiddenNamespaces, result)
+            );
     }
 
-    private static string GetFailureMessage(string layer, string[] forbiddenNamespaces, TestResult result)
-    {
-        return $"{layer} should not depend on [{string.Join(", ", forbiddenNamespaces)}]. " +
-               $"Violating types: {GetViolatingTypes(result)}";
-    }
+    private static string GetFailureMessage(
+        string layer,
+        string[] forbiddenNamespaces,
+        TestResult result
+    ) =>
+        $"{layer} should not depend on [{string.Join(", ", forbiddenNamespaces)}]. "
+        + $"Violating types: {GetViolatingTypes(result)}";
 
-    private static string GetViolatingTypes(TestResult result)
-    {
-        return result.FailingTypes is null
+    private static string GetViolatingTypes(TestResult result) =>
+        result.FailingTypes is null
             ? "None"
             : string.Join(", ", result.FailingTypes.Select(t => t.FullName));
-    }
 }

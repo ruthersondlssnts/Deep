@@ -4,4 +4,5 @@ namespace Deep.Programs.Application.Tests;
 /// xUnit collection definition for Programs integration tests.
 /// </summary>
 [CollectionDefinition(nameof(ProgramsIntegrationCollection))]
-public sealed class ProgramsIntegrationCollection : ICollectionFixture<ProgramsWebApplicationFactory>;
+public sealed class ProgramsIntegrationCollection
+    : ICollectionFixture<ProgramsWebApplicationFactory>;

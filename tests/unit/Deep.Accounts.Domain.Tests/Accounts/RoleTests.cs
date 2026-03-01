@@ -12,7 +12,7 @@ public class RoleTests
     public void TryFromName_WithValidRoleName_ShouldReturnTrue(string roleName)
     {
         // Act
-        var result = Role.TryFromName(roleName, out var role);
+        var result = Role.TryFromName(roleName, out Role? role);
 
         // Assert
         result.Should().BeTrue();
@@ -24,7 +24,7 @@ public class RoleTests
     public void TryFromName_WithInvalidRoleName_ShouldReturnFalse()
     {
         // Act
-        var result = Role.TryFromName("InvalidRole", out var role);
+        var result = Role.TryFromName("InvalidRole", out Role? role);
 
         // Assert
         result.Should().BeFalse();
@@ -39,7 +39,7 @@ public class RoleTests
     public void TryFromName_WithAllValidRoles_ShouldReturnTrue(string roleName)
     {
         // Act
-        var result = Role.TryFromName(roleName, out var role);
+        var result = Role.TryFromName(roleName, out Role? role);
 
         // Assert
         result.Should().BeTrue();

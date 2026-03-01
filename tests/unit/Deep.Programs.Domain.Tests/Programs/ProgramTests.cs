@@ -16,17 +16,18 @@ public class ProgramTests
         var name = "Test Program";
         var description = "Test Description";
         var productNames = new[] { "Product1", "Product2" };
-        var assignments = CreateValidAssignments();
+        IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
-        var result = Program.Create(
+        Result<Program> result = Program.Create(
             name,
             description,
             FutureStartDate,
             FutureEndDate,
             productNames,
             OwnerId,
-            assignments);
+            assignments
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -43,19 +44,20 @@ public class ProgramTests
     public void Create_WithEndDateBeforeStartDate_ShouldReturnFailure()
     {
         // Arrange
-        var startDate = DateTime.UtcNow.AddDays(10);
-        var endDate = DateTime.UtcNow.AddDays(5); // Before start date
-        var assignments = CreateValidAssignments();
+        DateTime startDate = DateTime.UtcNow.AddDays(10);
+        DateTime endDate = DateTime.UtcNow.AddDays(5); // Before start date
+        IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
-        var result = Program.Create(
+        Result<Program> result = Program.Create(
             "Test",
             "Description",
             startDate,
             endDate,
             ["Product1"],
             OwnerId,
-            assignments);
+            assignments
+        );
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -66,18 +68,19 @@ public class ProgramTests
     public void Create_WithStartDateInPast_ShouldReturnFailure()
     {
         // Arrange
-        var pastStartDate = DateTime.UtcNow.AddDays(-1);
-        var assignments = CreateValidAssignments();
+        DateTime pastStartDate = DateTime.UtcNow.AddDays(-1);
+        IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
-        var result = Program.Create(
+        Result<Program> result = Program.Create(
             "Test",
             "Description",
             pastStartDate,
             FutureEndDate,
             ["Product1"],
             OwnerId,
-            assignments);
+            assignments
+        );
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -89,17 +92,18 @@ public class ProgramTests
     {
         // Arrange
         var emptyProducts = Array.Empty<string>();
-        var assignments = CreateValidAssignments();
+        IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
-        var result = Program.Create(
+        Result<Program> result = Program.Create(
             "Test",
             "Description",
             FutureStartDate,
             FutureEndDate,
             emptyProducts,
             OwnerId,
-            assignments);
+            assignments
+        );
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -110,17 +114,18 @@ public class ProgramTests
     public void Create_ShouldRaiseProgramCreatedDomainEvent()
     {
         // Arrange
-        var assignments = CreateValidAssignments();
+        IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
-        var result = Program.Create(
+        Result<Program> result = Program.Create(
             "Test",
             "Description",
             FutureStartDate,
             FutureEndDate,
             ["Product1"],
             OwnerId,
-            assignments);
+            assignments
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -133,29 +138,28 @@ public class ProgramTests
     {
         // Arrange
         var productNames = new[] { "Product1", "Product2", "Product3" };
-        var assignments = CreateValidAssignments();
+        IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
-        var result = Program.Create(
+        Result<Program> result = Program.Create(
             "Test",
             "Description",
             FutureStartDate,
             FutureEndDate,
             productNames,
             OwnerId,
-            assignments);
+            assignments
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Products.Should().HaveCount(3);
     }
 
-    private static IReadOnlyCollection<(Guid UserId, string RoleName)> CreateValidAssignments()
-    {
-        return new List<(Guid, string)>
+    private static IReadOnlyCollection<(Guid UserId, string RoleName)> CreateValidAssignments() =>
+        new List<(Guid, string)>
         {
             (Guid.CreateVersion7(), RoleNames.Coordinator),
-            (Guid.CreateVersion7(), RoleNames.BrandAmbassador)
+            (Guid.CreateVersion7(), RoleNames.BrandAmbassador),
         };
-    }
 }

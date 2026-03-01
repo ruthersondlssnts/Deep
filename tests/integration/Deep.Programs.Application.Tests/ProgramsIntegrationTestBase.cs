@@ -45,8 +45,9 @@ public abstract class ProgramsIntegrationTestBase : IAsyncLifetime
     protected async Task<Result<TResponse>> SendAsync<TRequest, TResponse>(TRequest request)
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        IRequestHandler<TRequest, TResponse> handler =
-            scope.ServiceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>();
+        IRequestHandler<TRequest, TResponse> handler = scope.ServiceProvider.GetRequiredService<
+            IRequestHandler<TRequest, TResponse>
+        >();
         return await handler.Handle(request);
     }
 
@@ -65,11 +66,12 @@ public abstract class ProgramsIntegrationTestBase : IAsyncLifetime
     /// </summary>
     protected async Task<Guid> SeedTestUserAsync(string roleName)
     {
-        Guid userId = Guid.CreateVersion7();
+        var userId = Guid.CreateVersion7();
         await using AsyncServiceScope scope = CreateAsyncScope();
         ProgramsDbContext db = scope.ServiceProvider.GetRequiredService<ProgramsDbContext>();
 
-        await db.Database.ExecuteSqlRawAsync($@"
+        await db.Database.ExecuteSqlAsync(
+            $@"
             INSERT INTO programs.users (id, email, first_name, last_name)
             VALUES ('{userId}', '{Faker.Internet.Email()}', '{Faker.Name.FirstName()}', '{Faker.Name.LastName()}')
             ON CONFLICT DO NOTHING;
@@ -77,7 +79,8 @@ public abstract class ProgramsIntegrationTestBase : IAsyncLifetime
             INSERT INTO programs.user_roles (user_id, role_name)
             VALUES ('{userId}', '{roleName}')
             ON CONFLICT DO NOTHING;
-        ");
+        "
+        );
 
         return userId;
     }

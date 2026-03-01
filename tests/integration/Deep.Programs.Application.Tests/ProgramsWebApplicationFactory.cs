@@ -32,9 +32,18 @@ public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Progra
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        Environment.SetEnvironmentVariable("ConnectionStrings__deep-db", _postgres.GetConnectionString());
-        Environment.SetEnvironmentVariable("ConnectionStrings__broker", "amqp://guest:guest@localhost:5672");
-        Environment.SetEnvironmentVariable("ConnectionStrings__deep-docs", _mongo.GetConnectionString());
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__deep-db",
+            _postgres.GetConnectionString()
+        );
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__broker",
+            "amqp://guest:guest@localhost:5672"
+        );
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__deep-docs",
+            _mongo.GetConnectionString()
+        );
 
         builder.UseEnvironment("Testing");
 
@@ -70,10 +79,8 @@ public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Progra
         });
     }
 
-    public async Task InitializeAsync()
-    {
+    public async Task InitializeAsync() =>
         await Task.WhenAll(_postgres.StartAsync(), _mongo.StartAsync());
-    }
 
     public new async Task DisposeAsync()
     {

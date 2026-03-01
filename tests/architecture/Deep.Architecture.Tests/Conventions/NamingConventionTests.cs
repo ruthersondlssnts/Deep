@@ -19,8 +19,9 @@ public sealed class NamingConventionTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"All Commands should be sealed. Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue($"All Commands should be sealed. Violating types: {GetViolatingTypes(result)}");
     }
 
     [Fact]
@@ -38,8 +39,11 @@ public sealed class NamingConventionTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"All Command types should end with 'Command'. Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"All Command types should end with 'Command'. Violating types: {GetViolatingTypes(result)}"
+            );
     }
 
     #endregion
@@ -61,8 +65,9 @@ public sealed class NamingConventionTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"All Queries should be sealed. Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue($"All Queries should be sealed. Violating types: {GetViolatingTypes(result)}");
     }
 
     [Fact]
@@ -80,8 +85,11 @@ public sealed class NamingConventionTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"All Query types should end with 'Query'. Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"All Query types should end with 'Query'. Violating types: {GetViolatingTypes(result)}"
+            );
     }
 
     #endregion
@@ -103,8 +111,9 @@ public sealed class NamingConventionTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"All Handlers should be sealed. Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue($"All Handlers should be sealed. Violating types: {GetViolatingTypes(result)}");
     }
 
     [Fact]
@@ -122,8 +131,11 @@ public sealed class NamingConventionTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"All Handlers should be internal (not public). Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"All Handlers should be internal (not public). Violating types: {GetViolatingTypes(result)}"
+            );
     }
 
     #endregion
@@ -145,8 +157,11 @@ public sealed class NamingConventionTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"All DomainEvents should be sealed. Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"All DomainEvents should be sealed. Violating types: {GetViolatingTypes(result)}"
+            );
     }
 
     [Fact]
@@ -162,8 +177,11 @@ public sealed class NamingConventionTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"All types inheriting from DomainEvent should end with 'DomainEvent'. Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"All types inheriting from DomainEvent should end with 'DomainEvent'. Violating types: {GetViolatingTypes(result)}"
+            );
     }
 
     #endregion
@@ -185,8 +203,11 @@ public sealed class NamingConventionTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"All IntegrationEvents should be sealed. Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"All IntegrationEvents should be sealed. Violating types: {GetViolatingTypes(result)}"
+            );
     }
 
     [Fact]
@@ -204,16 +225,17 @@ public sealed class NamingConventionTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"All public classes in IntegrationEvents projects should end with 'IntegrationEvent'. Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"All public classes in IntegrationEvents projects should end with 'IntegrationEvent'. Violating types: {GetViolatingTypes(result)}"
+            );
     }
 
     #endregion
 
-    private static string GetViolatingTypes(TestResult result)
-    {
-        return result.FailingTypes is null
+    private static string GetViolatingTypes(TestResult result) =>
+        result.FailingTypes is null
             ? "None"
             : string.Join(", ", result.FailingTypes.Select(t => t.FullName));
-    }
 }

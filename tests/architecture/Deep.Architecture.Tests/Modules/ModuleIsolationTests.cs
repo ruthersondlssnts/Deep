@@ -19,7 +19,7 @@ public sealed class ModuleIsolationTests
             "Deep.Programs.IntegrationEvents",
             "Deep.Transactions.Domain",
             "Deep.Transactions.Application",
-            "Deep.Transactions.IntegrationEvents"
+            "Deep.Transactions.IntegrationEvents",
         ];
 
         // Act
@@ -30,8 +30,9 @@ public sealed class ModuleIsolationTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Accounts.Domain", "other modules", result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(GetFailureMessage("Accounts.Domain", "other modules", result));
     }
 
     [Fact]
@@ -43,7 +44,7 @@ public sealed class ModuleIsolationTests
             "Deep.Programs.Domain",
             "Deep.Programs.Application",
             "Deep.Transactions.Domain",
-            "Deep.Transactions.Application"
+            "Deep.Transactions.Application",
         ];
 
         // Act
@@ -54,8 +55,9 @@ public sealed class ModuleIsolationTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Accounts.Application", "other module internals", result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(GetFailureMessage("Accounts.Application", "other module internals", result));
     }
 
     #endregion
@@ -73,7 +75,7 @@ public sealed class ModuleIsolationTests
             "Deep.Accounts.IntegrationEvents",
             "Deep.Transactions.Domain",
             "Deep.Transactions.Application",
-            "Deep.Transactions.IntegrationEvents"
+            "Deep.Transactions.IntegrationEvents",
         ];
 
         // Act
@@ -84,8 +86,9 @@ public sealed class ModuleIsolationTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Programs.Domain", "other modules", result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(GetFailureMessage("Programs.Domain", "other modules", result));
     }
 
     [Fact]
@@ -97,7 +100,7 @@ public sealed class ModuleIsolationTests
             "Deep.Accounts.Domain",
             "Deep.Accounts.Application",
             "Deep.Transactions.Domain",
-            "Deep.Transactions.Application"
+            "Deep.Transactions.Application",
         ];
 
         // Act
@@ -108,8 +111,9 @@ public sealed class ModuleIsolationTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Programs.Application", "other module internals", result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(GetFailureMessage("Programs.Application", "other module internals", result));
     }
 
     #endregion
@@ -127,7 +131,7 @@ public sealed class ModuleIsolationTests
             "Deep.Accounts.IntegrationEvents",
             "Deep.Programs.Domain",
             "Deep.Programs.Application",
-            "Deep.Programs.IntegrationEvents"
+            "Deep.Programs.IntegrationEvents",
         ];
 
         // Act
@@ -138,8 +142,9 @@ public sealed class ModuleIsolationTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Transactions.Domain", "other modules", result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(GetFailureMessage("Transactions.Domain", "other modules", result));
     }
 
     [Fact]
@@ -151,7 +156,7 @@ public sealed class ModuleIsolationTests
             "Deep.Accounts.Domain",
             "Deep.Accounts.Application",
             "Deep.Programs.Domain",
-            "Deep.Programs.Application"
+            "Deep.Programs.Application",
         ];
 
         // Act
@@ -162,8 +167,11 @@ public sealed class ModuleIsolationTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Transactions.Application", "other module internals", result));
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                GetFailureMessage("Transactions.Application", "other module internals", result)
+            );
     }
 
     #endregion
@@ -181,7 +189,7 @@ public sealed class ModuleIsolationTests
             "Deep.Programs.Domain",
             "Deep.Programs.Application",
             "Deep.Transactions.Domain",
-            "Deep.Transactions.Application"
+            "Deep.Transactions.Application",
         ];
 
         // Act
@@ -204,26 +212,35 @@ public sealed class ModuleIsolationTests
             .GetResult();
 
         // Assert
-        accountsEventsResult.IsSuccessful.Should().BeTrue(
-            $"Accounts.IntegrationEvents should not depend on module internals. Violating: {GetViolatingTypes(accountsEventsResult)}");
-        programsEventsResult.IsSuccessful.Should().BeTrue(
-            $"Programs.IntegrationEvents should not depend on module internals. Violating: {GetViolatingTypes(programsEventsResult)}");
-        transactionsEventsResult.IsSuccessful.Should().BeTrue(
-            $"Transactions.IntegrationEvents should not depend on module internals. Violating: {GetViolatingTypes(transactionsEventsResult)}");
+        accountsEventsResult
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"Accounts.IntegrationEvents should not depend on module internals. Violating: {GetViolatingTypes(accountsEventsResult)}"
+            );
+        programsEventsResult
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"Programs.IntegrationEvents should not depend on module internals. Violating: {GetViolatingTypes(programsEventsResult)}"
+            );
+        transactionsEventsResult
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"Transactions.IntegrationEvents should not depend on module internals. Violating: {GetViolatingTypes(transactionsEventsResult)}"
+            );
     }
 
     #endregion
 
-    private static string GetFailureMessage(string sourceModule, string targetModule, TestResult result)
-    {
-        return $"{sourceModule} should not depend on {targetModule} module. " +
-               $"Violating types: {GetViolatingTypes(result)}";
-    }
+    private static string GetFailureMessage(
+        string sourceModule,
+        string targetModule,
+        TestResult result
+    ) =>
+        $"{sourceModule} should not depend on {targetModule} module. "
+        + $"Violating types: {GetViolatingTypes(result)}";
 
-    private static string GetViolatingTypes(TestResult result)
-    {
-        return result.FailingTypes is null
+    private static string GetViolatingTypes(TestResult result) =>
+        result.FailingTypes is null
             ? "None"
             : string.Join(", ", result.FailingTypes.Select(t => t.FullName));
-    }
 }

@@ -22,9 +22,12 @@ public class ProgramStatusTests
     [InlineData(ProgramStatus.InProgress, 2)]
     [InlineData(ProgramStatus.Completed, 3)]
     [InlineData(ProgramStatus.Cancelled, 4)]
-    public void ProgramStatus_ShouldHaveCorrectUnderlyingValues(ProgramStatus status, int expectedValue)
-    {
+    public void ProgramStatus_ShouldHaveCorrectUnderlyingValues(
+        ProgramStatus status,
+        int expectedValue
+    ) =>
         // Assert
-        ((int)status).Should().Be(expectedValue);
-    }
+        ((int)status)
+            .Should()
+            .Be(expectedValue);
 }

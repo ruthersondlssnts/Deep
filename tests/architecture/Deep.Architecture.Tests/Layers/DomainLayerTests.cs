@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace Deep.Architecture.Tests.Layers;
 
 public sealed class DomainLayerTests
@@ -12,7 +14,7 @@ public sealed class DomainLayerTests
         "Deep.Transactions.IntegrationEvents",
         "Deep.Api",
         "Microsoft.EntityFrameworkCore",
-        "Microsoft.AspNetCore"
+        "Microsoft.AspNetCore",
     ];
 
     [Fact]
@@ -26,8 +28,7 @@ public sealed class DomainLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Deep.Accounts.Domain", result));
+        result.IsSuccessful.Should().BeTrue(GetFailureMessage("Deep.Accounts.Domain", result));
     }
 
     [Fact]
@@ -41,8 +42,7 @@ public sealed class DomainLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Deep.Programs.Domain", result));
+        result.IsSuccessful.Should().BeTrue(GetFailureMessage("Deep.Programs.Domain", result));
     }
 
     [Fact]
@@ -56,8 +56,7 @@ public sealed class DomainLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Deep.Transactions.Domain", result));
+        result.IsSuccessful.Should().BeTrue(GetFailureMessage("Deep.Transactions.Domain", result));
     }
 
     [Fact]
@@ -71,8 +70,7 @@ public sealed class DomainLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            GetFailureMessage("Deep.Common.Domain", result));
+        result.IsSuccessful.Should().BeTrue(GetFailureMessage("Deep.Common.Domain", result));
     }
 
     [Theory]
@@ -83,13 +81,13 @@ public sealed class DomainLayerTests
     public void Domain_ShouldNotDependOnEntityFramework(string domainNamespace)
     {
         // Arrange
-        var assembly = domainNamespace switch
+        Assembly assembly = domainNamespace switch
         {
             "Deep.Accounts.Domain" => AssemblyReferences.AccountsDomain,
             "Deep.Programs.Domain" => AssemblyReferences.ProgramsDomain,
             "Deep.Transactions.Domain" => AssemblyReferences.TransactionsDomain,
             "Deep.Common.Domain" => AssemblyReferences.CommonDomain,
-            _ => throw new ArgumentException($"Unknown domain: {domainNamespace}")
+            _ => throw new ArgumentException($"Unknown domain: {domainNamespace}"),
         };
 
         // Act
@@ -100,9 +98,12 @@ public sealed class DomainLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"{domainNamespace} should not depend on Microsoft.EntityFrameworkCore. " +
-            $"Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"{domainNamespace} should not depend on Microsoft.EntityFrameworkCore. "
+                    + $"Violating types: {GetViolatingTypes(result)}"
+            );
     }
 
     [Theory]
@@ -113,13 +114,13 @@ public sealed class DomainLayerTests
     public void Domain_ShouldNotDependOnAspNetCore(string domainNamespace)
     {
         // Arrange
-        var assembly = domainNamespace switch
+        Assembly assembly = domainNamespace switch
         {
             "Deep.Accounts.Domain" => AssemblyReferences.AccountsDomain,
             "Deep.Programs.Domain" => AssemblyReferences.ProgramsDomain,
             "Deep.Transactions.Domain" => AssemblyReferences.TransactionsDomain,
             "Deep.Common.Domain" => AssemblyReferences.CommonDomain,
-            _ => throw new ArgumentException($"Unknown domain: {domainNamespace}")
+            _ => throw new ArgumentException($"Unknown domain: {domainNamespace}"),
         };
 
         // Act
@@ -130,20 +131,19 @@ public sealed class DomainLayerTests
             .GetResult();
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"{domainNamespace} should not depend on Microsoft.AspNetCore. " +
-            $"Violating types: {GetViolatingTypes(result)}");
+        result
+            .IsSuccessful.Should()
+            .BeTrue(
+                $"{domainNamespace} should not depend on Microsoft.AspNetCore. "
+                    + $"Violating types: {GetViolatingTypes(result)}"
+            );
     }
 
-    private static string GetFailureMessage(string layer, TestResult result)
-    {
-        return $"{layer} has forbidden dependencies. Violating types: {GetViolatingTypes(result)}";
-    }
+    private static string GetFailureMessage(string layer, TestResult result) =>
+        $"{layer} has forbidden dependencies. Violating types: {GetViolatingTypes(result)}";
 
-    private static string GetViolatingTypes(TestResult result)
-    {
-        return result.FailingTypes is null
+    private static string GetViolatingTypes(TestResult result) =>
+        result.FailingTypes is null
             ? "None"
             : string.Join(", ", result.FailingTypes.Select(t => t.FullName));
-    }
 }
