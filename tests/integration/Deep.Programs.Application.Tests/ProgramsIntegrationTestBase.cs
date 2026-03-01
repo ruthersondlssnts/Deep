@@ -1,22 +1,22 @@
 using Bogus;
-using Deep.Accounts.Application.Data;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
+using Deep.Programs.Application.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Deep.Accounts.Application.Tests;
+namespace Deep.Programs.Application.Tests;
 
 /// <summary>
-/// Base class for Accounts integration tests.
+/// Base class for Programs integration tests.
 /// </summary>
-public abstract class AccountsIntegrationTestBase : IAsyncLifetime
+public abstract class ProgramsIntegrationTestBase : IAsyncLifetime
 {
     protected static readonly Faker Faker = new();
-    protected readonly AccountsWebApplicationFactory Factory;
+    protected readonly ProgramsWebApplicationFactory Factory;
     protected readonly HttpClient HttpClient;
 
-    protected AccountsIntegrationTestBase(AccountsWebApplicationFactory factory)
+    protected ProgramsIntegrationTestBase(ProgramsWebApplicationFactory factory)
     {
         Factory = factory;
         HttpClient = factory.CreateClient();
@@ -25,7 +25,7 @@ public abstract class AccountsIntegrationTestBase : IAsyncLifetime
     public virtual async Task InitializeAsync()
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        AccountsDbContext db = scope.ServiceProvider.GetRequiredService<AccountsDbContext>();
+        ProgramsDbContext db = scope.ServiceProvider.GetRequiredService<ProgramsDbContext>();
         await db.Database.MigrateAsync();
     }
 
@@ -58,5 +58,27 @@ public abstract class AccountsIntegrationTestBase : IAsyncLifetime
         await using AsyncServiceScope scope = CreateAsyncScope();
         IRequestBus bus = scope.ServiceProvider.GetRequiredService<IRequestBus>();
         return await bus.Send<TResponse>(request);
+    }
+
+    /// <summary>
+    /// Seeds a test user in the Programs schema for program assignments.
+    /// </summary>
+    protected async Task<Guid> SeedTestUserAsync(string roleName)
+    {
+        Guid userId = Guid.CreateVersion7();
+        await using AsyncServiceScope scope = CreateAsyncScope();
+        ProgramsDbContext db = scope.ServiceProvider.GetRequiredService<ProgramsDbContext>();
+
+        await db.Database.ExecuteSqlRawAsync($@"
+            INSERT INTO programs.users (id, email, first_name, last_name)
+            VALUES ('{userId}', '{Faker.Internet.Email()}', '{Faker.Name.FirstName()}', '{Faker.Name.LastName()}')
+            ON CONFLICT DO NOTHING;
+
+            INSERT INTO programs.user_roles (user_id, role_name)
+            VALUES ('{userId}', '{roleName}')
+            ON CONFLICT DO NOTHING;
+        ");
+
+        return userId;
     }
 }

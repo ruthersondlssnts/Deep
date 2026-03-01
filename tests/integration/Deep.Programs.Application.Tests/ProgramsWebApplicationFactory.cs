@@ -1,5 +1,5 @@
-using Deep.Accounts.Application.Data;
 using Deep.Common.Application.IntegrationEvents;
+using Deep.Programs.Application.Data;
 using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -7,15 +7,17 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using MongoDB.Driver;
 using Npgsql;
+using Testcontainers.MongoDb;
 using Testcontainers.PostgreSql;
 
-namespace Deep.Accounts.Application.Tests;
+namespace Deep.Programs.Application.Tests;
 
 /// <summary>
-/// WebApplicationFactory for Accounts integration tests with PostgreSQL Testcontainers.
+/// WebApplicationFactory for Programs integration tests with PostgreSQL and MongoDB Testcontainers.
 /// </summary>
-public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:latest")
@@ -24,20 +26,24 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
         .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
         .Build();
 
+    private readonly MongoDbContainer _mongo = new MongoDbBuilder()
+        .WithImage("mongo:latest")
+        .Build();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         Environment.SetEnvironmentVariable("ConnectionStrings__deep-db", _postgres.GetConnectionString());
         Environment.SetEnvironmentVariable("ConnectionStrings__broker", "amqp://guest:guest@localhost:5672");
-        Environment.SetEnvironmentVariable("ConnectionStrings__deep-docs", "mongodb://localhost:27017");
+        Environment.SetEnvironmentVariable("ConnectionStrings__deep-docs", _mongo.GetConnectionString());
 
         builder.UseEnvironment("Testing");
 
         builder.ConfigureTestServices(services =>
         {
-            // Replace AccountsDbContext
-            services.RemoveAll<DbContextOptions<AccountsDbContext>>();
-            services.RemoveAll<AccountsDbContext>();
-            services.AddDbContext<AccountsDbContext>(options =>
+            // Replace ProgramsDbContext
+            services.RemoveAll<DbContextOptions<ProgramsDbContext>>();
+            services.RemoveAll<ProgramsDbContext>();
+            services.AddDbContext<ProgramsDbContext>(options =>
             {
                 options.UseNpgsql(_postgres.GetConnectionString());
                 options.UseSnakeCaseNamingConvention();
@@ -49,24 +55,33 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
                 new TestDbConnectionFactory(_postgres.GetConnectionString())
             );
 
-            // Replace IEventBus with no-op to avoid MassTransit hangs
+            // Replace MongoDbContext
+            services.RemoveAll<MongoDbContext>();
+            services.AddSingleton(_ =>
+            {
+                MongoClient client = new(_mongo.GetConnectionString());
+                IMongoDatabase database = client.GetDatabase("deep-docs");
+                return new MongoDbContext(database);
+            });
+
+            // Replace IEventBus with no-op
             services.RemoveAll<IEventBus>();
             services.AddSingleton<IEventBus, NoOpEventBus>();
         });
     }
 
-    public async Task InitializeAsync() => await _postgres.StartAsync();
+    public async Task InitializeAsync()
+    {
+        await Task.WhenAll(_postgres.StartAsync(), _mongo.StartAsync());
+    }
 
     public new async Task DisposeAsync()
     {
-        await _postgres.StopAsync();
+        await Task.WhenAll(_postgres.StopAsync(), _mongo.StopAsync());
         await base.DisposeAsync();
     }
 }
 
-/// <summary>
-/// Test IDbConnectionFactory using Npgsql.
-/// </summary>
 internal sealed class TestDbConnectionFactory(string connectionString)
     : Deep.Common.Application.Dapper.IDbConnectionFactory
 {
@@ -78,9 +93,6 @@ internal sealed class TestDbConnectionFactory(string connectionString)
     }
 }
 
-/// <summary>
-/// No-op IEventBus for tests - prevents MassTransit/RabbitMQ connection attempts.
-/// </summary>
 internal sealed class NoOpEventBus : IEventBus
 {
     public Task PublishAsync<T>(T integrationEvent, CancellationToken ct = default)

@@ -1,5 +1,5 @@
-using Deep.Accounts.Application.Data;
 using Deep.Common.Application.IntegrationEvents;
+using Deep.Transactions.Application.Data;
 using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,12 +10,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Testcontainers.PostgreSql;
 
-namespace Deep.Accounts.Application.Tests;
+namespace Deep.Transactions.Application.Tests;
 
 /// <summary>
-/// WebApplicationFactory for Accounts integration tests with PostgreSQL Testcontainers.
+/// WebApplicationFactory for Transactions integration tests with PostgreSQL Testcontainers.
 /// </summary>
-public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public sealed class TransactionsWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:latest")
@@ -34,10 +34,10 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
 
         builder.ConfigureTestServices(services =>
         {
-            // Replace AccountsDbContext
-            services.RemoveAll<DbContextOptions<AccountsDbContext>>();
-            services.RemoveAll<AccountsDbContext>();
-            services.AddDbContext<AccountsDbContext>(options =>
+            // Replace TransactionsDbContext
+            services.RemoveAll<DbContextOptions<TransactionsDbContext>>();
+            services.RemoveAll<TransactionsDbContext>();
+            services.AddDbContext<TransactionsDbContext>(options =>
             {
                 options.UseNpgsql(_postgres.GetConnectionString());
                 options.UseSnakeCaseNamingConvention();
@@ -49,7 +49,7 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
                 new TestDbConnectionFactory(_postgres.GetConnectionString())
             );
 
-            // Replace IEventBus with no-op to avoid MassTransit hangs
+            // Replace IEventBus with no-op
             services.RemoveAll<IEventBus>();
             services.AddSingleton<IEventBus, NoOpEventBus>();
         });
@@ -64,9 +64,6 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
     }
 }
 
-/// <summary>
-/// Test IDbConnectionFactory using Npgsql.
-/// </summary>
 internal sealed class TestDbConnectionFactory(string connectionString)
     : Deep.Common.Application.Dapper.IDbConnectionFactory
 {
@@ -78,9 +75,6 @@ internal sealed class TestDbConnectionFactory(string connectionString)
     }
 }
 
-/// <summary>
-/// No-op IEventBus for tests - prevents MassTransit/RabbitMQ connection attempts.
-/// </summary>
 internal sealed class NoOpEventBus : IEventBus
 {
     public Task PublishAsync<T>(T integrationEvent, CancellationToken ct = default)

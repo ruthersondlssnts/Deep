@@ -1,22 +1,22 @@
 using Bogus;
-using Deep.Accounts.Application.Data;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
+using Deep.Transactions.Application.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Deep.Accounts.Application.Tests;
+namespace Deep.Transactions.Application.Tests;
 
 /// <summary>
-/// Base class for Accounts integration tests.
+/// Base class for Transactions integration tests.
 /// </summary>
-public abstract class AccountsIntegrationTestBase : IAsyncLifetime
+public abstract class TransactionsIntegrationTestBase : IAsyncLifetime
 {
     protected static readonly Faker Faker = new();
-    protected readonly AccountsWebApplicationFactory Factory;
+    protected readonly TransactionsWebApplicationFactory Factory;
     protected readonly HttpClient HttpClient;
 
-    protected AccountsIntegrationTestBase(AccountsWebApplicationFactory factory)
+    protected TransactionsIntegrationTestBase(TransactionsWebApplicationFactory factory)
     {
         Factory = factory;
         HttpClient = factory.CreateClient();
@@ -25,7 +25,7 @@ public abstract class AccountsIntegrationTestBase : IAsyncLifetime
     public virtual async Task InitializeAsync()
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        AccountsDbContext db = scope.ServiceProvider.GetRequiredService<AccountsDbContext>();
+        TransactionsDbContext db = scope.ServiceProvider.GetRequiredService<TransactionsDbContext>();
         await db.Database.MigrateAsync();
     }
 
@@ -48,15 +48,5 @@ public abstract class AccountsIntegrationTestBase : IAsyncLifetime
         IRequestHandler<TRequest, TResponse> handler =
             scope.ServiceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>();
         return await handler.Handle(request);
-    }
-
-    /// <summary>
-    /// Invokes a handler via IRequestBus.
-    /// </summary>
-    protected async Task<Result<TResponse>> SendViaBusAsync<TResponse>(object request)
-    {
-        await using AsyncServiceScope scope = CreateAsyncScope();
-        IRequestBus bus = scope.ServiceProvider.GetRequiredService<IRequestBus>();
-        return await bus.Send<TResponse>(request);
     }
 }
