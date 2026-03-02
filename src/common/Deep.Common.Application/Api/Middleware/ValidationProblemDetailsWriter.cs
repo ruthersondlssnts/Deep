@@ -3,7 +3,7 @@ using Deep.Common.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Deep.Common.Application.Api;
+namespace Deep.Common.Application.Api.Middleware;
 
 public sealed class ValidationProblemDetailsWriter : IProblemDetailsService
 {

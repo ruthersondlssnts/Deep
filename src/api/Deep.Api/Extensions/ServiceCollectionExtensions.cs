@@ -1,7 +1,7 @@
 using Deep.Accounts.Application;
 using Deep.Accounts.Application.Data;
-using Deep.Common.Api.Middleware;
 using Deep.Common.Application.Api;
+using Deep.Common.Application.Api.Middleware;
 using Deep.Common.Application.Auditing;
 using Deep.Common.Application.Authentication;
 using Deep.Common.Application.Authorization;
@@ -68,11 +68,9 @@ public static class ServiceCollectionExtensions
             )
             .AddMassTransit(
                 messagingConnectionString,
-                [
-                    ProgramsModule.ConfigureConsumers,
-                    AccountsModule.ConfigureConsumers,
-                    TransactionsModule.ConfigureConsumers,
-                ]
+                ProgramsModule.ConfigureConsumers,
+                AccountsModule.ConfigureConsumers,
+                TransactionsModule.ConfigureConsumers
             );
 
         services.AddAuthenticationInternal();
