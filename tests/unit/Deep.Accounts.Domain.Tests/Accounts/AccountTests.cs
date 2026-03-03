@@ -9,11 +9,11 @@ public class AccountTests
     public void Create_WithValidData_ShouldReturnSuccessResult()
     {
         // Arrange
-        var firstName = "John";
-        var lastName = "Doe";
-        var email = "john.doe@example.com";
-        var passwordHash = "hashedPassword123";
-        var roleNames = new[] { RoleNames.ItAdmin };
+        string firstName = "John";
+        string lastName = "Doe";
+        string email = "john.doe@example.com";
+        string passwordHash = "hashedPassword123";
+        string[] roleNames = new[] { RoleNames.ItAdmin };
 
         // Act
         Result<Account> result = Account.Create(
@@ -39,11 +39,11 @@ public class AccountTests
     public void Create_WithInvalidRole_ShouldReturnFailureResult()
     {
         // Arrange
-        var firstName = "John";
-        var lastName = "Doe";
-        var email = "john.doe@example.com";
-        var passwordHash = "hashedPassword123";
-        var roleNames = new[] { "InvalidRole" };
+        string firstName = "John";
+        string lastName = "Doe";
+        string email = "john.doe@example.com";
+        string passwordHash = "hashedPassword123";
+        string[] roleNames = new[] { "InvalidRole" };
 
         // Act
         Result<Account> result = Account.Create(
@@ -63,7 +63,7 @@ public class AccountTests
     public void Create_WithMultipleRoles_ShouldAssignAllRoles()
     {
         // Arrange
-        var roleNames = new[] { RoleNames.ItAdmin, RoleNames.Manager };
+        string[] roleNames = new[] { RoleNames.ItAdmin, RoleNames.Manager };
 
         // Act
         Result<Account> result = Account.Create(
@@ -88,8 +88,8 @@ public class AccountTests
         Account account = Account
             .Create("John", "Doe", "john@example.com", "oldHash", [RoleNames.ItAdmin])
             .Value;
-        var originalSecurityStamp = account.SecurityStamp;
-        var newPasswordHash = "newHashedPassword";
+        string originalSecurityStamp = account.SecurityStamp;
+        string newPasswordHash = "newHashedPassword";
 
         // Act
         account.UpdatePassword(newPasswordHash);

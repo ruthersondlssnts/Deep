@@ -13,9 +13,9 @@ public class ProgramTests
     public void Create_WithValidData_ShouldReturnSuccessResult()
     {
         // Arrange
-        var name = "Test Program";
-        var description = "Test Description";
-        var productNames = new[] { "Product1", "Product2" };
+        string name = "Test Program";
+        string description = "Test Description";
+        string[] productNames = new[] { "Product1", "Product2" };
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
@@ -91,7 +91,7 @@ public class ProgramTests
     public void Create_WithNoProducts_ShouldReturnFailure()
     {
         // Arrange
-        var emptyProducts = Array.Empty<string>();
+        string[] emptyProducts = Array.Empty<string>();
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
@@ -137,7 +137,7 @@ public class ProgramTests
     public void Create_WithMultipleProducts_ShouldAddAllProducts()
     {
         // Arrange
-        var productNames = new[] { "Product1", "Product2", "Product3" };
+        string[] productNames = new[] { "Product1", "Product2", "Product3" };
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act

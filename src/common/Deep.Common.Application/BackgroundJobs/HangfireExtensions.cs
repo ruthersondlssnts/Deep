@@ -9,62 +9,64 @@ namespace Deep.Common.Application.BackgroundJobs;
 
 public static class HangfireExtensions
 {
-    /// <summary>
-    /// Registers Hangfire using PostgreSQL storage.
-    /// </summary>
     public static IServiceCollection AddHangfireInternal(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         services
             .AddOptions<HangfireOptions>()
             .Bind(configuration.GetSection(HangfireOptions.SectionName))
             .ValidateDataAnnotations();
 
-        services.AddHangfire((sp, config) =>
-        {
-            HangfireOptions options = sp.GetRequiredService<IOptions<HangfireOptions>>().Value;
+        services.AddHangfire(
+            (sp, config) =>
+            {
+                HangfireOptions options = sp.GetRequiredService<IOptions<HangfireOptions>>().Value;
 
-            // Use connection string from options, or fall back to standard database connection
-            string connectionString = options.ConnectionString
-                ?? configuration.GetConnectionString("deep-db")
-                ?? throw new InvalidOperationException("Hangfire connection string not configured.");
+                string connectionString =
+                    options.ConnectionString
+                    ?? configuration.GetConnectionString("deep-db")
+                    ?? throw new InvalidOperationException(
+                        "Hangfire connection string not configured."
+                    );
 
-            config.UsePostgreSqlStorage(
-                opts => opts.UseNpgsqlConnection(connectionString),
-                new PostgreSqlStorageOptions
-                {
-                    SchemaName = options.Schema,
-                    PrepareSchemaIfNecessary = true,
-                    QueuePollInterval = TimeSpan.FromSeconds(5)
-                });
+                config.UsePostgreSqlStorage(
+                    opts => opts.UseNpgsqlConnection(connectionString),
+                    new PostgreSqlStorageOptions
+                    {
+                        SchemaName = options.Schema,
+                        PrepareSchemaIfNecessary = true,
+                        QueuePollInterval = TimeSpan.FromSeconds(5),
+                    }
+                );
 
-            config.UseSimpleAssemblyNameTypeSerializer();
-            config.UseRecommendedSerializerSettings();
-        });
+                config.UseSimpleAssemblyNameTypeSerializer();
+                config.UseRecommendedSerializerSettings();
+            }
+        );
 
-        services.AddHangfireServer((sp, serverOptions) =>
-        {
-            HangfireOptions hangfireOptions = sp.GetRequiredService<IOptions<HangfireOptions>>().Value;
-            serverOptions.WorkerCount = hangfireOptions.WorkerCount;
-        });
+        services.AddHangfireServer(
+            (sp, serverOptions) =>
+            {
+                HangfireOptions hangfireOptions = sp.GetRequiredService<
+                    IOptions<HangfireOptions>
+                >().Value;
+                serverOptions.WorkerCount = hangfireOptions.WorkerCount;
+            }
+        );
 
         return services;
     }
 
-    /// <summary>
-    /// Configures Hangfire middleware including optional dashboard.
-    /// </summary>
     public static IApplicationBuilder UseHangfireInternal(
         this IApplicationBuilder app,
-        bool enableDashboard = false)
+        bool enableDashboard = false
+    )
     {
         if (enableDashboard)
         {
-            app.UseHangfireDashboard("/hangfire", new DashboardOptions
-            {
-                Authorization = [] // Add authorization in production
-            });
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions { Authorization = [] });
         }
 
         return app;

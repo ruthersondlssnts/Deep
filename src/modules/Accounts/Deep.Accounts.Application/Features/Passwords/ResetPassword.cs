@@ -30,7 +30,6 @@ public static class ResetPassword
 
         public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
         {
-            // Query reset token directly
             PasswordResetToken? resetToken = await context.PasswordResetTokens.SingleOrDefaultAsync(
                 prt => prt.Token == c.ResetToken,
                 ct
@@ -55,14 +54,12 @@ public static class ResetPassword
                 return AuthErrors.AccountInactive;
             }
 
-            // Check password history - prevent reuse of last 5 passwords
             List<PasswordHistory> passwordHistory = await context
                 .PasswordHistories.Where(ph => ph.AccountId == account.Id)
                 .OrderByDescending(ph => ph.ChangedAtUtc)
                 .Take(PasswordHistoryLimit)
                 .ToListAsync(ct);
 
-            // Check if new password matches current password
             if (
                 passwordHasher.VerifyHashedPassword(account, account.PasswordHash, c.NewPassword)
                 != PasswordVerificationResult.Failed
@@ -71,7 +68,6 @@ public static class ResetPassword
                 return AuthErrors.PasswordRecentlyUsed;
             }
 
-            // Check against password history
             foreach (PasswordHistory history in passwordHistory)
             {
                 if (
@@ -86,11 +82,9 @@ public static class ResetPassword
                 }
             }
 
-            // Save current password to history
             var historyEntry = PasswordHistory.Create(account.Id, account.PasswordHash);
             context.PasswordHistories.Add(historyEntry);
 
-            // Delete oldest history beyond limit
             List<PasswordHistory> toDelete = await context
                 .PasswordHistories.Where(ph => ph.AccountId == account.Id)
                 .OrderByDescending(ph => ph.ChangedAtUtc)
@@ -99,11 +93,9 @@ public static class ResetPassword
 
             context.PasswordHistories.RemoveRange(toDelete);
 
-            // Update password
             string newPasswordHash = passwordHasher.HashPassword(account, c.NewPassword);
             account.UpdatePassword(newPasswordHash);
 
-            // Revoke all refresh tokens
             List<RefreshToken> activeTokens = await context
                 .RefreshTokens.Where(rt => rt.AccountId == account.Id && rt.RevokedAtUtc == null)
                 .ToListAsync(ct);
@@ -113,7 +105,6 @@ public static class ResetPassword
                 token.Revoke();
             }
 
-            // Mark reset token as used
             resetToken.MarkAsUsed();
 
             await context.SaveChangesAsync(ct);

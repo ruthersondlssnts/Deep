@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -11,8 +10,6 @@ public static class AuditingExtensions
         services.AddHttpContextAccessor();
         services.TryAddScoped<IAuditingUserProvider, JwtAuditingUserProvider>();
         services.TryAddScoped<WriteAuditLogInterceptor>();
-        services.AddScoped<IInterceptor>(sp => sp.GetRequiredService<WriteAuditLogInterceptor>());
-
         return services;
     }
 }

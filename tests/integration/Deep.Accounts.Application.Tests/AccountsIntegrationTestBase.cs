@@ -7,9 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Accounts.Application.Tests;
 
-/// <summary>
-/// Base class for Accounts integration tests.
-/// </summary>
 public abstract class AccountsIntegrationTestBase : IAsyncLifetime
 {
     protected static readonly Faker Faker = new();

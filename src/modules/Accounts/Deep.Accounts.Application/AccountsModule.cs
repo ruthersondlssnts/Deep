@@ -6,7 +6,10 @@ using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application;
 using Deep.Common.Application.Authorization;
 using Deep.Common.Application.Database;
+using Deep.Common.Application.Inbox;
+using Deep.Common.Application.Outbox;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Accounts.Application;
@@ -15,16 +18,20 @@ public static class AccountsModule
 {
     public const string ModuleName = "Accounts";
 
-    public static IServiceCollection AddAccountsModule(this IServiceCollection services)
+    public static IServiceCollection AddAccountsModule(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
         services
             .AddValidation()
             .AddDomainEventHandlers(AssemblyReference.Assembly, Schemas.Accounts)
             .AddIntegrationEventHandlers(AssemblyReference.Assembly, Schemas.Accounts)
-            .AddPostgresDbContextWithSchema<AccountsDbContext>(Schemas.Accounts)
+            .AddPostgresDbContext<AccountsDbContext>(Schemas.Accounts, configuration)
             .AddEndpoints(AssemblyReference.Assembly)
-            .AddOutboxInterceptor<AccountsDbContext>()
             .AddOutboxInboxJobs<AccountsProcessOutboxJob, AccountsProcessInboxJob, AccountsInboxWriter>();
+
+        services.Configure<OutboxOptions>(configuration.GetSection("Accounts:Outbox"));
+        services.Configure<InboxOptions>(configuration.GetSection("Accounts:Inbox"));
 
         services
             .AddOptions<JwtSettings>()
@@ -38,11 +45,6 @@ public static class AccountsModule
         return services;
     }
 
-    public static void ConfigureConsumers(
-        MassTransit.IRegistrationConfigurator registrationConfigurator
-    ) =>
-        Deep.Common.Application.ModuleRegistrationHelper.ConfigureConsumers(
-            AssemblyReference.Assembly,
-            registrationConfigurator
-        );
+    public static void ConfigureConsumers(MassTransit.IRegistrationConfigurator registrationConfigurator) =>
+        ModuleRegistrationHelper.ConfigureConsumers(AssemblyReference.Assembly, registrationConfigurator);
 }

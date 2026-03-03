@@ -5,34 +5,32 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Deep.Common.Application.Outbox;
 
-public sealed class InsertOutboxMessagesInterceptor(Type dbContextType) : SaveChangesInterceptor
+public sealed class InsertOutboxMessagesInterceptor : SaveChangesInterceptor
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
+        WriteIndented = false,
     };
 
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        if (eventData.Context is null || !dbContextType.IsInstanceOfType(eventData.Context))
+        if (eventData.Context is not null)
         {
-            return await base.SavingChangesAsync(eventData, result, cancellationToken);
+            InsertOutboxMessages(eventData.Context);
         }
-
-        InsertOutboxMessages(eventData.Context);
 
         return await base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
     private static void InsertOutboxMessages(DbContext context)
     {
-        List<OutboxMessage> outboxMessages = context
-            .ChangeTracker
-            .Entries<Entity>()
+        var outboxMessages = context
+            .ChangeTracker.Entries<Entity>()
             .Select(entry => entry.Entity)
             .SelectMany(entity =>
             {
@@ -44,10 +42,14 @@ public sealed class InsertOutboxMessagesInterceptor(Type dbContextType) : SaveCh
             {
                 Id = domainEvent.Id,
                 Type = domainEvent.GetType().Name,
-                Content = JsonSerializer.Serialize(domainEvent, domainEvent.GetType(), JsonSerializerOptions),
+                Content = JsonSerializer.Serialize(
+                    domainEvent,
+                    domainEvent.GetType(),
+                    JsonSerializerOptions
+                ),
                 OccurredAtUtc = domainEvent.OccurredAtUtc,
                 ProcessedAtUtc = null,
-                Error = null
+                Error = null,
             })
             .ToList();
 

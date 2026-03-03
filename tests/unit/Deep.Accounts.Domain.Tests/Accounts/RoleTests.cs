@@ -12,7 +12,7 @@ public class RoleTests
     public void TryFromName_WithValidRoleName_ShouldReturnTrue(string roleName)
     {
         // Act
-        var result = Role.TryFromName(roleName, out Role? role);
+        bool result = Role.TryFromName(roleName, out Role? role);
 
         // Assert
         result.Should().BeTrue();
@@ -24,7 +24,7 @@ public class RoleTests
     public void TryFromName_WithInvalidRoleName_ShouldReturnFalse()
     {
         // Act
-        var result = Role.TryFromName("InvalidRole", out Role? role);
+        bool result = Role.TryFromName("InvalidRole", out Role? role);
 
         // Assert
         result.Should().BeFalse();
@@ -39,7 +39,7 @@ public class RoleTests
     public void TryFromName_WithAllValidRoles_ShouldReturnTrue(string roleName)
     {
         // Act
-        var result = Role.TryFromName(roleName, out Role? role);
+        bool result = Role.TryFromName(roleName, out Role? role);
 
         // Assert
         result.Should().BeTrue();
@@ -50,7 +50,7 @@ public class RoleTests
     public void TryFromName_BoolOverload_WithValidRole_ShouldReturnTrue()
     {
         // Act
-        var result = Role.TryFromName(RoleNames.ItAdmin);
+        bool result = Role.TryFromName(RoleNames.ItAdmin);
 
         // Assert
         result.Should().BeTrue();
@@ -60,7 +60,7 @@ public class RoleTests
     public void TryFromName_BoolOverload_WithInvalidRole_ShouldReturnFalse()
     {
         // Act
-        var result = Role.TryFromName("NonExistentRole");
+        bool result = Role.TryFromName("NonExistentRole");
 
         // Assert
         result.Should().BeFalse();

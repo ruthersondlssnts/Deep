@@ -1,0 +1,12 @@
+{
+  "Programs": {
+    "Outbox": {
+      "IntervalInSeconds": 10,
+      "BatchSize": 100
+    },
+    "Inbox": {
+      "IntervalInSeconds": 10,
+      "BatchSize": 100
+    }
+  }
+}

@@ -27,9 +27,7 @@ public static class DomainEventHandlersFactory
             .ToList();
     }
 
-    public static Type? GetDomainEventType(string domainEventTypeName, Assembly assembly)
-    {
-        return DomainEventTypesDictionary.GetOrAdd(
+    public static Type? GetDomainEventType(string domainEventTypeName, Assembly assembly) => DomainEventTypesDictionary.GetOrAdd(
             $"{assembly.GetName().Name}{domainEventTypeName}",
             _ =>
             {
@@ -60,5 +58,4 @@ public static class DomainEventHandlersFactory
                 );
             }
         );
-    }
 }

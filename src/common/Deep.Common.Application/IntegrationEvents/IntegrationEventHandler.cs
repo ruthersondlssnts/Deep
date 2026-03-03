@@ -1,8 +1,5 @@
 namespace Deep.Common.Application.IntegrationEvents;
 
-/// <summary>
-/// Base class for integration event handlers.
-/// </summary>
 public abstract class IntegrationEventHandler<TIntegrationEvent>
     : IIntegrationEventHandler,
         IIntegrationEventHandler<TIntegrationEvent>

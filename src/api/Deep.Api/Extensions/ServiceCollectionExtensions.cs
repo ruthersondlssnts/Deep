@@ -1,13 +1,17 @@
 using Deep.Accounts.Application;
+using Deep.Accounts.Application.BackgroundJobs;
 using Deep.Accounts.Application.Data;
 using Deep.Common.Application.Api;
 using Deep.Common.Application.Api.Middleware;
 using Deep.Common.Application.Auditing;
 using Deep.Common.Application.Authentication;
 using Deep.Common.Application.Authorization;
+using Deep.Common.Application.BackgroundJobs;
 using Deep.Programs.Application;
+using Deep.Programs.Application.BackgroundJobs;
 using Deep.Programs.Application.Data;
 using Deep.Transactions.Application;
+using Deep.Transactions.Application.BackgroundJobs;
 using Deep.Transactions.Application.Data;
 using MassTransit;
 using Microsoft.OpenApi;
@@ -54,7 +58,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddModules(
         this IServiceCollection services,
         string databaseConnectionString,
-        string messagingConnectionString
+        string messagingConnectionString,
+        IConfiguration configuration
     )
     {
         services.AddAuditing();
@@ -76,7 +81,10 @@ public static class ServiceCollectionExtensions
         services.AddAuthenticationInternal();
         services.AddAuthorizationInternal();
 
-        services.AddProgramsModule().AddAccountsModule().AddTransactionsModule();
+        services
+            .AddProgramsModule(configuration)
+            .AddAccountsModule(configuration)
+            .AddTransactionsModule(configuration);
 
         return services;
     }
@@ -106,5 +114,19 @@ public static class ServiceCollectionExtensions
         }
 
         return builder;
+    }
+
+    public static IApplicationBuilder UseInboxOutboxJobs(this IApplicationBuilder app)
+    {
+        app.UseInboxOutboxJobs<AccountsProcessOutboxJob, AccountsProcessInboxJob>(
+            AccountsModule.ModuleName
+        );
+        app.UseInboxOutboxJobs<ProgramsProcessOutboxJob, ProgramsProcessInboxJob>(
+            ProgramsModule.ModuleName
+        );
+        app.UseInboxOutboxJobs<TransactionsProcessOutboxJob, TransactionsProcessInboxJob>(
+            TransactionsModule.ModuleName
+        );
+        return app;
     }
 }
