@@ -1,6 +1,5 @@
 using Deep.Common.Application.IntegrationEvents;
 using Deep.Programs.Application.Data;
-using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -23,7 +22,6 @@ public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Progra
         .WithImage("postgres:latest")
         .WithDatabase("deep-db")
         .WithUsername("postgres")
-        .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
         .Build();
 
     private readonly MongoDbContainer _mongo = new MongoDbBuilder()

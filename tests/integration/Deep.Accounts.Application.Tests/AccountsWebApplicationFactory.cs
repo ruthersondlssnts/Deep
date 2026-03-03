@@ -1,6 +1,5 @@
 using Deep.Accounts.Application.Data;
 using Deep.Common.Application.IntegrationEvents;
-using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -21,7 +20,6 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
         .WithImage("postgres:latest")
         .WithDatabase("deep-db")
         .WithUsername("postgres")
-        .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
         .Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

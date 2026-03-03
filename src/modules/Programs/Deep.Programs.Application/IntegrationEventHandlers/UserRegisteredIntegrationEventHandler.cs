@@ -1,27 +1,30 @@
 using Deep.Accounts.IntegrationEvents;
 using Deep.Common.Application.Exceptions;
+using Deep.Common.Application.IntegrationEvents;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Features.Users;
-using MassTransit;
 
 namespace Deep.Programs.Application.IntegrationEventHandlers;
 
-public sealed class UserRegisteredIntegrationEventConsumer(
+internal sealed class AccountRegisteredIntegrationEventHandler(
     IRequestHandler<CreateUser.Command, CreateUser.Response> handler
-) : IConsumer<AccountRegisteredIntegrationEvent>
+) : IntegrationEventHandler<AccountRegisteredIntegrationEvent>
 {
-    public async Task Consume(ConsumeContext<AccountRegisteredIntegrationEvent> context)
+    public override async Task Handle(
+        AccountRegisteredIntegrationEvent integrationEvent,
+        CancellationToken cancellationToken = default
+    )
     {
         Result<CreateUser.Response> result = await handler.Handle(
             new CreateUser.Command(
-                context.Message.AccountId,
-                context.Message.FirstName,
-                context.Message.LastName,
-                context.Message.Email,
-                context.Message.Roles
+                integrationEvent.AccountId,
+                integrationEvent.FirstName,
+                integrationEvent.LastName,
+                integrationEvent.Email,
+                integrationEvent.Roles
             ),
-            context.CancellationToken
+            cancellationToken
         );
 
         if (result.IsFailure)

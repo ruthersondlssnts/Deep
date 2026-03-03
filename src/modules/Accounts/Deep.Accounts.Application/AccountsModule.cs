@@ -1,5 +1,6 @@
 using Deep.Accounts.Application.Authentication;
 using Deep.Accounts.Application.Authorization;
+using Deep.Accounts.Application.BackgroundJobs;
 using Deep.Accounts.Application.Data;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application;
@@ -12,14 +13,18 @@ namespace Deep.Accounts.Application;
 
 public static class AccountsModule
 {
+    public const string ModuleName = "Accounts";
+
     public static IServiceCollection AddAccountsModule(this IServiceCollection services)
     {
         services
             .AddValidation()
-            .AddDomainEventHandlers(AssemblyReference.Assembly)
+            .AddDomainEventHandlers(AssemblyReference.Assembly, Schemas.Accounts)
+            .AddIntegrationEventHandlers(AssemblyReference.Assembly, Schemas.Accounts)
             .AddPostgresDbContextWithSchema<AccountsDbContext>(Schemas.Accounts)
             .AddEndpoints(AssemblyReference.Assembly)
-            .AddDomainEventInterceptor<AccountsDbContext>(AssemblyReference.Assembly);
+            .AddOutboxInterceptor<AccountsDbContext>()
+            .AddOutboxInboxJobs<AccountsProcessOutboxJob, AccountsProcessInboxJob, AccountsInboxWriter>();
 
         services
             .AddOptions<JwtSettings>()

@@ -1,5 +1,6 @@
 using Deep.Common.Application;
 using Deep.Common.Application.Database;
+using Deep.Programs.Application.BackgroundJobs;
 using Deep.Programs.Application.Data;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -10,11 +11,14 @@ namespace Deep.Programs.Application;
 
 public static class ProgramsModule
 {
+    public const string ModuleName = "Programs";
+
     public static IServiceCollection AddProgramsModule(this IServiceCollection services)
     {
         services
             .AddValidation()
-            .AddDomainEventHandlers(AssemblyReference.Assembly)
+            .AddDomainEventHandlers(AssemblyReference.Assembly, Schemas.Programs)
+            .AddIntegrationEventHandlers(AssemblyReference.Assembly, Schemas.Programs)
             .AddPostgresDbContextWithSchema<ProgramsDbContext>(Schemas.Programs)
             .AddEndpoints(AssemblyReference.Assembly)
             .AddMongoDb<MongoDbContext>(
@@ -24,7 +28,8 @@ public static class ProgramsModule
                         new GuidSerializer(GuidRepresentation.Standard)
                     )
             )
-            .AddDomainEventInterceptor<ProgramsDbContext>(AssemblyReference.Assembly);
+            .AddOutboxInterceptor<ProgramsDbContext>()
+            .AddOutboxInboxJobs<ProgramsProcessOutboxJob, ProgramsProcessInboxJob, ProgramsInboxWriter>();
         return services;
     }
 

@@ -2,6 +2,9 @@ using System.Reflection;
 using Deep.Common.Application.Api.Endpoints;
 using Deep.Common.Application.Database;
 using Deep.Common.Application.DomainEvents;
+using Deep.Common.Application.Inbox;
+using Deep.Common.Application.IntegrationEvents;
+using Deep.Common.Application.Outbox;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -16,14 +19,130 @@ public static class ModuleRegistrationHelper
 {
     public static IServiceCollection AddDomainEventHandlers(
         this IServiceCollection services,
-        Assembly assembly
+        Assembly assembly,
+        string schema
     )
     {
-        assembly
+        Type[] domainEventHandlerTypes = assembly
             .GetTypes()
-            .Where(type => typeof(IDomainEventHandler).IsAssignableFrom(type))
-            .ToList()
-            .ForEach(services.TryAddScoped);
+            .Where(type =>
+                !type.IsAbstract
+                && !type.IsInterface
+                && type.GetInterfaces()
+                    .Any(i =>
+                        i.IsGenericType
+                        && i.GetGenericTypeDefinition() == typeof(IDomainEventHandler<>)
+                    )
+            )
+            .ToArray();
+
+        List<Type> domainEventHandlerInterfaces = [];
+
+        foreach (Type domainEventHandlerType in domainEventHandlerTypes)
+        {
+            services.TryAddScoped(domainEventHandlerType);
+
+            Type[] handlerInterfaces = domainEventHandlerType
+                .GetInterfaces()
+                .Where(i =>
+                    i.IsGenericType
+                    && i.GetGenericTypeDefinition() == typeof(IDomainEventHandler<>)
+                )
+                .ToArray();
+
+            foreach (Type handlerInterface in handlerInterfaces)
+            {
+                services.TryAddEnumerable(
+                    ServiceDescriptor.Scoped(handlerInterface, domainEventHandlerType)
+                );
+
+                domainEventHandlerInterfaces.Add(handlerInterface);
+            }
+        }
+
+        foreach (Type handlerInterface in domainEventHandlerInterfaces.Distinct())
+        {
+            Type domainEventType = handlerInterface.GetGenericArguments()[0];
+            Type closedIdempotentHandlerType = typeof(IdempotentDomainEventHandler<>).MakeGenericType(
+                domainEventType
+            );
+
+            services.Decorate(
+                handlerInterface,
+                (inner, sp) =>
+                    ActivatorUtilities.CreateInstance(
+                        sp,
+                        closedIdempotentHandlerType,
+                        inner,
+                        schema
+                    )
+            );
+        }
+
+        return services;
+    }
+
+    public static IServiceCollection AddIntegrationEventHandlers(
+        this IServiceCollection services,
+        Assembly assembly,
+        string schema
+    )
+    {
+        Type[] integrationEventHandlerTypes = assembly
+            .GetTypes()
+            .Where(type =>
+                !type.IsAbstract
+                && !type.IsInterface
+                && type.GetInterfaces()
+                    .Any(i =>
+                        i.IsGenericType
+                        && i.GetGenericTypeDefinition() == typeof(IIntegrationEventHandler<>)
+                    )
+            )
+            .ToArray();
+
+        List<Type> integrationEventHandlerInterfaces = [];
+
+        foreach (Type integrationEventHandlerType in integrationEventHandlerTypes)
+        {
+            services.TryAddScoped(integrationEventHandlerType);
+
+            Type[] handlerInterfaces = integrationEventHandlerType
+                .GetInterfaces()
+                .Where(i =>
+                    i.IsGenericType
+                    && i.GetGenericTypeDefinition() == typeof(IIntegrationEventHandler<>)
+                )
+                .ToArray();
+
+            foreach (Type handlerInterface in handlerInterfaces)
+            {
+                services.TryAddEnumerable(
+                    ServiceDescriptor.Scoped(handlerInterface, integrationEventHandlerType)
+                );
+
+                integrationEventHandlerInterfaces.Add(handlerInterface);
+            }
+        }
+
+        foreach (Type handlerInterface in integrationEventHandlerInterfaces.Distinct())
+        {
+            Type integrationEventType = handlerInterface.GetGenericArguments()[0];
+            Type closedIdempotentHandlerType =
+                typeof(IdempotentIntegrationEventHandler<>).MakeGenericType(integrationEventType);
+
+            services.Decorate(
+                handlerInterface,
+                (inner, sp) =>
+                    ActivatorUtilities.CreateInstance(
+                        sp,
+                        closedIdempotentHandlerType,
+                        inner,
+                        schema
+                    )
+            );
+        }
+
         return services;
     }
 
@@ -36,17 +155,23 @@ public static class ModuleRegistrationHelper
         return services;
     }
 
-    public static IServiceCollection AddDomainEventInterceptor<TDbContext>(
-        this IServiceCollection services,
-        Assembly assembly
-    )
+    public static IServiceCollection AddOutboxInterceptor<TDbContext>(this IServiceCollection services)
         where TDbContext : DbContext
     {
-        services.AddSingleton<IInterceptor>(sp => new PublishDomainEventsInterceptor(
-            sp.GetRequiredService<IServiceScopeFactory>(),
-            assembly,
-            typeof(TDbContext)
-        ));
+        services.AddSingleton<IInterceptor>(new InsertOutboxMessagesInterceptor(typeof(TDbContext)));
+        return services;
+    }
+
+    public static IServiceCollection AddOutboxInboxJobs<TOutboxJob, TInboxJob, TInboxWriter>(
+        this IServiceCollection services
+    )
+        where TOutboxJob : ProcessOutboxJobBase
+        where TInboxJob : ProcessInboxJobBase
+        where TInboxWriter : InboxWriterBase
+    {
+        services.AddScoped<TOutboxJob>();
+        services.AddScoped<TInboxJob>();
+        services.AddScoped<TInboxWriter>();
         return services;
     }
 

@@ -2,4 +2,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\Deep.Common.Domain\Deep.Common.Domain.csproj" />
   </ItemGroup>
+
 </Project>
