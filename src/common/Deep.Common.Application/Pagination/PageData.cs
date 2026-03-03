@@ -20,7 +20,7 @@ public sealed record PageData
             Page = page,
             PageSize = pageSize,
             TotalPages = totalPages,
-            TotalCount = totalCount
+            TotalCount = totalCount,
         };
     }
 }

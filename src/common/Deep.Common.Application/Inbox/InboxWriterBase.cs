@@ -20,7 +20,7 @@ public abstract class InboxWriterBase(
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
+        WriteIndented = false,
     };
 
     public async Task WriteAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent)
@@ -40,9 +40,14 @@ public abstract class InboxWriterBase(
             {
                 integrationEvent.Id,
                 Type = integrationEvent.GetType().AssemblyQualifiedName,
-                Content = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonSerializerOptions),
-                integrationEvent.OccurredAtUtc
-            });
+                Content = JsonSerializer.Serialize(
+                    integrationEvent,
+                    integrationEvent.GetType(),
+                    JsonSerializerOptions
+                ),
+                integrationEvent.OccurredAtUtc,
+            }
+        );
 
         if (affectedRows > 0)
         {
@@ -50,7 +55,8 @@ public abstract class InboxWriterBase(
                 "Wrote integration event {EventType} with Id {EventId} to inbox in schema {Schema}",
                 integrationEvent.GetType().Name,
                 integrationEvent.Id,
-                _schema);
+                _schema
+            );
         }
         else
         {
@@ -58,7 +64,8 @@ public abstract class InboxWriterBase(
                 "Integration event {EventType} with Id {EventId} already exists in inbox in schema {Schema}",
                 integrationEvent.GetType().Name,
                 integrationEvent.Id,
-                _schema);
+                _schema
+            );
         }
     }
 }

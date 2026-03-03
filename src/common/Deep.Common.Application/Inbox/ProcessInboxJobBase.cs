@@ -29,7 +29,7 @@ public abstract class ProcessInboxJobBase(
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
     public async Task ProcessAsync(CancellationToken cancellationToken = default)
@@ -37,11 +37,17 @@ public abstract class ProcessInboxJobBase(
         _logger.LogDebug("Starting inbox processing for schema {Schema}", _schema);
 
         await using DbConnection connection = await _connectionFactory.OpenConnectionAsync();
-        await using DbTransaction transaction = await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+        await using DbTransaction transaction = await connection.BeginTransactionAsync(
+            IsolationLevel.ReadCommitted,
+            cancellationToken
+        );
 
         try
         {
-            IReadOnlyList<InboxMessageData> messages = await FetchMessagesAsync(connection, transaction);
+            IReadOnlyList<InboxMessageData> messages = await FetchMessagesAsync(
+                connection,
+                transaction
+            );
 
             if (messages.Count == 0)
             {
@@ -50,7 +56,11 @@ public abstract class ProcessInboxJobBase(
                 return;
             }
 
-            _logger.LogInformation("Processing {Count} inbox messages for schema {Schema}", messages.Count, _schema);
+            _logger.LogInformation(
+                "Processing {Count} inbox messages for schema {Schema}",
+                messages.Count,
+                _schema
+            );
 
             foreach (InboxMessageData message in messages)
             {
@@ -70,7 +80,8 @@ public abstract class ProcessInboxJobBase(
 
     private async Task<IReadOnlyList<InboxMessageData>> FetchMessagesAsync(
         DbConnection connection,
-        DbTransaction transaction)
+        DbTransaction transaction
+    )
     {
         string sql = $"""
             SELECT id AS Id, type AS Type, content AS Content
@@ -84,7 +95,8 @@ public abstract class ProcessInboxJobBase(
         IEnumerable<InboxMessageData> messages = await connection.QueryAsync<InboxMessageData>(
             sql,
             new { _options.BatchSize },
-            transaction);
+            transaction
+        );
 
         return messages.ToList();
     }
@@ -93,7 +105,8 @@ public abstract class ProcessInboxJobBase(
         InboxMessageData message,
         DbConnection connection,
         DbTransaction transaction,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         string? error = null;
 
@@ -111,9 +124,20 @@ public abstract class ProcessInboxJobBase(
                 error = $"Integration event type not found: {message.Type}";
                 _logger.LogWarning("Integration event type not found: {Type}", message.Type);
             }
-            else if (JsonSerializer.Deserialize(message.Content, integrationEventType, JsonSerializerOptions) is IIntegrationEvent integrationEvent)
+            else if (
+                JsonSerializer.Deserialize(
+                    message.Content,
+                    integrationEventType,
+                    JsonSerializerOptions
+                )
+                is IIntegrationEvent integrationEvent
+            )
             {
-                await ExecuteHandlersAsync(integrationEvent, integrationEventType, cancellationToken);
+                await ExecuteHandlersAsync(
+                    integrationEvent,
+                    integrationEventType,
+                    cancellationToken
+                );
             }
             else
             {
@@ -133,14 +157,17 @@ public abstract class ProcessInboxJobBase(
     private async Task ExecuteHandlersAsync(
         IIntegrationEvent integrationEvent,
         Type integrationEventType,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         using IServiceScope scope = _serviceScopeFactory.CreateScope();
 
-        IEnumerable<IIntegrationEventHandler> handlers = IntegrationEventHandlersFactory.GetHandlers(
-            integrationEventType,
-            scope.ServiceProvider,
-            _presentationAssembly);
+        IEnumerable<IIntegrationEventHandler> handlers =
+            IntegrationEventHandlersFactory.GetHandlers(
+                integrationEventType,
+                scope.ServiceProvider,
+                _presentationAssembly
+            );
 
         foreach (IIntegrationEventHandler handler in handlers)
         {
@@ -152,7 +179,8 @@ public abstract class ProcessInboxJobBase(
         Guid messageId,
         string? error,
         DbConnection connection,
-        DbTransaction transaction)
+        DbTransaction transaction
+    )
     {
         string sql = $"""
             UPDATE {_schema}.inbox_messages
@@ -166,9 +194,10 @@ public abstract class ProcessInboxJobBase(
             {
                 Id = messageId,
                 ProcessedAtUtc = DateTime.UtcNow,
-                Error = error
+                Error = error,
             },
-            transaction);
+            transaction
+        );
     }
 
     private sealed record InboxMessageData(Guid Id, string Type, string Content);

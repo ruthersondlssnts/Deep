@@ -7,7 +7,8 @@ public static class PaginationExtensions
     public static async Task<PaginatedResponse<IReadOnlyList<T>>> ToPaginatedListAsync<T>(
         this IQueryable<T> query,
         IPaginatedQuery<IReadOnlyList<T>> paginatedQuery,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         int totalCount = await query.CountAsync(cancellationToken);
 

@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Deep.Common.Application.Outbox;
 
-public sealed class OutboxMessageConsumerConfiguration : IEntityTypeConfiguration<OutboxMessageConsumer>
+public sealed class OutboxMessageConsumerConfiguration
+    : IEntityTypeConfiguration<OutboxMessageConsumer>
 {
     public void Configure(EntityTypeBuilder<OutboxMessageConsumer> builder)
     {
@@ -11,11 +12,8 @@ public sealed class OutboxMessageConsumerConfiguration : IEntityTypeConfiguratio
 
         builder.HasKey(consumer => new { consumer.OutboxMessageId, consumer.Name });
 
-        builder.Property(consumer => consumer.OutboxMessageId)
-            .IsRequired();
+        builder.Property(consumer => consumer.OutboxMessageId).IsRequired();
 
-        builder.Property(consumer => consumer.Name)
-            .IsRequired()
-            .HasMaxLength(500);
+        builder.Property(consumer => consumer.Name).IsRequired().HasMaxLength(500);
     }
 }

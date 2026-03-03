@@ -29,9 +29,16 @@ public static class ProgramsModule
             .AddEndpoints(AssemblyReference.Assembly)
             .AddMongoDb<MongoDbContext>(
                 "deep",
-                () => BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard))
+                () =>
+                    BsonSerializer.RegisterSerializer(
+                        new GuidSerializer(GuidRepresentation.Standard)
+                    )
             )
-            .AddOutboxInboxJobs<ProgramsProcessOutboxJob, ProgramsProcessInboxJob, ProgramsInboxWriter>();
+            .AddOutboxInboxJobs<
+                ProgramsProcessOutboxJob,
+                ProgramsProcessInboxJob,
+                ProgramsInboxWriter
+            >();
 
         services.Configure<OutboxOptions>(configuration.GetSection("Programs:Outbox"));
         services.Configure<InboxOptions>(configuration.GetSection("Programs:Inbox"));
@@ -39,6 +46,11 @@ public static class ProgramsModule
         return services;
     }
 
-    public static void ConfigureConsumers(MassTransit.IRegistrationConfigurator registrationConfigurator) =>
-        ModuleRegistrationHelper.ConfigureConsumers(AssemblyReference.Assembly, registrationConfigurator);
+    public static void ConfigureConsumers(
+        MassTransit.IRegistrationConfigurator registrationConfigurator
+    ) =>
+        ModuleRegistrationHelper.ConfigureConsumers(
+            AssemblyReference.Assembly,
+            registrationConfigurator
+        );
 }

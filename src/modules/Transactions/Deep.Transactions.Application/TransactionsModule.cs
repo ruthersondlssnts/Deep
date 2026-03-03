@@ -24,7 +24,11 @@ public static class TransactionsModule
             .AddIntegrationEventHandlers(AssemblyReference.Assembly, Schemas.Transactions)
             .AddPostgresDbContext<TransactionsDbContext>(Schemas.Transactions, configuration)
             .AddEndpoints(AssemblyReference.Assembly)
-            .AddOutboxInboxJobs<TransactionsProcessOutboxJob, TransactionsProcessInboxJob, TransactionsInboxWriter>();
+            .AddOutboxInboxJobs<
+                TransactionsProcessOutboxJob,
+                TransactionsProcessInboxJob,
+                TransactionsInboxWriter
+            >();
 
         services.Configure<OutboxOptions>(configuration.GetSection("Transactions:Outbox"));
         services.Configure<InboxOptions>(configuration.GetSection("Transactions:Inbox"));
@@ -32,6 +36,11 @@ public static class TransactionsModule
         return services;
     }
 
-    public static void ConfigureConsumers(MassTransit.IRegistrationConfigurator registrationConfigurator) =>
-        ModuleRegistrationHelper.ConfigureConsumers(AssemblyReference.Assembly, registrationConfigurator);
+    public static void ConfigureConsumers(
+        MassTransit.IRegistrationConfigurator registrationConfigurator
+    ) =>
+        ModuleRegistrationHelper.ConfigureConsumers(
+            AssemblyReference.Assembly,
+            registrationConfigurator
+        );
 }

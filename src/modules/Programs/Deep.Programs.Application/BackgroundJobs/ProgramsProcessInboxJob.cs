@@ -12,11 +12,12 @@ public sealed class ProgramsProcessInboxJob(
     IServiceScopeFactory serviceScopeFactory,
     IOptions<InboxOptions> options,
     ILogger<ProgramsProcessInboxJob> logger
-) : ProcessInboxJobBase(
-    connectionFactory,
-    serviceScopeFactory,
-    options,
-    logger,
-    Schemas.Programs,
-    AssemblyReference.Assembly
-);
+)
+    : ProcessInboxJobBase(
+        connectionFactory,
+        serviceScopeFactory,
+        options,
+        logger,
+        Schemas.Programs,
+        AssemblyReference.Assembly
+    );

@@ -11,24 +11,26 @@ public sealed class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMe
 
         builder.HasKey(inboxMessage => inboxMessage.Id);
 
-        builder.Property(inboxMessage => inboxMessage.Type)
-            .IsRequired()
-            .HasMaxLength(500);
+        builder.Property(inboxMessage => inboxMessage.Type).IsRequired().HasMaxLength(500);
 
-        builder.Property(inboxMessage => inboxMessage.Content)
+        builder
+            .Property(inboxMessage => inboxMessage.Content)
             .IsRequired()
             .HasMaxLength(3000)
             .HasColumnType("jsonb");
 
-        builder.Property(inboxMessage => inboxMessage.OccurredAtUtc)
-            .IsRequired();
+        builder.Property(inboxMessage => inboxMessage.OccurredAtUtc).IsRequired();
 
         builder.Property(inboxMessage => inboxMessage.ProcessedAtUtc);
 
-        builder.Property(inboxMessage => inboxMessage.Error)
-            .HasMaxLength(3000);
+        builder.Property(inboxMessage => inboxMessage.Error).HasMaxLength(3000);
 
-        builder.HasIndex(inboxMessage => new { inboxMessage.ProcessedAtUtc, inboxMessage.OccurredAtUtc })
+        builder
+            .HasIndex(inboxMessage => new
+            {
+                inboxMessage.ProcessedAtUtc,
+                inboxMessage.OccurredAtUtc,
+            })
             .HasFilter("processed_at_utc IS NULL");
     }
 }

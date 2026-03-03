@@ -20,7 +20,8 @@ public static class AccountsModule
 
     public static IServiceCollection AddAccountsModule(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         services
             .AddValidation()
@@ -28,7 +29,11 @@ public static class AccountsModule
             .AddIntegrationEventHandlers(AssemblyReference.Assembly, Schemas.Accounts)
             .AddPostgresDbContext<AccountsDbContext>(Schemas.Accounts, configuration)
             .AddEndpoints(AssemblyReference.Assembly)
-            .AddOutboxInboxJobs<AccountsProcessOutboxJob, AccountsProcessInboxJob, AccountsInboxWriter>();
+            .AddOutboxInboxJobs<
+                AccountsProcessOutboxJob,
+                AccountsProcessInboxJob,
+                AccountsInboxWriter
+            >();
 
         services.Configure<OutboxOptions>(configuration.GetSection("Accounts:Outbox"));
         services.Configure<InboxOptions>(configuration.GetSection("Accounts:Inbox"));
@@ -45,6 +50,11 @@ public static class AccountsModule
         return services;
     }
 
-    public static void ConfigureConsumers(MassTransit.IRegistrationConfigurator registrationConfigurator) =>
-        ModuleRegistrationHelper.ConfigureConsumers(AssemblyReference.Assembly, registrationConfigurator);
+    public static void ConfigureConsumers(
+        MassTransit.IRegistrationConfigurator registrationConfigurator
+    ) =>
+        ModuleRegistrationHelper.ConfigureConsumers(
+            AssemblyReference.Assembly,
+            registrationConfigurator
+        );
 }

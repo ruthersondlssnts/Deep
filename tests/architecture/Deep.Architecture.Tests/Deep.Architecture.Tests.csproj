@@ -48,6 +48,4 @@
     <Using Include="FluentAssertions" />
     <Using Include="NetArchTest.Rules" />
   </ItemGroup>
-
-
 </Project>

@@ -27,7 +27,8 @@ public static class DomainEventHandlersFactory
             .ToList();
     }
 
-    public static Type? GetDomainEventType(string domainEventTypeName, Assembly assembly) => DomainEventTypesDictionary.GetOrAdd(
+    public static Type? GetDomainEventType(string domainEventTypeName, Assembly assembly) =>
+        DomainEventTypesDictionary.GetOrAdd(
             $"{assembly.GetName().Name}{domainEventTypeName}",
             _ =>
             {
@@ -36,10 +37,11 @@ public static class DomainEventHandlersFactory
                     .Where(type =>
                         !type.IsAbstract
                         && !type.IsInterface
-                        && type.GetInterfaces().Any(i =>
-                            i.IsGenericType
-                            && i.GetGenericTypeDefinition() == typeof(IDomainEventHandler<>)
-                        )
+                        && type.GetInterfaces()
+                            .Any(i =>
+                                i.IsGenericType
+                                && i.GetGenericTypeDefinition() == typeof(IDomainEventHandler<>)
+                            )
                     )
                     .SelectMany(type =>
                         type.GetInterfaces()

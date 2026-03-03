@@ -4,5 +4,4 @@
     <ProjectReference Include="..\Deep.Transactions.Domain\Deep.Transactions.Domain.csproj" />
     <ProjectReference Include="..\Deep.Transactions.IntegrationEvents\Deep.Transactions.IntegrationEvents.csproj" />
   </ItemGroup>
-
 </Project>

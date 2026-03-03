@@ -12,11 +12,12 @@ public sealed class AccountsProcessOutboxJob(
     IServiceScopeFactory serviceScopeFactory,
     IOptions<OutboxOptions> options,
     ILogger<AccountsProcessOutboxJob> logger
-) : ProcessOutboxJobBase(
-    connectionFactory,
-    serviceScopeFactory,
-    options,
-    logger,
-    Schemas.Accounts,
-    AssemblyReference.Assembly
-);
+)
+    : ProcessOutboxJobBase(
+        connectionFactory,
+        serviceScopeFactory,
+        options,
+        logger,
+        Schemas.Accounts,
+        AssemblyReference.Assembly
+    );

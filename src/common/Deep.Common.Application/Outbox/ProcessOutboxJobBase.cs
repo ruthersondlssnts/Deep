@@ -30,7 +30,7 @@ public abstract class ProcessOutboxJobBase(
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
     public async Task ProcessAsync(CancellationToken cancellationToken = default)
@@ -38,11 +38,17 @@ public abstract class ProcessOutboxJobBase(
         _logger.LogDebug("Starting outbox processing for schema {Schema}", _schema);
 
         await using DbConnection connection = await _connectionFactory.OpenConnectionAsync();
-        await using DbTransaction transaction = await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+        await using DbTransaction transaction = await connection.BeginTransactionAsync(
+            IsolationLevel.ReadCommitted,
+            cancellationToken
+        );
 
         try
         {
-            IReadOnlyList<OutboxMessageData> messages = await FetchMessagesAsync(connection, transaction);
+            IReadOnlyList<OutboxMessageData> messages = await FetchMessagesAsync(
+                connection,
+                transaction
+            );
 
             if (messages.Count == 0)
             {
@@ -51,7 +57,11 @@ public abstract class ProcessOutboxJobBase(
                 return;
             }
 
-            _logger.LogInformation("Processing {Count} outbox messages for schema {Schema}", messages.Count, _schema);
+            _logger.LogInformation(
+                "Processing {Count} outbox messages for schema {Schema}",
+                messages.Count,
+                _schema
+            );
 
             foreach (OutboxMessageData message in messages)
             {
@@ -71,7 +81,8 @@ public abstract class ProcessOutboxJobBase(
 
     private async Task<IReadOnlyList<OutboxMessageData>> FetchMessagesAsync(
         DbConnection connection,
-        DbTransaction transaction)
+        DbTransaction transaction
+    )
     {
         string sql = $"""
             SELECT id AS Id, type AS Type, content AS Content
@@ -85,7 +96,8 @@ public abstract class ProcessOutboxJobBase(
         IEnumerable<OutboxMessageData> messages = await connection.QueryAsync<OutboxMessageData>(
             sql,
             new { _options.BatchSize },
-            transaction);
+            transaction
+        );
 
         return messages.ToList();
     }
@@ -94,7 +106,8 @@ public abstract class ProcessOutboxJobBase(
         OutboxMessageData message,
         DbConnection connection,
         DbTransaction transaction,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         string? error = null;
 
@@ -112,7 +125,10 @@ public abstract class ProcessOutboxJobBase(
                 error = $"Domain event type not found: {message.Type}";
                 _logger.LogWarning("Domain event type not found: {Type}", message.Type);
             }
-            else if (JsonSerializer.Deserialize(message.Content, domainEventType, JsonSerializerOptions) is IDomainEvent domainEvent)
+            else if (
+                JsonSerializer.Deserialize(message.Content, domainEventType, JsonSerializerOptions)
+                is IDomainEvent domainEvent
+            )
             {
                 await ExecuteHandlersAsync(domainEvent, domainEventType, cancellationToken);
             }
@@ -134,14 +150,16 @@ public abstract class ProcessOutboxJobBase(
     private async Task ExecuteHandlersAsync(
         IDomainEvent domainEvent,
         Type domainEventType,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         using IServiceScope scope = _serviceScopeFactory.CreateScope();
 
         IEnumerable<IDomainEventHandler> handlers = DomainEventHandlersFactory.GetHandlers(
             domainEventType,
             scope.ServiceProvider,
-            _applicationAssembly);
+            _applicationAssembly
+        );
 
         foreach (IDomainEventHandler handler in handlers)
         {
@@ -153,7 +171,8 @@ public abstract class ProcessOutboxJobBase(
         Guid messageId,
         string? error,
         DbConnection connection,
-        DbTransaction transaction)
+        DbTransaction transaction
+    )
     {
         string sql = $"""
             UPDATE {_schema}.outbox_messages
@@ -167,9 +186,10 @@ public abstract class ProcessOutboxJobBase(
             {
                 Id = messageId,
                 ProcessedAtUtc = DateTime.UtcNow,
-                Error = error
+                Error = error,
             },
-            transaction);
+            transaction
+        );
     }
 
     private sealed record OutboxMessageData(Guid Id, string Type, string Content);

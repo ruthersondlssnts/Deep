@@ -11,23 +11,31 @@ public static class InboxOutboxJobExtensions
 {
     public static IApplicationBuilder UseInboxOutboxJobs<TOutboxJob, TInboxJob>(
         this IApplicationBuilder app,
-        string moduleName)
+        string moduleName
+    )
         where TOutboxJob : ProcessOutboxJobBase
         where TInboxJob : ProcessInboxJobBase
     {
-        IRecurringJobManager recurringJobManager = app.ApplicationServices.GetRequiredService<IRecurringJobManager>();
-        OutboxOptions outboxOptions = app.ApplicationServices.GetRequiredService<IOptions<OutboxOptions>>().Value;
-        InboxOptions inboxOptions = app.ApplicationServices.GetRequiredService<IOptions<InboxOptions>>().Value;
+        IRecurringJobManager recurringJobManager =
+            app.ApplicationServices.GetRequiredService<IRecurringJobManager>();
+        OutboxOptions outboxOptions = app
+            .ApplicationServices.GetRequiredService<IOptions<OutboxOptions>>()
+            .Value;
+        InboxOptions inboxOptions = app
+            .ApplicationServices.GetRequiredService<IOptions<InboxOptions>>()
+            .Value;
 
         recurringJobManager.AddOrUpdate<TOutboxJob>(
             $"{moduleName}:outbox",
             job => job.ProcessAsync(CancellationToken.None),
-            GetCronExpression(outboxOptions.IntervalInSeconds));
+            GetCronExpression(outboxOptions.IntervalInSeconds)
+        );
 
         recurringJobManager.AddOrUpdate<TInboxJob>(
             $"{moduleName}:inbox",
             job => job.ProcessAsync(CancellationToken.None),
-            GetCronExpression(inboxOptions.IntervalInSeconds));
+            GetCronExpression(inboxOptions.IntervalInSeconds)
+        );
 
         return app;
     }
