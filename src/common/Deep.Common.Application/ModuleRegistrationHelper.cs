@@ -22,8 +22,17 @@ public static class ModuleRegistrationHelper
     {
         services.Scan(scan =>
             scan.FromAssemblies(assembly)
-                .AddClasses(classes => classes.AssignableTo(typeof(IDomainEventHandler<>)))
-                .AsImplementedInterfaces()
+                .AddClasses(
+                    classes => classes.AssignableTo(typeof(IDomainEventHandler<>)),
+                    publicOnly: false
+                )
+                .As(type =>
+                    type.GetInterfaces()
+                        .Where(i =>
+                            i.IsGenericType
+                            && i.GetGenericTypeDefinition() == typeof(IDomainEventHandler<>)
+                        )
+                )
                 .WithScopedLifetime()
         );
 
@@ -62,8 +71,17 @@ public static class ModuleRegistrationHelper
     {
         services.Scan(scan =>
             scan.FromAssemblies(assembly)
-                .AddClasses(classes => classes.AssignableTo(typeof(IIntegrationEventHandler<>)))
-                .AsImplementedInterfaces()
+                .AddClasses(
+                    classes => classes.AssignableTo(typeof(IIntegrationEventHandler<>)),
+                    publicOnly: false
+                )
+                .As(type =>
+                    type.GetInterfaces()
+                        .Where(i =>
+                            i.IsGenericType
+                            && i.GetGenericTypeDefinition() == typeof(IIntegrationEventHandler<>)
+                        )
+                )
                 .WithScopedLifetime()
         );
 

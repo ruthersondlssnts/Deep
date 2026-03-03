@@ -1,8 +1,10 @@
+using Deep.Common.Application.Outbox;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Deep.Common.Application.BackgroundJobs;
@@ -55,6 +57,8 @@ public static class HangfireExtensions
                 serverOptions.WorkerCount = hangfireOptions.WorkerCount;
             }
         );
+
+        services.TryAddSingleton<InsertOutboxMessagesInterceptor>();
 
         return services;
     }
