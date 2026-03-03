@@ -9,9 +9,10 @@ namespace Deep.Transactions.Application.Inbox;
 public sealed class TransactionsIntegrationEventConsumer<TIntegrationEvent>(
     IDbConnectionFactory dbConnectionFactory,
     ILogger<TransactionsIntegrationEventConsumer<TIntegrationEvent>> logger
-) : IntegrationEventConsumerBase<TIntegrationEvent>(
-    dbConnectionFactory,
-    logger,
-    Schemas.Transactions
 )
+    : IntegrationEventConsumerBase<TIntegrationEvent>(
+        dbConnectionFactory,
+        logger,
+        Schemas.Transactions
+    )
     where TIntegrationEvent : class, IIntegrationEvent;

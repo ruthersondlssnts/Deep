@@ -14,6 +14,56 @@ namespace Deep.Common.Application;
 
 public static class ModuleRegistrationHelper
 {
+    public static IServiceCollection AddEndpoints(
+        this IServiceCollection services,
+        Assembly assembly
+    )
+    {
+        services.AddEndpointExtension(assembly);
+        return services;
+    }
+
+    public static IServiceCollection AddOutboxInboxJobs<TOutboxJob, TInboxJob, TInboxWriter>(
+        this IServiceCollection services
+    )
+        where TOutboxJob : ProcessOutboxJobBase
+        where TInboxJob : ProcessInboxJobBase
+        where TInboxWriter : InboxWriterBase
+    {
+        services.AddScoped<TOutboxJob>();
+        services.AddScoped<TInboxJob>();
+        services.AddScoped<TInboxWriter>();
+        return services;
+    }
+
+    public static IServiceCollection AddMongoDb<TContext>(
+        this IServiceCollection services,
+        string databaseName,
+        Action? configureSerializers = null
+    )
+        where TContext : class
+    {
+        configureSerializers?.Invoke();
+        services.AddSingleton<IMongoDatabase>(sp =>
+            sp.GetRequiredService<IMongoClient>().GetDatabase(databaseName)
+        );
+        services.AddScoped<TContext>();
+        return services;
+    }
+
+    public static IServiceCollection AddPostgresDbContext<TDbContext>(
+        this IServiceCollection services,
+        string schema,
+        IConfiguration configuration
+    )
+        where TDbContext : Microsoft.EntityFrameworkCore.DbContext
+    {
+        services.AddDbContext<TDbContext>(
+            (sp, options) => Postgres.ConfigureOptions(options, configuration, schema, sp)
+        );
+        return services;
+    }
+
     public static IServiceCollection AddDomainEventHandlers(
         this IServiceCollection services,
         Assembly assembly,
@@ -110,56 +160,6 @@ public static class ModuleRegistrationHelper
             );
         }
 
-        return services;
-    }
-
-    public static IServiceCollection AddEndpoints(
-        this IServiceCollection services,
-        Assembly assembly
-    )
-    {
-        services.AddEndpointExtension(assembly);
-        return services;
-    }
-
-    public static IServiceCollection AddOutboxInboxJobs<TOutboxJob, TInboxJob, TInboxWriter>(
-        this IServiceCollection services
-    )
-        where TOutboxJob : ProcessOutboxJobBase
-        where TInboxJob : ProcessInboxJobBase
-        where TInboxWriter : InboxWriterBase
-    {
-        services.AddScoped<TOutboxJob>();
-        services.AddScoped<TInboxJob>();
-        services.AddScoped<TInboxWriter>();
-        return services;
-    }
-
-    public static IServiceCollection AddMongoDb<TContext>(
-        this IServiceCollection services,
-        string databaseName,
-        Action? configureSerializers = null
-    )
-        where TContext : class
-    {
-        configureSerializers?.Invoke();
-        services.AddSingleton<IMongoDatabase>(sp =>
-            sp.GetRequiredService<IMongoClient>().GetDatabase(databaseName)
-        );
-        services.AddScoped<TContext>();
-        return services;
-    }
-
-    public static IServiceCollection AddPostgresDbContext<TDbContext>(
-        this IServiceCollection services,
-        string schema,
-        IConfiguration configuration
-    )
-        where TDbContext : Microsoft.EntityFrameworkCore.DbContext
-    {
-        services.AddDbContext<TDbContext>(
-            (sp, options) => Postgres.ConfigureOptions(options, configuration, schema, sp)
-        );
         return services;
     }
 
