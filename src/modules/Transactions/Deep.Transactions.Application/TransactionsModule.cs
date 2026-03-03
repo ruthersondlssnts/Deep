@@ -4,6 +4,7 @@ using Deep.Common.Application.Inbox;
 using Deep.Common.Application.Outbox;
 using Deep.Transactions.Application.BackgroundJobs;
 using Deep.Transactions.Application.Data;
+using Deep.Transactions.Application.Inbox;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -41,6 +42,7 @@ public static class TransactionsModule
     ) =>
         ModuleRegistrationHelper.ConfigureConsumers(
             AssemblyReference.Assembly,
-            registrationConfigurator
+            registrationConfigurator,
+            typeof(TransactionsIntegrationEventConsumer<>)
         );
 }

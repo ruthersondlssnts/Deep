@@ -165,6 +165,33 @@ public static class ModuleRegistrationHelper
 
     public static void ConfigureConsumers(
         Assembly assembly,
-        IRegistrationConfigurator registrationConfigurator
-    ) => registrationConfigurator.AddConsumers(assembly);
+        IRegistrationConfigurator registrationConfigurator,
+        Type moduleConsumerType
+    )
+    {
+        Type[] integrationEventHandlerTypes = assembly
+            .GetTypes()
+            .Where(type =>
+                type.IsAssignableTo(typeof(IIntegrationEventHandler))
+                && !type.IsAbstract
+                && !type.IsInterface
+            )
+            .ToArray();
+
+        foreach (Type integrationEventHandlerType in integrationEventHandlerTypes)
+        {
+            Type integrationEventType = integrationEventHandlerType
+                .GetInterfaces()
+                .Single(@interface =>
+                    @interface.IsGenericType
+                    && @interface.GetGenericTypeDefinition() == typeof(IIntegrationEventHandler<>)
+                )
+                .GetGenericArguments()
+                .Single();
+
+            Type consumerType = moduleConsumerType.MakeGenericType(integrationEventType);
+
+            registrationConfigurator.AddConsumer(consumerType);
+        }
+    }
 }

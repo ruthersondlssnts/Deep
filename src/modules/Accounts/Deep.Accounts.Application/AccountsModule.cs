@@ -2,6 +2,7 @@ using Deep.Accounts.Application.Authentication;
 using Deep.Accounts.Application.Authorization;
 using Deep.Accounts.Application.BackgroundJobs;
 using Deep.Accounts.Application.Data;
+using Deep.Accounts.Application.Inbox;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application;
 using Deep.Common.Application.Authorization;
@@ -55,6 +56,7 @@ public static class AccountsModule
     ) =>
         ModuleRegistrationHelper.ConfigureConsumers(
             AssemblyReference.Assembly,
-            registrationConfigurator
+            registrationConfigurator,
+            typeof(AccountsIntegrationEventConsumer<>)
         );
 }

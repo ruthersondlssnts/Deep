@@ -4,6 +4,7 @@ using Deep.Common.Application.Inbox;
 using Deep.Common.Application.Outbox;
 using Deep.Programs.Application.BackgroundJobs;
 using Deep.Programs.Application.Data;
+using Deep.Programs.Application.Inbox;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -51,6 +52,7 @@ public static class ProgramsModule
     ) =>
         ModuleRegistrationHelper.ConfigureConsumers(
             AssemblyReference.Assembly,
-            registrationConfigurator
+            registrationConfigurator,
+            typeof(ProgramsIntegrationEventConsumer<>)
         );
 }
