@@ -11,14 +11,22 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Accounts.Application.Tests.Accounts;
 
+/// <summary>
+/// Feature-oriented integration tests for Account features.
+/// 
+/// Strategy:
+/// - Features with endpoints → HTTP call → Assert response + DB + outbox
+/// - Features without endpoints → Handler call → Assert Result + DB
+/// - Outbox processing → Manual job execution (no Hangfire)
+/// </summary>
 [Collection(nameof(AccountsIntegrationCollection))]
 public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
     : AccountsIntegrationTestBase(factory)
 {
-    #region Register Account
+    #region RegisterAccount Feature (Endpoint + Outbox)
 
     [Fact]
-    public async Task RegisterAccount_WithValidData_ShouldReturnCreated()
+    public async Task RegisterAccount_WithValidData_ShouldReturnCreated_AndCreateOutboxMessage()
     {
         // Arrange
         RegisterAccountCommand request = new(
@@ -29,18 +37,79 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
             [RoleNames.ItAdmin]
         );
 
-        // Act
+        // Act - Call endpoint
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
             "/accounts/register",
             request
         );
 
-        // Assert
+        // Assert - HTTP Response
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         RegisterAccountResponse? result =
             await response.Content.ReadFromJsonAsync<RegisterAccountResponse>();
         result.Should().NotBeNull();
         result!.Id.Should().NotBeEmpty();
+
+        // Assert - Outbox Message Created (before processing)
+        IReadOnlyList<OutboxMessageRow> outboxMessages = await GetOutboxMessagesByTypeAsync(
+            nameof(AccountRegisteredDomainEvent)
+        );
+        OutboxMessageRow? outboxMessage = outboxMessages.FirstOrDefault(m =>
+        {
+            AccountRegisteredDomainEvent? evt = m.DeserializeContent<AccountRegisteredDomainEvent>();
+            return evt?.AccountId == result.Id;
+        });
+
+        outboxMessage.Should().NotBeNull();
+        outboxMessage!.ProcessedAtUtc.Should().BeNull("outbox message should not be processed yet");
+        outboxMessage.Error.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RegisterAccount_WithValidData_WhenOutboxProcessed_ShouldExecuteDomainEventHandler()
+    {
+        // Arrange
+        RegisterAccountCommand request = new(
+            Faker.Name.FirstName(),
+            Faker.Name.LastName(),
+            Faker.Internet.Email(),
+            "Test1234!",
+            [RoleNames.ItAdmin]
+        );
+
+        // Act - Call endpoint
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "/accounts/register",
+            request
+        );
+        response.EnsureSuccessStatusCode();
+        RegisterAccountResponse? result =
+            await response.Content.ReadFromJsonAsync<RegisterAccountResponse>();
+
+        // Get outbox message before processing
+        IReadOnlyList<OutboxMessageRow> outboxMessagesBefore = await GetOutboxMessagesByTypeAsync(
+            nameof(AccountRegisteredDomainEvent)
+        );
+        OutboxMessageRow? outboxMessageBefore = outboxMessagesBefore.FirstOrDefault(m =>
+        {
+            AccountRegisteredDomainEvent? evt = m.DeserializeContent<AccountRegisteredDomainEvent>();
+            return evt?.AccountId == result!.Id;
+        });
+        outboxMessageBefore.Should().NotBeNull();
+        Guid outboxMessageId = outboxMessageBefore!.Id;
+
+        // Act - Manually execute outbox processor (NO Hangfire)
+        await ProcessOutboxAsync();
+
+        // Assert - Outbox message processed
+        OutboxMessageRow? outboxMessageAfter = await GetOutboxMessageAsync(outboxMessageId);
+        outboxMessageAfter.Should().NotBeNull();
+        outboxMessageAfter!.ProcessedAtUtc.Should().NotBeNull("outbox message should be processed");
+        outboxMessageAfter.Error.Should().BeNull("no error should occur during processing");
+
+        // Assert - Domain event handler side effect executed
+        // (AccountRegisteredDomainEventHandler publishes AccountRegisteredIntegrationEvent via IEventBus)
+        // In tests, IEventBus is replaced with NoOpEventBus, so we just verify no errors
     }
 
     [Fact]
@@ -121,7 +190,7 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
 
     #endregion
 
-    #region Login
+    #region Login Feature (Endpoint)
 
     [Fact]
     public async Task Login_WithValidCredentials_ShouldReturnTokens()
@@ -169,7 +238,7 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
 
     #endregion
 
-    #region Refresh Token
+    #region RefreshToken Feature (Endpoint)
 
     [Fact]
     public async Task RefreshToken_WithValidToken_ShouldReturnNewTokens()
@@ -205,7 +274,7 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
 
     #endregion
 
-    #region Logout
+    #region Logout Feature (Endpoint)
 
     [Fact]
     public async Task Logout_WithValidToken_ShouldSucceed()
@@ -236,7 +305,7 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
 
     #endregion
 
-    #region Forgot/Reset Password
+    #region ForgotPassword Feature (Endpoint)
 
     [Fact]
     public async Task ForgotPassword_WithValidEmail_ShouldReturnResetToken()
@@ -260,6 +329,10 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
         result.Should().NotBeNull();
         result!.ResetToken.Should().NotBeNullOrEmpty();
     }
+
+    #endregion
+
+    #region ResetPassword Feature (Endpoint)
 
     [Fact]
     public async Task ResetPassword_WithValidToken_ShouldSucceed()
@@ -296,7 +369,7 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
 
     #endregion
 
-    #region Get Accounts
+    #region GetAccounts Feature (Endpoint)
 
     [Fact]
     public async Task GetAccounts_ShouldReturnAllAccounts()
@@ -319,57 +392,44 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
 
     #endregion
 
-    #region Handler Tests (No Endpoint)
+    #region GetAccount Feature (No Endpoint - Handler Test)
 
     [Fact]
     public async Task GetAccount_Handler_WithValidId_ShouldReturnAccount()
     {
-        // Arrange
+        // Arrange - Create account via endpoint
         string email = Faker.Internet.Email();
-        HttpResponseMessage registerResponse = await HttpClient.PostAsJsonAsync(
-            "/accounts/register",
-            new RegisterAccountCommand(
-                Faker.Name.FirstName(),
-                Faker.Name.LastName(),
-                email,
-                "Test1234!",
-                [RoleNames.ItAdmin]
-            )
+        RegisterAccountResponse registered = await RegisterTestAccountAsync(email);
+
+        // Act - Call handler directly (no endpoint for this feature)
+        Result<GetAccount.Response> result = await SendAsync<GetAccount.Query, GetAccount.Response>(
+            new GetAccount.Query(registered.Id)
         );
-        RegisterAccountResponse? registered =
-            await registerResponse.Content.ReadFromJsonAsync<RegisterAccountResponse>();
+
+        // Assert - Result
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Email.Should().Be(email);
+        result.Value.Id.Should().Be(registered.Id);
+    }
+
+    [Fact]
+    public async Task GetAccount_Handler_WithInvalidId_ShouldReturnFailure()
+    {
+        // Arrange
+        var nonExistentId = Guid.CreateVersion7();
 
         // Act
         Result<GetAccount.Response> result = await SendAsync<GetAccount.Query, GetAccount.Response>(
-            new GetAccount.Query(registered!.Id)
+            new GetAccount.Query(nonExistentId)
         );
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Email.Should().Be(email);
+        result.IsFailure.Should().BeTrue();
     }
 
     #endregion
 
     #region Helpers
-
-    private async Task<RegisterAccountResponse> RegisterTestAccountAsync(
-        string email,
-        string password
-    )
-    {
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            "/accounts/register",
-            new RegisterAccountCommand(
-                Faker.Name.FirstName(),
-                Faker.Name.LastName(),
-                email,
-                password,
-                [RoleNames.ItAdmin]
-            )
-        );
-        return (await response.Content.ReadFromJsonAsync<RegisterAccountResponse>())!;
-    }
 
     #endregion
 }
