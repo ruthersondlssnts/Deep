@@ -73,7 +73,13 @@ public abstract class ProgramsIntegrationTestBase
             VALUES (@UserId, @Email, @FirstName, @LastName)
             ON CONFLICT DO NOTHING;
             """,
-            new { UserId = userId, Email = email, FirstName = firstName, LastName = lastName }
+            new
+            {
+                UserId = userId,
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
+            }
         );
 
         await connection.ExecuteAsync(
@@ -129,8 +135,7 @@ public abstract class ProgramsIntegrationTestBase
             ORDER BY occurred_at_utc;
             """;
 
-        IEnumerable<OutboxMessageRow> messages =
-            await connection.QueryAsync<OutboxMessageRow>(sql);
+        IEnumerable<OutboxMessageRow> messages = await connection.QueryAsync<OutboxMessageRow>(sql);
         return messages.ToList();
     }
 

@@ -81,14 +81,13 @@ public abstract class AccountsIntegrationTestBase
         IReadOnlyCollection<string>? roles = null
     )
     {
-        RegisterAccountCommand request =
-            new(
-                Faker.Name.FirstName(),
-                Faker.Name.LastName(),
-                email ?? Faker.Internet.Email(),
-                password,
-                roles ?? [RoleNames.ItAdmin]
-            );
+        RegisterAccountCommand request = new(
+            Faker.Name.FirstName(),
+            Faker.Name.LastName(),
+            email ?? Faker.Internet.Email(),
+            password,
+            roles ?? [RoleNames.ItAdmin]
+        );
 
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
             "/accounts/register",
@@ -150,8 +149,7 @@ public abstract class AccountsIntegrationTestBase
             ORDER BY occurred_at_utc;
             """;
 
-        IEnumerable<OutboxMessageRow> messages =
-            await connection.QueryAsync<OutboxMessageRow>(sql);
+        IEnumerable<OutboxMessageRow> messages = await connection.QueryAsync<OutboxMessageRow>(sql);
         return messages.ToList();
     }
 

@@ -7,12 +7,12 @@ namespace Deep.Accounts.Application.Tests.OutboxInbox;
 
 /// <summary>
 /// Infrastructure tests for outbox pattern.
-/// 
+///
 /// These tests verify the outbox infrastructure works correctly:
 /// - Domain events are serialized to outbox_messages table
 /// - ProcessOutboxJob processes messages correctly
 /// - Messages are marked as processed with timestamps
-/// 
+///
 /// Feature-specific outbox behavior is tested in feature tests (e.g., AccountsIntegrationTests).
 /// </summary>
 [Collection(nameof(AccountsIntegrationCollection))]
@@ -34,7 +34,8 @@ public class OutboxIntegrationTests(AccountsWebApplicationFactory factory)
 
         OutboxMessageRow? outboxMessage = outboxMessages.FirstOrDefault(m =>
         {
-            var evt = m.DeserializeContent<AccountRegisteredDomainEvent>();
+            AccountRegisteredDomainEvent? evt =
+                m.DeserializeContent<AccountRegisteredDomainEvent>();
             return evt?.AccountId == registered.Id;
         });
 
@@ -44,7 +45,8 @@ public class OutboxIntegrationTests(AccountsWebApplicationFactory factory)
         outboxMessage.Error.Should().BeNull();
 
         // Verify content serialization
-        var deserializedEvent = outboxMessage.DeserializeContent<AccountRegisteredDomainEvent>();
+        AccountRegisteredDomainEvent? deserializedEvent =
+            outboxMessage.DeserializeContent<AccountRegisteredDomainEvent>();
         deserializedEvent.Should().NotBeNull();
         deserializedEvent!.AccountId.Should().Be(registered.Id);
     }
@@ -61,13 +63,14 @@ public class OutboxIntegrationTests(AccountsWebApplicationFactory factory)
         );
         OutboxMessageRow? messageBefore = unprocessedBefore.FirstOrDefault(m =>
         {
-            var evt = m.DeserializeContent<AccountRegisteredDomainEvent>();
+            AccountRegisteredDomainEvent? evt =
+                m.DeserializeContent<AccountRegisteredDomainEvent>();
             return evt?.AccountId == registered.Id;
         });
 
         messageBefore.Should().NotBeNull();
         messageBefore!.ProcessedAtUtc.Should().BeNull();
-        var messageId = messageBefore.Id;
+        Guid messageId = messageBefore.Id;
 
         // Act - Manually execute outbox processor (NO Hangfire)
         await ProcessOutboxAsync();
@@ -107,11 +110,12 @@ public class OutboxIntegrationTests(AccountsWebApplicationFactory factory)
         );
         OutboxMessageRow? targetMessage = messagesBefore.FirstOrDefault(m =>
         {
-            var evt = m.DeserializeContent<AccountRegisteredDomainEvent>();
+            AccountRegisteredDomainEvent? evt =
+                m.DeserializeContent<AccountRegisteredDomainEvent>();
             return evt?.AccountId == registered.Id;
         });
         targetMessage.Should().NotBeNull();
-        var messageId = targetMessage!.Id;
+        Guid messageId = targetMessage!.Id;
 
         // Act - Process multiple times
         await ProcessOutboxAsync();
@@ -133,7 +137,7 @@ public class OutboxIntegrationTests(AccountsWebApplicationFactory factory)
         List<RegisterAccountResponse> registeredAccounts = [];
         for (int i = 0; i < 3; i++)
         {
-            var registered = await RegisterTestAccountAsync();
+            RegisterAccountResponse registered = await RegisterTestAccountAsync();
             registeredAccounts.Add(registered);
         }
 
@@ -142,14 +146,14 @@ public class OutboxIntegrationTests(AccountsWebApplicationFactory factory)
             nameof(AccountRegisteredDomainEvent)
         );
 
-        foreach (var registered in registeredAccounts)
+        foreach (RegisterAccountResponse registered in registeredAccounts)
         {
-            var accountId = registered.Id;
+            Guid accountId = registered.Id;
             allMessages
                 .Should()
                 .Contain(m =>
-                    m.DeserializeContent<AccountRegisteredDomainEvent>() != null &&
-                    m.DeserializeContent<AccountRegisteredDomainEvent>()!.AccountId == accountId
+                    m.DeserializeContent<AccountRegisteredDomainEvent>() != null
+                    && m.DeserializeContent<AccountRegisteredDomainEvent>()!.AccountId == accountId
                 );
         }
     }

@@ -54,7 +54,8 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
 
         OutboxMessageRow? outboxMessage = outboxMessages.FirstOrDefault(m =>
         {
-            var evt = m.DeserializeContent<TransactionCreatedDomainEvent>();
+            TransactionCreatedDomainEvent? evt =
+                m.DeserializeContent<TransactionCreatedDomainEvent>();
             return evt?.TransactionId == result!.TransactionId;
         });
 
@@ -83,11 +84,12 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
         );
         OutboxMessageRow? messageBefore = messagesBefore.FirstOrDefault(m =>
         {
-            var evt = m.DeserializeContent<TransactionCreatedDomainEvent>();
+            TransactionCreatedDomainEvent? evt =
+                m.DeserializeContent<TransactionCreatedDomainEvent>();
             return evt?.TransactionId == result!.TransactionId;
         });
         messageBefore.Should().NotBeNull();
-        var messageId = messageBefore!.Id;
+        Guid messageId = messageBefore!.Id;
 
         await ProcessOutboxAsync();
 
@@ -125,8 +127,16 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
         string customerEmail = Faker.Internet.Email();
         string customerName = Faker.Name.FullName();
 
-        CreateTransaction.Command request1 = new(Guid.CreateVersion7(), customerEmail, customerName);
-        CreateTransaction.Command request2 = new(Guid.CreateVersion7(), customerEmail, customerName);
+        CreateTransaction.Command request1 = new(
+            Guid.CreateVersion7(),
+            customerEmail,
+            customerName
+        );
+        CreateTransaction.Command request2 = new(
+            Guid.CreateVersion7(),
+            customerEmail,
+            customerName
+        );
 
         HttpResponseMessage response1 = await HttpClient.PostAsJsonAsync("/transactions", request1);
         HttpResponseMessage response2 = await HttpClient.PostAsJsonAsync("/transactions", request2);

@@ -6,31 +6,30 @@ namespace Deep.Accounts.Application.Tests.OutboxInbox;
 
 /// <summary>
 /// Infrastructure tests for inbox pattern.
-/// 
+///
 /// These tests verify the inbox infrastructure works correctly:
 /// - Integration events are serialized to inbox_messages table
 /// - ProcessInboxJob processes messages correctly
 /// - Idempotent consumer pattern prevents duplicate processing
-/// 
+///
 /// Feature-specific inbox behavior is tested in feature tests.
 /// </summary>
 [Collection(nameof(AccountsIntegrationCollection))]
 public class InboxIntegrationTests(AccountsWebApplicationFactory factory)
     : AccountsIntegrationTestBase(factory)
 {
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
     #region Inbox Insertion Tests
 
     [Fact]
     public async Task InsertInboxMessage_WhenIntegrationEventReceived_ShouldCreateInboxRow()
     {
         // Arrange
-        TestIntegrationEvent integrationEvent =
-            new(Guid.CreateVersion7(), DateTime.UtcNow, "Test payload data", 42);
+        TestIntegrationEvent integrationEvent = new(
+            Guid.CreateVersion7(),
+            DateTime.UtcNow,
+            "Test payload data",
+            42
+        );
 
         // Act - Simulate MassTransit consumer writing to inbox
         await InsertInboxMessageAsync(integrationEvent);
@@ -58,8 +57,12 @@ public class InboxIntegrationTests(AccountsWebApplicationFactory factory)
         // Arrange
         var eventId = Guid.CreateVersion7();
         TestIntegrationEvent originalEvent = new(eventId, DateTime.UtcNow, "Original payload", 1);
-        TestIntegrationEvent duplicateEvent =
-            new(eventId, DateTime.UtcNow, "Duplicate payload (should be ignored)", 999);
+        TestIntegrationEvent duplicateEvent = new(
+            eventId,
+            DateTime.UtcNow,
+            "Duplicate payload (should be ignored)",
+            999
+        );
 
         // Act - Insert same event ID twice
         await InsertInboxMessageAsync(originalEvent);
@@ -84,8 +87,12 @@ public class InboxIntegrationTests(AccountsWebApplicationFactory factory)
     public async Task ProcessInbox_WhenUnprocessedMessagesExist_ShouldProcessAndUpdateTimestamp()
     {
         // Arrange
-        TestIntegrationEvent integrationEvent =
-            new(Guid.CreateVersion7(), DateTime.UtcNow, "Processing test payload", 100);
+        TestIntegrationEvent integrationEvent = new(
+            Guid.CreateVersion7(),
+            DateTime.UtcNow,
+            "Processing test payload",
+            100
+        );
         await InsertInboxMessageAsync(integrationEvent);
 
         // Verify unprocessed
@@ -100,7 +107,9 @@ public class InboxIntegrationTests(AccountsWebApplicationFactory factory)
         InboxMessageRow? processedMessage = await GetInboxMessageAsync(integrationEvent.Id);
         processedMessage.Should().NotBeNull();
         processedMessage!.ProcessedAtUtc.Should().NotBeNull();
-        processedMessage.ProcessedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        processedMessage
+            .ProcessedAtUtc.Should()
+            .BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         // Note: Error may be set if no handler is registered for TestIntegrationEvent
     }
 
@@ -151,14 +160,19 @@ public class InboxIntegrationTests(AccountsWebApplicationFactory factory)
     public async Task ProcessInbox_WhenCalledMultipleTimes_ShouldOnlyProcessOnce()
     {
         // Arrange
-        TestIntegrationEvent integrationEvent =
-            new(Guid.CreateVersion7(), DateTime.UtcNow, "Idempotency test", 999);
+        TestIntegrationEvent integrationEvent = new(
+            Guid.CreateVersion7(),
+            DateTime.UtcNow,
+            "Idempotency test",
+            999
+        );
         await InsertInboxMessageAsync(integrationEvent);
 
         // Act - Process multiple times
         await ProcessInboxAsync();
-        DateTime? firstProcessedAt = (await GetInboxMessageAsync(integrationEvent.Id))
-            ?.ProcessedAtUtc;
+        DateTime? firstProcessedAt = (
+            await GetInboxMessageAsync(integrationEvent.Id)
+        )?.ProcessedAtUtc;
 
         await ProcessInboxAsync();
         await ProcessInboxAsync();
@@ -185,7 +199,9 @@ public class InboxIntegrationTests(AccountsWebApplicationFactory factory)
 
         // Assert
         firstInsert.Should().Be(1, "First consumer record should be inserted");
-        secondInsert.Should().Be(0, "Duplicate consumer record should be rejected (ON CONFLICT DO NOTHING)");
+        secondInsert
+            .Should()
+            .Be(0, "Duplicate consumer record should be rejected (ON CONFLICT DO NOTHING)");
 
         // Verify only one consumer record exists
         IReadOnlyList<InboxConsumerRow> consumers = await GetInboxConsumersAsync(eventId);
@@ -198,8 +214,12 @@ public class InboxIntegrationTests(AccountsWebApplicationFactory factory)
     {
         // Arrange
         var eventId = Guid.CreateVersion7();
-        TestIntegrationEvent integrationEvent =
-            new(eventId, DateTime.UtcNow, "Existence check test", 1);
+        TestIntegrationEvent integrationEvent = new(
+            eventId,
+            DateTime.UtcNow,
+            "Existence check test",
+            1
+        );
         await InsertInboxMessageAsync(integrationEvent);
 
         const string consumerName = "TestHandler";
@@ -219,7 +239,12 @@ public class InboxIntegrationTests(AccountsWebApplicationFactory factory)
     {
         // Arrange - Simulates multiple handlers for the same integration event
         var eventId = Guid.CreateVersion7();
-        TestIntegrationEvent integrationEvent = new(eventId, DateTime.UtcNow, "Multi-consumer test", 1);
+        TestIntegrationEvent integrationEvent = new(
+            eventId,
+            DateTime.UtcNow,
+            "Multi-consumer test",
+            1
+        );
         await InsertInboxMessageAsync(integrationEvent);
 
         string[] consumerNames = ["Handler1", "Handler2", "Handler3"];

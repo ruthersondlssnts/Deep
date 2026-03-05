@@ -12,12 +12,13 @@ public sealed class ApplicationLayerTests : BaseTest
         string[] integrationEventsModules =
         [
             ProgramsIntegrationEventsNamespace,
-            TransactionsIntegrationEventsNamespace
+            TransactionsIntegrationEventsNamespace,
         ];
 
         List<Assembly> accountsAssemblies = [Accounts.Application.AssemblyReference.Assembly];
 
-        Types.InAssemblies(accountsAssemblies)
+        Types
+            .InAssemblies(accountsAssemblies)
             .That()
             .DoNotHaveDependencyOnAny(integrationEventsModules)
             .Should()
@@ -33,12 +34,13 @@ public sealed class ApplicationLayerTests : BaseTest
         string[] integrationEventsModules =
         [
             AccountsIntegrationEventsNamespace,
-            TransactionsIntegrationEventsNamespace
+            TransactionsIntegrationEventsNamespace,
         ];
 
         List<Assembly> programsAssemblies = [Programs.Application.AssemblyReference.Assembly];
 
-        Types.InAssemblies(programsAssemblies)
+        Types
+            .InAssemblies(programsAssemblies)
             .That()
             .DoNotHaveDependencyOnAny(integrationEventsModules)
             .Should()
@@ -54,12 +56,16 @@ public sealed class ApplicationLayerTests : BaseTest
         string[] integrationEventsModules =
         [
             AccountsIntegrationEventsNamespace,
-            ProgramsIntegrationEventsNamespace
+            ProgramsIntegrationEventsNamespace,
         ];
 
-        List<Assembly> transactionsAssemblies = [Transactions.Application.AssemblyReference.Assembly];
+        List<Assembly> transactionsAssemblies =
+        [
+            Transactions.Application.AssemblyReference.Assembly,
+        ];
 
-        Types.InAssemblies(transactionsAssemblies)
+        Types
+            .InAssemblies(transactionsAssemblies)
             .That()
             .DoNotHaveDependencyOnAny(integrationEventsModules)
             .Should()

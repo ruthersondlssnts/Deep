@@ -62,7 +62,8 @@ public class InboxIntegrationTests(ProgramsWebApplicationFactory factory)
         InboxMessageRow? inboxMessage = await GetInboxMessageAsync(eventId);
         inboxMessage.Should().NotBeNull();
 
-        var deserializedEvent = inboxMessage!.DeserializeContent<AccountRegisteredIntegrationEvent>();
+        AccountRegisteredIntegrationEvent? deserializedEvent =
+            inboxMessage!.DeserializeContent<AccountRegisteredIntegrationEvent>();
         deserializedEvent.Should().NotBeNull();
         deserializedEvent!.Email.Should().Be("original@test.com");
         deserializedEvent.AccountId.Should().Be(accountId);
@@ -92,7 +93,9 @@ public class InboxIntegrationTests(ProgramsWebApplicationFactory factory)
         InboxMessageRow? processedMessage = await GetInboxMessageAsync(integrationEvent.Id);
         processedMessage.Should().NotBeNull();
         processedMessage!.ProcessedAtUtc.Should().NotBeNull();
-        processedMessage.ProcessedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        processedMessage
+            .ProcessedAtUtc.Should()
+            .BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         processedMessage.Error.Should().BeNull();
     }
 
@@ -120,7 +123,9 @@ public class InboxIntegrationTests(ProgramsWebApplicationFactory factory)
         await InsertInboxMessageAsync(integrationEvent);
 
         await ProcessInboxAsync();
-        DateTime? firstProcessedAt = (await GetInboxMessageAsync(integrationEvent.Id))?.ProcessedAtUtc;
+        DateTime? firstProcessedAt = (
+            await GetInboxMessageAsync(integrationEvent.Id)
+        )?.ProcessedAtUtc;
 
         await ProcessInboxAsync();
         await ProcessInboxAsync();

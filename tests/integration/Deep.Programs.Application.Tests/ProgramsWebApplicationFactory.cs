@@ -15,15 +15,12 @@ namespace Deep.Programs.Application.Tests;
 
 public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:latest")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:latest")
         .WithDatabase("deep-db")
         .WithUsername("postgres")
         .Build();
 
-    private readonly MongoDbContainer _mongo = new MongoDbBuilder()
-        .WithImage("mongo:latest")
-        .Build();
+    private readonly MongoDbContainer _mongo = new MongoDbBuilder("mongo:latest").Build();
 
     private bool _initialized;
 
@@ -81,10 +78,12 @@ public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Progra
     public async Task EnsureDatabaseCreatedAsync()
     {
         if (_initialized)
+        {
             return;
+        }
 
-        await using var scope = Services.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<ProgramsDbContext>();
+        await using AsyncServiceScope scope = Services.CreateAsyncScope();
+        ProgramsDbContext db = scope.ServiceProvider.GetRequiredService<ProgramsDbContext>();
         await db.Database.MigrateAsync();
         _initialized = true;
     }

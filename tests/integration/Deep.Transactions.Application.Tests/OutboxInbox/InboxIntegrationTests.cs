@@ -38,7 +38,8 @@ public class InboxIntegrationTests(TransactionsWebApplicationFactory factory)
         InboxMessageRow? inboxMessage = await GetInboxMessageAsync(eventId);
         inboxMessage.Should().NotBeNull();
 
-        var deserializedEvent = inboxMessage!.DeserializeContent<TestIntegrationEvent>();
+        TestIntegrationEvent? deserializedEvent =
+            inboxMessage!.DeserializeContent<TestIntegrationEvent>();
         deserializedEvent.Should().NotBeNull();
         deserializedEvent!.Payload.Should().Be("Original");
         deserializedEvent.Count.Should().Be(1);
@@ -87,7 +88,9 @@ public class InboxIntegrationTests(TransactionsWebApplicationFactory factory)
         await InsertInboxMessageAsync(integrationEvent);
 
         await ProcessInboxAsync();
-        DateTime? firstProcessedAt = (await GetInboxMessageAsync(integrationEvent.Id))?.ProcessedAtUtc;
+        DateTime? firstProcessedAt = (
+            await GetInboxMessageAsync(integrationEvent.Id)
+        )?.ProcessedAtUtc;
 
         await ProcessInboxAsync();
         await ProcessInboxAsync();
@@ -101,7 +104,12 @@ public class InboxIntegrationTests(TransactionsWebApplicationFactory factory)
     public async Task InboxConsumer_WhenInsertedTwice_ShouldRejectDuplicate()
     {
         var eventId = Guid.CreateVersion7();
-        var integrationEvent = new TestIntegrationEvent(eventId, DateTime.UtcNow, "Consumer test", 1);
+        var integrationEvent = new TestIntegrationEvent(
+            eventId,
+            DateTime.UtcNow,
+            "Consumer test",
+            1
+        );
         await InsertInboxMessageAsync(integrationEvent);
 
         const string consumerName = "TestConsumer";

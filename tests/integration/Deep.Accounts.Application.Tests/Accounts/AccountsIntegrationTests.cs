@@ -13,7 +13,7 @@ namespace Deep.Accounts.Application.Tests.Accounts;
 
 /// <summary>
 /// Feature-oriented integration tests for Account features.
-/// 
+///
 /// Strategy:
 /// - Features with endpoints → HTTP call → Assert response + DB + outbox
 /// - Features without endpoints → Handler call → Assert Result + DB
@@ -56,7 +56,8 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
         );
         OutboxMessageRow? outboxMessage = outboxMessages.FirstOrDefault(m =>
         {
-            AccountRegisteredDomainEvent? evt = m.DeserializeContent<AccountRegisteredDomainEvent>();
+            AccountRegisteredDomainEvent? evt =
+                m.DeserializeContent<AccountRegisteredDomainEvent>();
             return evt?.AccountId == result.Id;
         });
 
@@ -92,7 +93,8 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
         );
         OutboxMessageRow? outboxMessageBefore = outboxMessagesBefore.FirstOrDefault(m =>
         {
-            AccountRegisteredDomainEvent? evt = m.DeserializeContent<AccountRegisteredDomainEvent>();
+            AccountRegisteredDomainEvent? evt =
+                m.DeserializeContent<AccountRegisteredDomainEvent>();
             return evt?.AccountId == result!.Id;
         });
         outboxMessageBefore.Should().NotBeNull();

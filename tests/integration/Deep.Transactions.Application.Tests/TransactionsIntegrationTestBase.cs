@@ -94,8 +94,7 @@ public abstract class TransactionsIntegrationTestBase
             ORDER BY occurred_at_utc;
             """;
 
-        IEnumerable<OutboxMessageRow> messages =
-            await connection.QueryAsync<OutboxMessageRow>(sql);
+        IEnumerable<OutboxMessageRow> messages = await connection.QueryAsync<OutboxMessageRow>(sql);
         return messages.ToList();
     }
 

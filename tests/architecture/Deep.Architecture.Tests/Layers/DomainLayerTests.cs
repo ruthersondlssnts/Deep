@@ -18,35 +18,29 @@ public sealed class DomainLayerTests : BaseTest
     ];
 
     [Fact]
-    public void DomainLayer_ShouldNotHaveForbiddenDependencies()
-    {
+    public void DomainLayer_ShouldNotHaveForbiddenDependencies() =>
         Types
             .InAssemblies(AssemblyReferences.AllDomainAssemblies)
             .ShouldNot()
             .HaveDependencyOnAny(ForbiddenNamespaces)
             .GetResult()
             .ShouldBeSuccessful();
-    }
 
     [Fact]
-    public void DomainLayer_ShouldNotDependOnEntityFramework()
-    {
+    public void DomainLayer_ShouldNotDependOnEntityFramework() =>
         Types
             .InAssemblies(AssemblyReferences.AllDomainAssemblies)
             .ShouldNot()
             .HaveDependencyOn("Microsoft.EntityFrameworkCore")
             .GetResult()
             .ShouldBeSuccessful();
-    }
 
     [Fact]
-    public void DomainLayer_ShouldNotDependOnAspNetCore()
-    {
+    public void DomainLayer_ShouldNotDependOnAspNetCore() =>
         Types
             .InAssemblies(AssemblyReferences.AllDomainAssemblies)
             .ShouldNot()
             .HaveDependencyOn("Microsoft.AspNetCore")
             .GetResult()
             .ShouldBeSuccessful();
-    }
 }

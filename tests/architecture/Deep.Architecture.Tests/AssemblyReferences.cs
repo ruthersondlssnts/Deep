@@ -35,13 +35,25 @@ public static class AssemblyReferences
 
     // All Domain Assemblies (excluding CommonDomain for module-specific tests)
     public static readonly Assembly[] AllDomainAssemblies =
-        [AccountsDomain, ProgramsDomain, TransactionsDomain];
+    [
+        AccountsDomain,
+        ProgramsDomain,
+        TransactionsDomain,
+    ];
 
     // All Application Assemblies
     public static readonly Assembly[] AllApplicationAssemblies =
-        [AccountsApplication, ProgramsApplication, TransactionsApplication];
+    [
+        AccountsApplication,
+        ProgramsApplication,
+        TransactionsApplication,
+    ];
 
     // All IntegrationEvents Assemblies
     public static readonly Assembly[] AllIntegrationEventsAssemblies =
-        [AccountsIntegrationEvents, ProgramsIntegrationEvents, TransactionsIntegrationEvents];
+    [
+        AccountsIntegrationEvents,
+        ProgramsIntegrationEvents,
+        TransactionsIntegrationEvents,
+    ];
 }

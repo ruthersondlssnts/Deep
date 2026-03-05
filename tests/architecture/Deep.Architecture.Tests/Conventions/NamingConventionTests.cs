@@ -5,8 +5,7 @@ namespace Deep.Architecture.Tests.Conventions;
 public sealed class NamingConventionTests : BaseTest
 {
     [Fact]
-    public void Commands_ShouldBeSealed()
-    {
+    public void Commands_ShouldBeSealed() =>
         Types
             .InAssemblies(AssemblyReferences.AllApplicationAssemblies)
             .That()
@@ -17,11 +16,9 @@ public sealed class NamingConventionTests : BaseTest
             .BeSealed()
             .GetResult()
             .ShouldBeSuccessful();
-    }
 
     [Fact]
-    public void Queries_ShouldBeSealed()
-    {
+    public void Queries_ShouldBeSealed() =>
         Types
             .InAssemblies(AssemblyReferences.AllApplicationAssemblies)
             .That()
@@ -32,11 +29,9 @@ public sealed class NamingConventionTests : BaseTest
             .BeSealed()
             .GetResult()
             .ShouldBeSuccessful();
-    }
 
     [Fact]
-    public void Handlers_ShouldBeSealed()
-    {
+    public void Handlers_ShouldBeSealed() =>
         Types
             .InAssemblies(AssemblyReferences.AllApplicationAssemblies)
             .That()
@@ -47,11 +42,9 @@ public sealed class NamingConventionTests : BaseTest
             .BeSealed()
             .GetResult()
             .ShouldBeSuccessful();
-    }
 
     [Fact]
-    public void DomainEvents_ShouldBeSealed()
-    {
+    public void DomainEvents_ShouldBeSealed() =>
         Types
             .InAssemblies(AssemblyReferences.AllDomainAssemblies)
             .That()
@@ -62,11 +55,9 @@ public sealed class NamingConventionTests : BaseTest
             .BeSealed()
             .GetResult()
             .ShouldBeSuccessful();
-    }
 
     [Fact]
-    public void DomainEvents_ShouldEndWithDomainEvent()
-    {
+    public void DomainEvents_ShouldEndWithDomainEvent() =>
         Types
             .InAssemblies(AssemblyReferences.AllDomainAssemblies)
             .That()
@@ -75,11 +66,9 @@ public sealed class NamingConventionTests : BaseTest
             .HaveNameEndingWith("DomainEvent")
             .GetResult()
             .ShouldBeSuccessful();
-    }
 
     [Fact]
-    public void IntegrationEvents_ShouldBeSealed()
-    {
+    public void IntegrationEvents_ShouldBeSealed() =>
         Types
             .InAssemblies(AssemblyReferences.AllIntegrationEventsAssemblies)
             .That()
@@ -90,11 +79,9 @@ public sealed class NamingConventionTests : BaseTest
             .BeSealed()
             .GetResult()
             .ShouldBeSuccessful();
-    }
 
     [Fact]
-    public void IntegrationEvents_ShouldEndWithIntegrationEvent()
-    {
+    public void IntegrationEvents_ShouldEndWithIntegrationEvent() =>
         Types
             .InAssemblies(AssemblyReferences.AllIntegrationEventsAssemblies)
             .That()
@@ -105,5 +92,4 @@ public sealed class NamingConventionTests : BaseTest
             .HaveNameEndingWith("IntegrationEvent")
             .GetResult()
             .ShouldBeSuccessful();
-    }
 }

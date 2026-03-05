@@ -9,5 +9,6 @@ public abstract class BaseTest
     protected const string ProgramsIntegrationEventsNamespace = "Deep.Programs.IntegrationEvents";
 
     protected const string TransactionsNamespace = "Deep.Transactions";
-    protected const string TransactionsIntegrationEventsNamespace = "Deep.Transactions.IntegrationEvents";
+    protected const string TransactionsIntegrationEventsNamespace =
+        "Deep.Transactions.IntegrationEvents";
 }

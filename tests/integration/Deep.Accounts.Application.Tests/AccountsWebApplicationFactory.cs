@@ -13,8 +13,7 @@ namespace Deep.Accounts.Application.Tests;
 
 public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:latest")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:latest")
         .WithDatabase("deep-db")
         .WithUsername("postgres")
         .Build();
@@ -67,10 +66,12 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
     public async Task EnsureDatabaseCreatedAsync()
     {
         if (_initialized)
+        {
             return;
+        }
 
-        await using var scope = Services.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<AccountsDbContext>();
+        await using AsyncServiceScope scope = Services.CreateAsyncScope();
+        AccountsDbContext db = scope.ServiceProvider.GetRequiredService<AccountsDbContext>();
         await db.Database.MigrateAsync();
         _initialized = true;
     }

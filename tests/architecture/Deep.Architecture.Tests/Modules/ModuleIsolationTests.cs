@@ -15,16 +15,17 @@ public sealed class ModuleTests : BaseTest
         string[] integrationEventsModules =
         [
             ProgramsIntegrationEventsNamespace,
-            TransactionsIntegrationEventsNamespace
+            TransactionsIntegrationEventsNamespace,
         ];
 
         List<Assembly> accountsAssemblies =
         [
             typeof(Account).Assembly,
-            Accounts.Application.AssemblyReference.Assembly
+            Accounts.Application.AssemblyReference.Assembly,
         ];
 
-        Types.InAssemblies(accountsAssemblies)
+        Types
+            .InAssemblies(accountsAssemblies)
             .That()
             .DoNotHaveDependencyOnAny(integrationEventsModules)
             .Should()
@@ -40,16 +41,17 @@ public sealed class ModuleTests : BaseTest
         string[] integrationEventsModules =
         [
             AccountsIntegrationEventsNamespace,
-            TransactionsIntegrationEventsNamespace
+            TransactionsIntegrationEventsNamespace,
         ];
 
         List<Assembly> programsAssemblies =
         [
             typeof(DomainProgram).Assembly,
-            Programs.Application.AssemblyReference.Assembly
+            Programs.Application.AssemblyReference.Assembly,
         ];
 
-        Types.InAssemblies(programsAssemblies)
+        Types
+            .InAssemblies(programsAssemblies)
             .That()
             .DoNotHaveDependencyOnAny(integrationEventsModules)
             .Should()
@@ -65,16 +67,17 @@ public sealed class ModuleTests : BaseTest
         string[] integrationEventsModules =
         [
             AccountsIntegrationEventsNamespace,
-            ProgramsIntegrationEventsNamespace
+            ProgramsIntegrationEventsNamespace,
         ];
 
         List<Assembly> transactionsAssemblies =
         [
             typeof(Transaction).Assembly,
-            Transactions.Application.AssemblyReference.Assembly
+            Transactions.Application.AssemblyReference.Assembly,
         ];
 
-        Types.InAssemblies(transactionsAssemblies)
+        Types
+            .InAssemblies(transactionsAssemblies)
             .That()
             .DoNotHaveDependencyOnAny(integrationEventsModules)
             .Should()

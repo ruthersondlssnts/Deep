@@ -15,8 +15,7 @@ public sealed class TransactionsWebApplicationFactory
     : WebApplicationFactory<Program>,
         IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:latest")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:latest")
         .WithDatabase("deep-db")
         .WithUsername("postgres")
         .Build();
@@ -69,10 +68,13 @@ public sealed class TransactionsWebApplicationFactory
     public async Task EnsureDatabaseCreatedAsync()
     {
         if (_initialized)
+        {
             return;
+        }
 
-        await using var scope = Services.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<TransactionsDbContext>();
+        await using AsyncServiceScope scope = Services.CreateAsyncScope();
+        TransactionsDbContext db =
+            scope.ServiceProvider.GetRequiredService<TransactionsDbContext>();
         await db.Database.MigrateAsync();
         _initialized = true;
     }

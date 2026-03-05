@@ -20,7 +20,8 @@ public class OutboxIntegrationTests(TransactionsWebApplicationFactory factory)
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/transactions", request);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
+        CreateTransaction.Response? result =
+            await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
         result.Should().NotBeNull();
 
         IReadOnlyList<OutboxMessageRow> outboxMessages = await GetOutboxMessagesByTypeAsync(
@@ -29,7 +30,8 @@ public class OutboxIntegrationTests(TransactionsWebApplicationFactory factory)
 
         OutboxMessageRow? outboxMessage = outboxMessages.FirstOrDefault(m =>
         {
-            var evt = m.DeserializeContent<TransactionCreatedDomainEvent>();
+            TransactionCreatedDomainEvent? evt =
+                m.DeserializeContent<TransactionCreatedDomainEvent>();
             return evt?.TransactionId == result!.TransactionId;
         });
 
@@ -51,20 +53,22 @@ public class OutboxIntegrationTests(TransactionsWebApplicationFactory factory)
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/transactions", request);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
+        CreateTransaction.Response? result =
+            await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
 
         IReadOnlyList<OutboxMessageRow> unprocessedBefore = await GetOutboxMessagesByTypeAsync(
             nameof(TransactionCreatedDomainEvent)
         );
         OutboxMessageRow? messageBefore = unprocessedBefore.FirstOrDefault(m =>
         {
-            var evt = m.DeserializeContent<TransactionCreatedDomainEvent>();
+            TransactionCreatedDomainEvent? evt =
+                m.DeserializeContent<TransactionCreatedDomainEvent>();
             return evt?.TransactionId == result!.TransactionId;
         });
 
         messageBefore.Should().NotBeNull();
         messageBefore!.ProcessedAtUtc.Should().BeNull();
-        var messageId = messageBefore.Id;
+        Guid messageId = messageBefore.Id;
 
         await ProcessOutboxAsync();
 
@@ -100,18 +104,20 @@ public class OutboxIntegrationTests(TransactionsWebApplicationFactory factory)
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/transactions", request);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
+        CreateTransaction.Response? result =
+            await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
 
         IReadOnlyList<OutboxMessageRow> messagesBefore = await GetOutboxMessagesByTypeAsync(
             nameof(TransactionCreatedDomainEvent)
         );
         OutboxMessageRow? targetMessage = messagesBefore.FirstOrDefault(m =>
         {
-            var evt = m.DeserializeContent<TransactionCreatedDomainEvent>();
+            TransactionCreatedDomainEvent? evt =
+                m.DeserializeContent<TransactionCreatedDomainEvent>();
             return evt?.TransactionId == result!.TransactionId;
         });
         targetMessage.Should().NotBeNull();
-        var messageId = targetMessage!.Id;
+        Guid messageId = targetMessage!.Id;
 
         await ProcessOutboxAsync();
         DateTime? firstProcessedAt = (await GetOutboxMessageAsync(messageId))?.ProcessedAtUtc;
