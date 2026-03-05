@@ -30,12 +30,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
     app.ApplyMigrations();
-    app.MapOpenApi();
     app.UseHangfireInternal(enableDashboard: true);
 }
 else
 {
     app.UseHangfireInternal(enableDashboard: false);
+    app.UseExceptionHandler();
 }
 
 app.UseInboxOutboxJobs();
