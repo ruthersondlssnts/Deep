@@ -17,19 +17,15 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
     [Fact]
     public async Task CreateTransaction_WithValidData_ShouldReturnCreated()
     {
-        // Arrange
         CreateTransaction.Command request = new(
             Guid.CreateVersion7(),
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );
 
-        // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/transactions", request);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-
         CreateTransaction.Response? result =
             await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
         result.Should().NotBeNull();
@@ -38,18 +34,78 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
     }
 
     [Fact]
+    public async Task CreateTransaction_WithValidData_ShouldCreateOutboxMessage()
+    {
+        CreateTransaction.Command request = new(
+            Guid.CreateVersion7(),
+            Faker.Internet.Email(),
+            Faker.Name.FullName()
+        );
+
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/transactions", request);
+        response.EnsureSuccessStatusCode();
+
+        CreateTransaction.Response? result =
+            await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
+
+        IReadOnlyList<OutboxMessageRow> outboxMessages = await GetOutboxMessagesByTypeAsync(
+            nameof(TransactionCreatedDomainEvent)
+        );
+
+        OutboxMessageRow? outboxMessage = outboxMessages.FirstOrDefault(m =>
+        {
+            var evt = m.DeserializeContent<TransactionCreatedDomainEvent>();
+            return evt?.TransactionId == result!.TransactionId;
+        });
+
+        outboxMessage.Should().NotBeNull();
+        outboxMessage!.ProcessedAtUtc.Should().BeNull();
+        outboxMessage.Error.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateTransaction_WhenOutboxProcessed_ShouldExecuteDomainEventHandler()
+    {
+        CreateTransaction.Command request = new(
+            Guid.CreateVersion7(),
+            Faker.Internet.Email(),
+            Faker.Name.FullName()
+        );
+
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/transactions", request);
+        response.EnsureSuccessStatusCode();
+
+        CreateTransaction.Response? result =
+            await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
+
+        IReadOnlyList<OutboxMessageRow> messagesBefore = await GetOutboxMessagesByTypeAsync(
+            nameof(TransactionCreatedDomainEvent)
+        );
+        OutboxMessageRow? messageBefore = messagesBefore.FirstOrDefault(m =>
+        {
+            var evt = m.DeserializeContent<TransactionCreatedDomainEvent>();
+            return evt?.TransactionId == result!.TransactionId;
+        });
+        messageBefore.Should().NotBeNull();
+        var messageId = messageBefore!.Id;
+
+        await ProcessOutboxAsync();
+
+        OutboxMessageRow? messageAfter = await GetOutboxMessageAsync(messageId);
+        messageAfter.Should().NotBeNull();
+        messageAfter!.ProcessedAtUtc.Should().NotBeNull();
+        messageAfter.Error.Should().BeNull();
+    }
+
+    [Fact]
     public async Task CreateTransaction_WithNewCustomer_ShouldCreateCustomer()
     {
-        // Arrange
         string customerEmail = Faker.Internet.Email();
         string customerName = Faker.Name.FullName();
-
         CreateTransaction.Command request = new(Guid.CreateVersion7(), customerEmail, customerName);
 
-        // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/transactions", request);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         using IServiceScope scope = CreateFreshScope();
@@ -66,26 +122,15 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
     [Fact]
     public async Task CreateTransaction_WithExistingCustomer_ShouldReuseCustomer()
     {
-        // Arrange
         string customerEmail = Faker.Internet.Email();
         string customerName = Faker.Name.FullName();
 
-        CreateTransaction.Command request1 = new(
-            Guid.CreateVersion7(),
-            customerEmail,
-            customerName
-        );
-        CreateTransaction.Command request2 = new(
-            Guid.CreateVersion7(),
-            customerEmail,
-            customerName
-        );
+        CreateTransaction.Command request1 = new(Guid.CreateVersion7(), customerEmail, customerName);
+        CreateTransaction.Command request2 = new(Guid.CreateVersion7(), customerEmail, customerName);
 
-        // Act
         HttpResponseMessage response1 = await HttpClient.PostAsJsonAsync("/transactions", request1);
         HttpResponseMessage response2 = await HttpClient.PostAsJsonAsync("/transactions", request2);
 
-        // Assert
         response1.StatusCode.Should().Be(HttpStatusCode.Created);
         response2.StatusCode.Should().Be(HttpStatusCode.Created);
 
@@ -101,19 +146,16 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
     [Fact]
     public async Task CreateTransaction_ShouldPersistToDatabase()
     {
-        // Arrange
         CreateTransaction.Command request = new(
             Guid.CreateVersion7(),
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );
 
-        // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/transactions", request);
         CreateTransaction.Response? result =
             await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         using IServiceScope scope = CreateFreshScope();
@@ -130,20 +172,17 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
     [Fact]
     public async Task CreateTransaction_Handler_ShouldWork()
     {
-        // Arrange
         CreateTransaction.Command command = new(
             Guid.CreateVersion7(),
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );
 
-        // Act
         Result<CreateTransaction.Response> result = await SendAsync<
             CreateTransaction.Command,
             CreateTransaction.Response
         >(command);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.TransactionId.Should().NotBeEmpty();
     }

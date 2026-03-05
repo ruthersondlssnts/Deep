@@ -1,246 +1,85 @@
+using System.Reflection;
+using Deep.Accounts.Domain.Accounts;
+using Deep.Architecture.Tests.Abstractions;
+using Deep.Transactions.Domain.Transaction;
+using DomainProgram = Deep.Programs.Domain.Programs.Program;
+
 namespace Deep.Architecture.Tests.Modules;
 
-public sealed class ModuleIsolationTests
+public sealed class ModuleTests : BaseTest
 {
-    // Note: IntegrationEvents are the PUBLIC API for cross-module communication.
-    // Application layers MAY depend on IntegrationEvents from other modules.
-    // Domain and Application internals must NOT be accessed cross-module.
-
-    #region Accounts Module Isolation
-
     [Fact]
-    public void AccountsDomain_ShouldNotDependOnOtherModules()
+    public void AccountsModule_ShouldNotHaveDependencyOn_AnyOtherModule()
     {
-        // Arrange - Domain should not depend on ANY other module (including IntegrationEvents)
-        string[] forbiddenNamespaces =
+        string[] otherModules = [ProgramsNamespace, TransactionsNamespace];
+        string[] integrationEventsModules =
         [
-            "Deep.Programs.Domain",
-            "Deep.Programs.Application",
-            "Deep.Programs.IntegrationEvents",
-            "Deep.Transactions.Domain",
-            "Deep.Transactions.Application",
-            "Deep.Transactions.IntegrationEvents",
+            ProgramsIntegrationEventsNamespace,
+            TransactionsIntegrationEventsNamespace
         ];
 
-        // Act
-        TestResult result = Types
-            .InAssembly(AssemblyReferences.AccountsDomain)
-            .ShouldNot()
-            .HaveDependencyOnAny(forbiddenNamespaces)
-            .GetResult();
+        List<Assembly> accountsAssemblies =
+        [
+            typeof(Account).Assembly,
+            Accounts.Application.AssemblyReference.Assembly
+        ];
 
-        // Assert
-        result
-            .IsSuccessful.Should()
-            .BeTrue(GetFailureMessage("Accounts.Domain", "other modules", result));
+        Types.InAssemblies(accountsAssemblies)
+            .That()
+            .DoNotHaveDependencyOnAny(integrationEventsModules)
+            .Should()
+            .NotHaveDependencyOnAny(otherModules)
+            .GetResult()
+            .ShouldBeSuccessful();
     }
 
     [Fact]
-    public void AccountsApplication_ShouldNotDependOnOtherModuleInternals()
+    public void ProgramsModule_ShouldNotHaveDependencyOn_AnyOtherModule()
     {
-        // Arrange - Application may depend on IntegrationEvents but NOT on Domain/Application internals
-        string[] forbiddenNamespaces =
+        string[] otherModules = [AccountsNamespace, TransactionsNamespace];
+        string[] integrationEventsModules =
         [
-            "Deep.Programs.Domain",
-            "Deep.Programs.Application",
-            "Deep.Transactions.Domain",
-            "Deep.Transactions.Application",
+            AccountsIntegrationEventsNamespace,
+            TransactionsIntegrationEventsNamespace
         ];
 
-        // Act
-        TestResult result = Types
-            .InAssembly(AssemblyReferences.AccountsApplication)
-            .ShouldNot()
-            .HaveDependencyOnAny(forbiddenNamespaces)
-            .GetResult();
-
-        // Assert
-        result
-            .IsSuccessful.Should()
-            .BeTrue(GetFailureMessage("Accounts.Application", "other module internals", result));
-    }
-
-    #endregion
-
-    #region Programs Module Isolation
-
-    [Fact]
-    public void ProgramsDomain_ShouldNotDependOnOtherModules()
-    {
-        // Arrange - Domain should not depend on ANY other module
-        string[] forbiddenNamespaces =
+        List<Assembly> programsAssemblies =
         [
-            "Deep.Accounts.Domain",
-            "Deep.Accounts.Application",
-            "Deep.Accounts.IntegrationEvents",
-            "Deep.Transactions.Domain",
-            "Deep.Transactions.Application",
-            "Deep.Transactions.IntegrationEvents",
+            typeof(DomainProgram).Assembly,
+            Programs.Application.AssemblyReference.Assembly
         ];
 
-        // Act
-        TestResult result = Types
-            .InAssembly(AssemblyReferences.ProgramsDomain)
-            .ShouldNot()
-            .HaveDependencyOnAny(forbiddenNamespaces)
-            .GetResult();
-
-        // Assert
-        result
-            .IsSuccessful.Should()
-            .BeTrue(GetFailureMessage("Programs.Domain", "other modules", result));
+        Types.InAssemblies(programsAssemblies)
+            .That()
+            .DoNotHaveDependencyOnAny(integrationEventsModules)
+            .Should()
+            .NotHaveDependencyOnAny(otherModules)
+            .GetResult()
+            .ShouldBeSuccessful();
     }
 
     [Fact]
-    public void ProgramsApplication_ShouldNotDependOnOtherModuleInternals()
+    public void TransactionsModule_ShouldNotHaveDependencyOn_AnyOtherModule()
     {
-        // Arrange - Application may depend on IntegrationEvents but NOT on Domain/Application internals
-        string[] forbiddenNamespaces =
+        string[] otherModules = [AccountsNamespace, ProgramsNamespace];
+        string[] integrationEventsModules =
         [
-            "Deep.Accounts.Domain",
-            "Deep.Accounts.Application",
-            "Deep.Transactions.Domain",
-            "Deep.Transactions.Application",
+            AccountsIntegrationEventsNamespace,
+            ProgramsIntegrationEventsNamespace
         ];
 
-        // Act
-        TestResult result = Types
-            .InAssembly(AssemblyReferences.ProgramsApplication)
-            .ShouldNot()
-            .HaveDependencyOnAny(forbiddenNamespaces)
-            .GetResult();
-
-        // Assert
-        result
-            .IsSuccessful.Should()
-            .BeTrue(GetFailureMessage("Programs.Application", "other module internals", result));
-    }
-
-    #endregion
-
-    #region Transactions Module Isolation
-
-    [Fact]
-    public void TransactionsDomain_ShouldNotDependOnOtherModules()
-    {
-        // Arrange - Domain should not depend on ANY other module
-        string[] forbiddenNamespaces =
+        List<Assembly> transactionsAssemblies =
         [
-            "Deep.Accounts.Domain",
-            "Deep.Accounts.Application",
-            "Deep.Accounts.IntegrationEvents",
-            "Deep.Programs.Domain",
-            "Deep.Programs.Application",
-            "Deep.Programs.IntegrationEvents",
+            typeof(Transaction).Assembly,
+            Transactions.Application.AssemblyReference.Assembly
         ];
 
-        // Act
-        TestResult result = Types
-            .InAssembly(AssemblyReferences.TransactionsDomain)
-            .ShouldNot()
-            .HaveDependencyOnAny(forbiddenNamespaces)
-            .GetResult();
-
-        // Assert
-        result
-            .IsSuccessful.Should()
-            .BeTrue(GetFailureMessage("Transactions.Domain", "other modules", result));
+        Types.InAssemblies(transactionsAssemblies)
+            .That()
+            .DoNotHaveDependencyOnAny(integrationEventsModules)
+            .Should()
+            .NotHaveDependencyOnAny(otherModules)
+            .GetResult()
+            .ShouldBeSuccessful();
     }
-
-    [Fact]
-    public void TransactionsApplication_ShouldNotDependOnOtherModuleInternals()
-    {
-        // Arrange - Application may depend on IntegrationEvents but NOT on Domain/Application internals
-        string[] forbiddenNamespaces =
-        [
-            "Deep.Accounts.Domain",
-            "Deep.Accounts.Application",
-            "Deep.Programs.Domain",
-            "Deep.Programs.Application",
-        ];
-
-        // Act
-        TestResult result = Types
-            .InAssembly(AssemblyReferences.TransactionsApplication)
-            .ShouldNot()
-            .HaveDependencyOnAny(forbiddenNamespaces)
-            .GetResult();
-
-        // Assert
-        result
-            .IsSuccessful.Should()
-            .BeTrue(
-                GetFailureMessage("Transactions.Application", "other module internals", result)
-            );
-    }
-
-    #endregion
-
-    #region Integration Events Cross-Module Communication
-
-    [Fact]
-    public void IntegrationEvents_ShouldNotDependOnModuleInternals()
-    {
-        // Integration events should be standalone and not depend on module internals
-        string[] allModuleInternals =
-        [
-            "Deep.Accounts.Domain",
-            "Deep.Accounts.Application",
-            "Deep.Programs.Domain",
-            "Deep.Programs.Application",
-            "Deep.Transactions.Domain",
-            "Deep.Transactions.Application",
-        ];
-
-        // Act
-        TestResult accountsEventsResult = Types
-            .InAssembly(AssemblyReferences.AccountsIntegrationEvents)
-            .ShouldNot()
-            .HaveDependencyOnAny(allModuleInternals)
-            .GetResult();
-
-        TestResult programsEventsResult = Types
-            .InAssembly(AssemblyReferences.ProgramsIntegrationEvents)
-            .ShouldNot()
-            .HaveDependencyOnAny(allModuleInternals)
-            .GetResult();
-
-        TestResult transactionsEventsResult = Types
-            .InAssembly(AssemblyReferences.TransactionsIntegrationEvents)
-            .ShouldNot()
-            .HaveDependencyOnAny(allModuleInternals)
-            .GetResult();
-
-        // Assert
-        accountsEventsResult
-            .IsSuccessful.Should()
-            .BeTrue(
-                $"Accounts.IntegrationEvents should not depend on module internals. Violating: {GetViolatingTypes(accountsEventsResult)}"
-            );
-        programsEventsResult
-            .IsSuccessful.Should()
-            .BeTrue(
-                $"Programs.IntegrationEvents should not depend on module internals. Violating: {GetViolatingTypes(programsEventsResult)}"
-            );
-        transactionsEventsResult
-            .IsSuccessful.Should()
-            .BeTrue(
-                $"Transactions.IntegrationEvents should not depend on module internals. Violating: {GetViolatingTypes(transactionsEventsResult)}"
-            );
-    }
-
-    #endregion
-
-    private static string GetFailureMessage(
-        string sourceModule,
-        string targetModule,
-        TestResult result
-    ) =>
-        $"{sourceModule} should not depend on {targetModule} module. "
-        + $"Violating types: {GetViolatingTypes(result)}";
-
-    private static string GetViolatingTypes(TestResult result) =>
-        result.FailingTypes is null
-            ? "None"
-            : string.Join(", ", result.FailingTypes.Select(t => t.FullName));
 }

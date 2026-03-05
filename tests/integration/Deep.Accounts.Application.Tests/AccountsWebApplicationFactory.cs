@@ -11,9 +11,6 @@ using Testcontainers.PostgreSql;
 
 namespace Deep.Accounts.Application.Tests;
 
-/// <summary>
-/// WebApplicationFactory for Accounts integration tests with PostgreSQL Testcontainers.
-/// </summary>
 public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
@@ -21,6 +18,8 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
         .WithDatabase("deep-db")
         .WithUsername("postgres")
         .Build();
+
+    private bool _initialized;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -41,7 +40,6 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
 
         builder.ConfigureTestServices(services =>
         {
-            // Replace AccountsDbContext
             services.RemoveAll<DbContextOptions<AccountsDbContext>>();
             services.RemoveAll<AccountsDbContext>();
             services.AddDbContext<AccountsDbContext>(options =>
@@ -50,19 +48,32 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
                 options.UseSnakeCaseNamingConvention();
             });
 
-            // Replace IDbConnectionFactory
             services.RemoveAll<Deep.Common.Application.Dapper.IDbConnectionFactory>();
             services.AddSingleton<Deep.Common.Application.Dapper.IDbConnectionFactory>(
                 new TestDbConnectionFactory(_postgres.GetConnectionString())
             );
 
-            // Replace IEventBus with no-op to avoid MassTransit hangs
             services.RemoveAll<IEventBus>();
             services.AddSingleton<IEventBus, NoOpEventBus>();
         });
     }
 
-    public async Task InitializeAsync() => await _postgres.StartAsync();
+    public async Task InitializeAsync()
+    {
+        await _postgres.StartAsync();
+        await EnsureDatabaseCreatedAsync();
+    }
+
+    public async Task EnsureDatabaseCreatedAsync()
+    {
+        if (_initialized)
+            return;
+
+        await using var scope = Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AccountsDbContext>();
+        await db.Database.MigrateAsync();
+        _initialized = true;
+    }
 
     public new async Task DisposeAsync()
     {
@@ -71,9 +82,6 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
     }
 }
 
-/// <summary>
-/// Test IDbConnectionFactory using Npgsql.
-/// </summary>
 internal sealed class TestDbConnectionFactory(string connectionString)
     : Deep.Common.Application.Dapper.IDbConnectionFactory
 {
@@ -85,9 +93,6 @@ internal sealed class TestDbConnectionFactory(string connectionString)
     }
 }
 
-/// <summary>
-/// No-op IEventBus for tests - prevents MassTransit/RabbitMQ connection attempts.
-/// </summary>
 internal sealed class NoOpEventBus : IEventBus
 {
     public Task PublishAsync<T>(T integrationEvent, CancellationToken ct = default)

@@ -11,9 +11,6 @@ using Testcontainers.PostgreSql;
 
 namespace Deep.Transactions.Application.Tests;
 
-/// <summary>
-/// WebApplicationFactory for Transactions integration tests with PostgreSQL Testcontainers.
-/// </summary>
 public sealed class TransactionsWebApplicationFactory
     : WebApplicationFactory<Program>,
         IAsyncLifetime
@@ -23,6 +20,8 @@ public sealed class TransactionsWebApplicationFactory
         .WithDatabase("deep-db")
         .WithUsername("postgres")
         .Build();
+
+    private bool _initialized;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -43,7 +42,6 @@ public sealed class TransactionsWebApplicationFactory
 
         builder.ConfigureTestServices(services =>
         {
-            // Replace TransactionsDbContext
             services.RemoveAll<DbContextOptions<TransactionsDbContext>>();
             services.RemoveAll<TransactionsDbContext>();
             services.AddDbContext<TransactionsDbContext>(options =>
@@ -52,19 +50,32 @@ public sealed class TransactionsWebApplicationFactory
                 options.UseSnakeCaseNamingConvention();
             });
 
-            // Replace IDbConnectionFactory
             services.RemoveAll<Deep.Common.Application.Dapper.IDbConnectionFactory>();
             services.AddSingleton<Deep.Common.Application.Dapper.IDbConnectionFactory>(
                 new TestDbConnectionFactory(_postgres.GetConnectionString())
             );
 
-            // Replace IEventBus with no-op
             services.RemoveAll<IEventBus>();
             services.AddSingleton<IEventBus, NoOpEventBus>();
         });
     }
 
-    public async Task InitializeAsync() => await _postgres.StartAsync();
+    public async Task InitializeAsync()
+    {
+        await _postgres.StartAsync();
+        await EnsureDatabaseCreatedAsync();
+    }
+
+    public async Task EnsureDatabaseCreatedAsync()
+    {
+        if (_initialized)
+            return;
+
+        await using var scope = Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionsDbContext>();
+        await db.Database.MigrateAsync();
+        _initialized = true;
+    }
 
     public new async Task DisposeAsync()
     {

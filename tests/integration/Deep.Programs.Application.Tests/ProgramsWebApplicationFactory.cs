@@ -13,9 +13,6 @@ using Testcontainers.PostgreSql;
 
 namespace Deep.Programs.Application.Tests;
 
-/// <summary>
-/// WebApplicationFactory for Programs integration tests with PostgreSQL and MongoDB Testcontainers.
-/// </summary>
 public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
@@ -27,6 +24,8 @@ public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Progra
     private readonly MongoDbContainer _mongo = new MongoDbBuilder()
         .WithImage("mongo:latest")
         .Build();
+
+    private bool _initialized;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -47,7 +46,6 @@ public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Progra
 
         builder.ConfigureTestServices(services =>
         {
-            // Replace ProgramsDbContext
             services.RemoveAll<DbContextOptions<ProgramsDbContext>>();
             services.RemoveAll<ProgramsDbContext>();
             services.AddDbContext<ProgramsDbContext>(options =>
@@ -56,13 +54,11 @@ public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Progra
                 options.UseSnakeCaseNamingConvention();
             });
 
-            // Replace IDbConnectionFactory
             services.RemoveAll<Deep.Common.Application.Dapper.IDbConnectionFactory>();
             services.AddSingleton<Deep.Common.Application.Dapper.IDbConnectionFactory>(
                 new TestDbConnectionFactory(_postgres.GetConnectionString())
             );
 
-            // Replace MongoDbContext
             services.RemoveAll<MongoDbContext>();
             services.AddSingleton(_ =>
             {
@@ -71,14 +67,27 @@ public sealed class ProgramsWebApplicationFactory : WebApplicationFactory<Progra
                 return new MongoDbContext(database);
             });
 
-            // Replace IEventBus with no-op
             services.RemoveAll<IEventBus>();
             services.AddSingleton<IEventBus, NoOpEventBus>();
         });
     }
 
-    public async Task InitializeAsync() =>
+    public async Task InitializeAsync()
+    {
         await Task.WhenAll(_postgres.StartAsync(), _mongo.StartAsync());
+        await EnsureDatabaseCreatedAsync();
+    }
+
+    public async Task EnsureDatabaseCreatedAsync()
+    {
+        if (_initialized)
+            return;
+
+        await using var scope = Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<ProgramsDbContext>();
+        await db.Database.MigrateAsync();
+        _initialized = true;
+    }
 
     public new async Task DisposeAsync()
     {

@@ -32,6 +32,7 @@
     <!-- Programs Module -->
     <ProjectReference Include="..\..\..\src\modules\Programs\Deep.Programs.Domain\Deep.Programs.Domain.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Programs\Deep.Programs.Application\Deep.Programs.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\modules\Programs\Deep.Programs.IntegrationEvents\Deep.Programs.IntegrationEvents.csproj" />
 
     <!-- Transactions Module -->
     <ProjectReference Include="..\..\..\src\modules\Transactions\Deep.Transactions.Domain\Deep.Transactions.Domain.csproj" />

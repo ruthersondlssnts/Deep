@@ -6,32 +6,16 @@ using Dapper;
 using Deep.Accounts.Application.BackgroundJobs;
 using Deep.Accounts.Application.Data;
 using Deep.Accounts.Application.Features.Accounts;
-using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application.Dapper;
 using Deep.Common.Application.Database;
 using Deep.Common.Application.IntegrationEvents;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Accounts.Application.Tests;
 
-/// <summary>
-/// Base class for feature-oriented integration tests.
-/// 
-/// Testing Strategy:
-/// 1. Features with endpoints → Call endpoint via HTTP → Assert response + DB state + outbox
-/// 2. Features without endpoints → Call handler via DI → Assert Result + DB state
-/// 3. Domain-only logic → Pure unit tests (separate project)
-/// 
-/// Outbox/Inbox:
-/// - No Hangfire server
-/// - No recurring jobs
-/// - No Task.Delay
-/// - Manually call ProcessOutboxAsync() / ProcessInboxAsync()
-/// </summary>
-public abstract class AccountsIntegrationTestBase : IAsyncLifetime
+public abstract class AccountsIntegrationTestBase
 {
     protected static readonly Faker Faker = new();
     protected readonly AccountsWebApplicationFactory Factory;
@@ -49,28 +33,12 @@ public abstract class AccountsIntegrationTestBase : IAsyncLifetime
         HttpClient = factory.CreateClient();
     }
 
-    public virtual async Task InitializeAsync()
-    {
-        await using AsyncServiceScope scope = CreateAsyncScope();
-        AccountsDbContext db = scope.ServiceProvider.GetRequiredService<AccountsDbContext>();
-        await db.Database.MigrateAsync();
-    }
-
-    public virtual Task DisposeAsync()
-    {
-        HttpClient.Dispose();
-        return Task.CompletedTask;
-    }
-
     #region Scope & Handler Helpers
 
     protected AsyncServiceScope CreateAsyncScope() => Factory.Services.CreateAsyncScope();
 
     protected IServiceScope CreateFreshScope() => Factory.Services.CreateScope();
 
-    /// <summary>
-    /// Invokes a handler directly via IRequestHandler (for features without endpoints).
-    /// </summary>
     protected async Task<Result<TResponse>> SendAsync<TRequest, TResponse>(TRequest request)
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
