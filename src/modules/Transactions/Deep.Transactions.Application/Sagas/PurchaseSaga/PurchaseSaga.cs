@@ -11,13 +11,19 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
     public State Completed { get; private set; } = null!;
     public State Failed { get; private set; } = null!;
 
-    public Event<TransactionCreatedIntegrationEvent> TransactionCreated { get; private set; } = null!;
+    public Event<TransactionCreatedIntegrationEvent> TransactionCreated { get; private set; } =
+        null!;
     public Event<StockReservedIntegrationEvent> StockReserved { get; private set; } = null!;
-    public Event<StockReservationFailedIntegrationEvent> StockReservationFailed { get; private set; } = null!;
-    public Event<PaymentCompletedEvent> PaymentCompleted { get; private set; } = null!;
-    public Event<PaymentFailedEvent> PaymentFailed { get; private set; } = null!;
+    public Event<StockReservationFailedIntegrationEvent> StockReservationFailed
+    {
+        get;
+        private set;
+    } = null!;
+    public Event<PaymentCompletedIntegrationEvent> PaymentCompleted { get; private set; } = null!;
+    public Event<PaymentFailedIntegrationEvent> PaymentFailed { get; private set; } = null!;
 
-    public Schedule<PurchaseSagaState, PaymentTimeoutExpired> PaymentTimeout { get; private set; } = null!;
+    public Schedule<PurchaseSagaState, PaymentTimeoutExpired> PaymentTimeout { get; private set; } =
+        null!;
 
     public PurchaseSaga()
     {
@@ -29,11 +35,15 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
         Event(() => PaymentCompleted, e => e.CorrelateById(ctx => ctx.Message.TransactionId));
         Event(() => PaymentFailed, e => e.CorrelateById(ctx => ctx.Message.TransactionId));
 
-        Schedule(() => PaymentTimeout, instance => instance.PaymentTimeoutToken, s =>
-        {
-            s.Delay = TimeSpan.FromMinutes(5);
-            s.Received = x => x.CorrelateById(ctx => ctx.Message.TransactionId);
-        });
+        Schedule(
+            () => PaymentTimeout,
+            instance => instance.PaymentTimeoutToken,
+            s =>
+            {
+                s.Delay = TimeSpan.FromMinutes(5);
+                s.Received = x => x.CorrelateById(ctx => ctx.Message.TransactionId);
+            }
+        );
 
         Initially(
             When(TransactionCreated)
@@ -53,10 +63,13 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
                     ctx.Saga.TransactionId,
                     ctx.Saga.ProgramId,
                     ctx.Saga.ProductSku,
-                    ctx.Saga.Quantity))
-                .TransitionTo(ReservingStock));
+                    ctx.Saga.Quantity
+                ))
+                .TransitionTo(ReservingStock)
+        );
 
-        During(ReservingStock,
+        During(
+            ReservingStock,
             When(StockReserved)
                 .Then(ctx =>
                 {
@@ -70,10 +83,10 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
                     DateTime.UtcNow,
                     ctx.Saga.TransactionId,
                     ctx.Saga.CustomerId,
-                    ctx.Saga.TotalAmount))
+                    ctx.Saga.TotalAmount
+                ))
                 .Schedule(PaymentTimeout, ctx => new PaymentTimeoutExpired(ctx.Saga.TransactionId))
                 .TransitionTo(ProcessingPayment),
-
             When(StockReservationFailed)
                 .Then(ctx =>
                 {
@@ -87,11 +100,14 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
                     ctx.Saga.ProgramId,
                     ctx.Saga.ProductSku,
                     ctx.Saga.Quantity,
-                    ctx.Message.Reason))
+                    ctx.Message.Reason
+                ))
                 .TransitionTo(Failed)
-                .Finalize());
+                .Finalize()
+        );
 
-        During(ProcessingPayment,
+        During(
+            ProcessingPayment,
             When(PaymentCompleted)
                 .Unschedule(PaymentTimeout)
                 .Then(ctx =>
@@ -105,7 +121,8 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
                     ctx.Saga.TransactionId,
                     ctx.Saga.ProgramId,
                     ctx.Saga.ProductSku,
-                    ctx.Saga.Quantity))
+                    ctx.Saga.Quantity
+                ))
                 .Publish(ctx => new TransactionCompletedIntegrationEvent(
                     Guid.CreateVersion7(),
                     DateTime.UtcNow,
@@ -114,10 +131,10 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
                     ctx.Saga.ProductSku,
                     ctx.Saga.Quantity,
                     ctx.Saga.TotalAmount,
-                    ctx.Message.PaymentReference))
+                    ctx.Saga.PaymentReference!
+                ))
                 .TransitionTo(Completed)
                 .Finalize(),
-
             When(PaymentFailed)
                 .Unschedule(PaymentTimeout)
                 .Then(ctx =>
@@ -131,7 +148,8 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
                     ctx.Saga.TransactionId,
                     ctx.Saga.ProgramId,
                     ctx.Saga.ProductSku,
-                    ctx.Saga.Quantity))
+                    ctx.Saga.Quantity
+                ))
                 .Publish(ctx => new TransactionFailedIntegrationEvent(
                     Guid.CreateVersion7(),
                     DateTime.UtcNow,
@@ -139,10 +157,10 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
                     ctx.Saga.ProgramId,
                     ctx.Saga.ProductSku,
                     ctx.Saga.Quantity,
-                    ctx.Message.Reason))
+                    ctx.Message.Reason
+                ))
                 .TransitionTo(Failed)
                 .Finalize(),
-
             When(PaymentTimeout.Received)
                 .Then(ctx =>
                 {
@@ -155,7 +173,8 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
                     ctx.Saga.TransactionId,
                     ctx.Saga.ProgramId,
                     ctx.Saga.ProductSku,
-                    ctx.Saga.Quantity))
+                    ctx.Saga.Quantity
+                ))
                 .Publish(ctx => new TransactionFailedIntegrationEvent(
                     Guid.CreateVersion7(),
                     DateTime.UtcNow,
@@ -163,23 +182,14 @@ public sealed class PurchaseSaga : MassTransitStateMachine<PurchaseSagaState>
                     ctx.Saga.ProgramId,
                     ctx.Saga.ProductSku,
                     ctx.Saga.Quantity,
-                    "Payment processing timed out"))
+                    "Payment processing timed out"
+                ))
                 .TransitionTo(Failed)
-                .Finalize());
+                .Finalize()
+        );
 
         SetCompletedWhenFinalized();
     }
 }
-
-public sealed record ProcessPaymentCommand(
-    Guid Id,
-    DateTime OccurredAtUtc,
-    Guid TransactionId,
-    Guid CustomerId,
-    decimal Amount);
-
-public sealed record PaymentCompletedEvent(Guid TransactionId, string PaymentReference);
-
-public sealed record PaymentFailedEvent(Guid TransactionId, string Reason);
 
 public sealed record PaymentTimeoutExpired(Guid TransactionId);

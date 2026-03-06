@@ -32,6 +32,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
     app.ApplyMigrations();
+    await app.SeedDevelopmentDataAsync();
     app.UseHangfireInternal(enableDashboard: true);
 }
 else

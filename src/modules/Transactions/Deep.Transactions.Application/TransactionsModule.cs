@@ -3,7 +3,6 @@ using Deep.Common.Application.Database;
 using Deep.Common.Application.Inbox;
 using Deep.Common.Application.Outbox;
 using Deep.Transactions.Application.BackgroundJobs;
-using Deep.Transactions.Application.Consumers;
 using Deep.Transactions.Application.Data;
 using Deep.Transactions.Application.Inbox;
 using Deep.Transactions.Application.Sagas.CancelProgramSaga;
@@ -52,8 +51,6 @@ public static class TransactionsModule
             typeof(TransactionsIntegrationEventConsumer<>)
         );
 
-        registrationConfigurator.AddConsumer<ProcessPaymentConsumer>();
-
         if (!string.IsNullOrWhiteSpace(redisConnectionString))
         {
             registrationConfigurator
@@ -63,16 +60,6 @@ public static class TransactionsModule
             registrationConfigurator
                 .AddSagaStateMachine<CancelProgramSaga, CancelProgramSagaState>()
                 .RedisRepository(redisConnectionString);
-        }
-        else
-        {
-            registrationConfigurator
-                .AddSagaStateMachine<PurchaseSaga, PurchaseSagaState>()
-                .InMemoryRepository();
-
-            registrationConfigurator
-                .AddSagaStateMachine<CancelProgramSaga, CancelProgramSagaState>()
-                .InMemoryRepository();
         }
     }
 }
