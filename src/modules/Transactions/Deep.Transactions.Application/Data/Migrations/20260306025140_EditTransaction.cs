@@ -1,0 +1,224 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace Deep.Transactions.Application.Data.Migrations
+{
+    /// <inheritdoc />
+    public partial class EditTransaction : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<DateTime>(
+                name: "cancelled_at_utc",
+                schema: "transactions",
+                table: "transactions",
+                type: "timestamp with time zone",
+                nullable: true);
+
+            migrationBuilder.AddColumn<DateTime>(
+                name: "completed_at_utc",
+                schema: "transactions",
+                table: "transactions",
+                type: "timestamp with time zone",
+                nullable: true);
+
+            migrationBuilder.AddColumn<DateTime>(
+                name: "created_at_utc",
+                schema: "transactions",
+                table: "transactions",
+                type: "timestamp with time zone",
+                nullable: false,
+                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+
+            migrationBuilder.AddColumn<string>(
+                name: "failure_reason",
+                schema: "transactions",
+                table: "transactions",
+                type: "character varying(500)",
+                maxLength: 500,
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "payment_reference",
+                schema: "transactions",
+                table: "transactions",
+                type: "character varying(100)",
+                maxLength: 100,
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "product_name",
+                schema: "transactions",
+                table: "transactions",
+                type: "character varying(200)",
+                maxLength: 200,
+                nullable: false,
+                defaultValue: "");
+
+            migrationBuilder.AddColumn<string>(
+                name: "product_sku",
+                schema: "transactions",
+                table: "transactions",
+                type: "character varying(50)",
+                maxLength: 50,
+                nullable: false,
+                defaultValue: "");
+
+            migrationBuilder.AddColumn<int>(
+                name: "quantity",
+                schema: "transactions",
+                table: "transactions",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0);
+
+            migrationBuilder.AddColumn<string>(
+                name: "refund_reference",
+                schema: "transactions",
+                table: "transactions",
+                type: "character varying(100)",
+                maxLength: 100,
+                nullable: true);
+
+            migrationBuilder.AddColumn<DateTime>(
+                name: "refunded_at_utc",
+                schema: "transactions",
+                table: "transactions",
+                type: "timestamp with time zone",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "status",
+                schema: "transactions",
+                table: "transactions",
+                type: "text",
+                nullable: false,
+                defaultValue: "");
+
+            migrationBuilder.AddColumn<decimal>(
+                name: "total_amount",
+                schema: "transactions",
+                table: "transactions",
+                type: "numeric(18,2)",
+                precision: 18,
+                scale: 2,
+                nullable: false,
+                defaultValue: 0m);
+
+            migrationBuilder.AddColumn<decimal>(
+                name: "unit_price",
+                schema: "transactions",
+                table: "transactions",
+                type: "numeric(18,2)",
+                precision: 18,
+                scale: 2,
+                nullable: false,
+                defaultValue: 0m);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_transactions_program_id",
+                schema: "transactions",
+                table: "transactions",
+                column: "program_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_transactions_program_id_status",
+                schema: "transactions",
+                table: "transactions",
+                columns: new[] { "program_id", "status" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_transactions_status",
+                schema: "transactions",
+                table: "transactions",
+                column: "status");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropIndex(
+                name: "ix_transactions_program_id",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropIndex(
+                name: "ix_transactions_program_id_status",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropIndex(
+                name: "ix_transactions_status",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "cancelled_at_utc",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "completed_at_utc",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "created_at_utc",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "failure_reason",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "payment_reference",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "product_name",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "product_sku",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "quantity",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "refund_reference",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "refunded_at_utc",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "status",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "total_amount",
+                schema: "transactions",
+                table: "transactions");
+
+            migrationBuilder.DropColumn(
+                name: "unit_price",
+                schema: "transactions",
+                table: "transactions");
+        }
+    }
+}
