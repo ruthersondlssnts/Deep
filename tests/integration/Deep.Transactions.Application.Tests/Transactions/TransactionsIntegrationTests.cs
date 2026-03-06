@@ -14,11 +14,20 @@ namespace Deep.Transactions.Application.Tests.Transactions;
 public class TransactionsIntegrationTests(TransactionsWebApplicationFactory factory)
     : TransactionsIntegrationTestBase(factory)
 {
+    private const string TestSku = "TEST-SKU";
+    private const string TestProductName = "Test Product";
+    private const int TestQuantity = 2;
+    private const decimal TestUnitPrice = 29.99m;
+
     [Fact]
     public async Task CreateTransaction_WithValidData_ShouldReturnCreated()
     {
         CreateTransaction.Command request = new(
             Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );
@@ -30,7 +39,7 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
             await response.Content.ReadFromJsonAsync<CreateTransaction.Response>();
         result.Should().NotBeNull();
         result!.TransactionId.Should().NotBeEmpty();
-        result.CustomerId.Should().NotBeNull();
+        result.CustomerId.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -38,6 +47,10 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
     {
         CreateTransaction.Command request = new(
             Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );
@@ -69,6 +82,10 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
     {
         CreateTransaction.Command request = new(
             Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );
@@ -104,7 +121,15 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
     {
         string customerEmail = Faker.Internet.Email();
         string customerName = Faker.Name.FullName();
-        CreateTransaction.Command request = new(Guid.CreateVersion7(), customerEmail, customerName);
+        CreateTransaction.Command request = new(
+            Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
+            customerEmail,
+            customerName
+        );
 
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync("/transactions", request);
 
@@ -129,11 +154,19 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
 
         CreateTransaction.Command request1 = new(
             Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
             customerEmail,
             customerName
         );
         CreateTransaction.Command request2 = new(
             Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
             customerEmail,
             customerName
         );
@@ -158,6 +191,10 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
     {
         CreateTransaction.Command request = new(
             Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );
@@ -184,6 +221,10 @@ public class TransactionsIntegrationTests(TransactionsWebApplicationFactory fact
     {
         CreateTransaction.Command command = new(
             Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );

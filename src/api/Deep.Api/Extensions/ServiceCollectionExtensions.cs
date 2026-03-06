@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         string databaseConnectionString,
         string messagingConnectionString,
+        string? redisConnectionString,
         IConfiguration configuration
     )
     {
@@ -73,6 +74,7 @@ public static class ServiceCollectionExtensions
             )
             .AddMassTransit(
                 messagingConnectionString,
+                redisConnectionString,
                 ProgramsModule.ConfigureConsumers,
                 AccountsModule.ConfigureConsumers,
                 TransactionsModule.ConfigureConsumers
@@ -93,7 +95,8 @@ public static class ServiceCollectionExtensions
         this IHostApplicationBuilder builder,
         string sqlConnection,
         string noSqlConnection,
-        string amqConnection
+        string amqConnection,
+        string? redisConnection = null
     )
     {
         if (!string.IsNullOrWhiteSpace(sqlConnection))
@@ -111,6 +114,11 @@ public static class ServiceCollectionExtensions
         if (!string.IsNullOrWhiteSpace(amqConnection))
         {
             builder.AddRabbitMQClient(amqConnection);
+        }
+
+        if (!string.IsNullOrWhiteSpace(redisConnection))
+        {
+            builder.AddRedisClient(redisConnection);
         }
 
         return builder;

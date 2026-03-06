@@ -20,6 +20,13 @@ public static class UpdateProgram
 {
     public sealed record ProgramUser([Required] Guid UserId, [Required] string RoleName);
 
+    public sealed record ProductRequest(
+        [Required] string Sku,
+        [Required] string Name,
+        [Required, Range(0, double.MaxValue)] decimal UnitPrice,
+        [Required, Range(0, int.MaxValue)] int Stock
+    );
+
     public sealed record Command(
         [Required] Guid ProgramId,
         [Required] string Name,
@@ -27,7 +34,7 @@ public static class UpdateProgram
         [Required] DateTime StartsAtUtc,
         [Required] DateTime EndsAtUtc,
         [Required, MinLength(1, ErrorMessage = "At least one product is required.")]
-            IReadOnlyCollection<string> ProductNames,
+            IReadOnlyCollection<ProductRequest> Products,
         [Required, MinLength(1, ErrorMessage = "At least one user is required.")]
             IReadOnlyCollection<ProgramUser> Users
     );
@@ -55,12 +62,16 @@ public static class UpdateProgram
                 return ProgramErrors.ProgramUserNotFound;
             }
 
+            var products = c.Products
+                .Select(p => new ProductInput(p.Sku, p.Name, p.UnitPrice, p.Stock))
+                .ToList();
+
             Result updateResult = program.UpdateDetails(
                 c.Name,
                 c.Description,
                 c.StartsAtUtc,
                 c.EndsAtUtc,
-                c.ProductNames,
+                products,
                 assignments
             );
 
@@ -140,10 +151,7 @@ public static class UpdateProgram
                     ) =>
                     {
                         Result<Response> result = await handler.Handle(
-                            command with
-                            {
-                                ProgramId = programId,
-                            },
+                            command with { ProgramId = programId },
                             ct
                         );
 

@@ -28,6 +28,11 @@ IResourceBuilder<RabbitMQServerResource> rabbitmq = builder
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent);
 
+IResourceBuilder<RedisResource> redis = builder
+    .AddRedis("redis")
+    .WithDataVolume()
+    .WithLifetime(ContainerLifetime.Persistent);
+
 IResourceBuilder<PostgresDatabaseResource> deepDb = postgres.AddDatabase("deep-db");
 
 IResourceBuilder<MongoDBDatabaseResource> deepMongoDb = mongo.AddDatabase("deep-docs");
@@ -37,8 +42,10 @@ builder
     .WithReference(deepMongoDb)
     .WithReference(deepDb)
     .WithReference(rabbitmq)
+    .WithReference(redis)
     .WaitFor(deepMongoDb)
     .WaitFor(deepDb)
-    .WaitFor(rabbitmq);
+    .WaitFor(rabbitmq)
+    .WaitFor(redis);
 
 builder.Build().Run();

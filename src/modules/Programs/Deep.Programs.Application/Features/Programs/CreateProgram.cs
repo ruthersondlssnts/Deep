@@ -19,13 +19,20 @@ public static class CreateProgram
 {
     public sealed record ProgramUser([Required] Guid UserId, [Required] string RoleName);
 
+    public sealed record ProductRequest(
+        [Required] string Sku,
+        [Required] string Name,
+        [Required, Range(0, double.MaxValue)] decimal UnitPrice,
+        [Required, Range(0, int.MaxValue)] int Stock
+    );
+
     public sealed record Command(
         [Required] string Name,
         [Required] string Description,
         [Required] DateTime StartsAtUtc,
         [Required] DateTime EndsAtUtc,
         [Required, MinLength(1, ErrorMessage = "At least one product is required.")]
-            IReadOnlyCollection<string> ProductNames,
+            IReadOnlyCollection<ProductRequest> Products,
         [Required, MinLength(1, ErrorMessage = "At least one user is required.")]
             IReadOnlyCollection<ProgramUser> Users
     );
@@ -49,12 +56,16 @@ public static class CreateProgram
                 return ProgramErrors.ProgramUserNotFound;
             }
 
+            var products = c.Products
+                .Select(p => new ProductInput(p.Sku, p.Name, p.UnitPrice, p.Stock))
+                .ToList();
+
             Result<Program> programResult = Program.Create(
                 c.Name,
                 c.Description,
                 c.StartsAtUtc,
                 c.EndsAtUtc,
-                c.ProductNames,
+                products,
                 currentUserId,
                 assignments
             );

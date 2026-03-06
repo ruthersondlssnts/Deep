@@ -3,6 +3,8 @@ using Deep.Common.Domain.Auditing;
 
 namespace Deep.Programs.Domain.Programs;
 
+public record ProductInput(string Sku, string Name, decimal UnitPrice, int Stock);
+
 [Auditable]
 public class Program : Entity
 {
@@ -13,6 +15,8 @@ public class Program : Entity
     public DateTime StartsAtUtc { get; private set; }
     public DateTime EndsAtUtc { get; private set; }
     public Guid OwnerId { get; private set; }
+    public string? CancellationReason { get; private set; }
+    public DateTime? CancelledAtUtc { get; private set; }
 
     private readonly List<ProgramProduct> _products = [];
     public IReadOnlyCollection<ProgramProduct> Products => _products.AsReadOnly();
@@ -24,7 +28,7 @@ public class Program : Entity
         string description,
         DateTime startsAtUtc,
         DateTime endsAtUtc,
-        IReadOnlyCollection<string> productNames,
+        IReadOnlyCollection<ProductInput> products,
         Guid ownerId,
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments
     )
@@ -39,7 +43,7 @@ public class Program : Entity
             return ProgramErrors.StartDateInPast;
         }
 
-        if (productNames is null || !productNames.Any())
+        if (products is null || products.Count == 0)
         {
             return ProgramErrors.AtLeastOneProductRequired;
         }
@@ -62,9 +66,13 @@ public class Program : Entity
             ProgramStatus = ProgramStatus.New,
         };
 
-        foreach (string productName in productNames)
+        foreach (ProductInput product in products)
         {
-            program.AddProduct(productName);
+            Result<ProgramProduct> productResult = program.AddProduct(product);
+            if (productResult.IsFailure)
+            {
+                return productResult.Error;
+            }
         }
 
         program.RaiseDomainEvent(new ProgramCreatedDomainEvent(program.Id));
@@ -77,7 +85,7 @@ public class Program : Entity
         string description,
         DateTime startsAtUtc,
         DateTime endsAtUtc,
-        IEnumerable<string> productNames,
+        IEnumerable<ProductInput> products,
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments
     )
     {
@@ -91,7 +99,8 @@ public class Program : Entity
             return ProgramErrors.StartDateInPast;
         }
 
-        if (productNames is null || !productNames.Any())
+        var productList = products.ToList();
+        if (productList.Count == 0)
         {
             return ProgramErrors.AtLeastOneProductRequired;
         }
@@ -108,11 +117,105 @@ public class Program : Entity
         StartsAtUtc = startsAtUtc;
         EndsAtUtc = endsAtUtc;
 
-        ReplaceProducts(productNames);
+        Result replaceResult = ReplaceProducts(productList);
+        if (replaceResult.IsFailure)
+        {
+            return replaceResult;
+        }
 
         RaiseDomainEvent(new ProgramUpdatedDomainEvent(Id));
 
         return Result.Success();
+    }
+
+    public Result Cancel(string reason)
+    {
+        if (ProgramStatus == ProgramStatus.Cancelled)
+        {
+            return ProgramErrors.AlreadyCancelled;
+        }
+
+        ProgramStatus = ProgramStatus.Cancelled;
+        CancellationReason = reason;
+        CancelledAtUtc = DateTime.UtcNow;
+
+        RaiseDomainEvent(new ProgramCancelledDomainEvent(Id, reason));
+
+        return Result.Success();
+    }
+
+    public Result Start()
+    {
+        if (ProgramStatus != ProgramStatus.New)
+        {
+            return ProgramErrors.AlreadyStarted;
+        }
+
+        ProgramStatus = ProgramStatus.InProgress;
+        return Result.Success();
+    }
+
+    public bool IsActive => ProgramStatus == ProgramStatus.InProgress &&
+                           DateTime.UtcNow >= StartsAtUtc &&
+                           DateTime.UtcNow <= EndsAtUtc;
+
+    public Result<ProgramProduct> GetProduct(string sku)
+    {
+        ProgramProduct? product = _products.FirstOrDefault(p =>
+            p.Sku.Equals(sku, StringComparison.OrdinalIgnoreCase));
+
+        return product is null
+            ? ProgramErrors.ProductNotFound(sku)
+            : product;
+    }
+
+    public Result ReserveStock(string sku, int quantity)
+    {
+        if (!IsActive)
+        {
+            return ProgramErrors.ProgramNotActive;
+        }
+
+        Result<ProgramProduct> productResult = GetProduct(sku);
+        if (productResult.IsFailure)
+        {
+            return productResult.Error;
+        }
+
+        return productResult.Value.ReserveStock(quantity);
+    }
+
+    public Result ConfirmStockReservation(string sku, int quantity)
+    {
+        Result<ProgramProduct> productResult = GetProduct(sku);
+        if (productResult.IsFailure)
+        {
+            return productResult.Error;
+        }
+
+        return productResult.Value.ConfirmStockReservation(quantity);
+    }
+
+    public Result ReleaseReservedStock(string sku, int quantity)
+    {
+        Result<ProgramProduct> productResult = GetProduct(sku);
+        if (productResult.IsFailure)
+        {
+            return productResult.Error;
+        }
+
+        return productResult.Value.ReleaseReservedStock(quantity);
+    }
+
+    public Result RestoreStock(string sku, int quantity)
+    {
+        Result<ProgramProduct> productResult = GetProduct(sku);
+        if (productResult.IsFailure)
+        {
+            return productResult.Error;
+        }
+
+        return productResult.Value.RestoreStock(quantity);
     }
 
     public static Result ValidateAssignments(
@@ -155,16 +258,49 @@ public class Program : Entity
         return Result.Success();
     }
 
-    private void ReplaceProducts(IEnumerable<string> productNames)
+    private Result ReplaceProducts(IEnumerable<ProductInput> products)
     {
-        _products.Clear();
+        var existingBysku = _products.ToDictionary(p => p.Sku, StringComparer.OrdinalIgnoreCase);
+        var newSkus = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (string name in productNames)
+        foreach (ProductInput input in products)
         {
-            _products.Add(ProgramProduct.Create(Id, name));
+            newSkus.Add(input.Sku);
+
+            if (existingBysku.TryGetValue(input.Sku, out ProgramProduct? existing))
+            {
+                existing.UpdateDetails(input.Name, input.UnitPrice, input.Stock);
+            }
+            else
+            {
+                Result<ProgramProduct> productResult = ProgramProduct.Create(
+                    Id, input.Sku, input.Name, input.UnitPrice, input.Stock);
+
+                if (productResult.IsFailure)
+                {
+                    return productResult.Error;
+                }
+
+                _products.Add(productResult.Value);
+            }
         }
+
+        _products.RemoveAll(p => !newSkus.Contains(p.Sku));
+
+        return Result.Success();
     }
 
-    private void AddProduct(string productName) =>
-        _products.Add(ProgramProduct.Create(Id, productName));
+    private Result<ProgramProduct> AddProduct(ProductInput input)
+    {
+        Result<ProgramProduct> productResult = ProgramProduct.Create(
+            Id, input.Sku, input.Name, input.UnitPrice, input.Stock);
+
+        if (productResult.IsFailure)
+        {
+            return productResult.Error;
+        }
+
+        _products.Add(productResult.Value);
+        return productResult.Value;
+    }
 }

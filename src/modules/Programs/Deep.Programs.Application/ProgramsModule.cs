@@ -5,6 +5,7 @@ using Deep.Common.Application.Outbox;
 using Deep.Programs.Application.BackgroundJobs;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Application.Inbox;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -48,7 +49,8 @@ public static class ProgramsModule
     }
 
     public static void ConfigureConsumers(
-        MassTransit.IRegistrationConfigurator registrationConfigurator
+        IRegistrationConfigurator registrationConfigurator,
+        string? redisConnectionString = null
     ) =>
         ModuleRegistrationHelper.ConfigureConsumers(
             AssemblyReference.Assembly,

@@ -24,7 +24,11 @@ internal sealed class ProgramsConfiguration : IEntityTypeConfiguration<Program>
 
         builder.Property(p => p.OwnerId).IsRequired();
 
-        // Helpful index
+        builder.Property(p => p.CancellationReason).HasMaxLength(500);
+
+        builder.Property(p => p.CancelledAtUtc);
+
         builder.HasIndex(p => p.OwnerId);
+        builder.HasIndex(p => p.ProgramStatus);
     }
 }

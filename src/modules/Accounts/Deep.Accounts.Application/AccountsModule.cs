@@ -9,6 +9,7 @@ using Deep.Common.Application.Authorization;
 using Deep.Common.Application.Database;
 using Deep.Common.Application.Inbox;
 using Deep.Common.Application.Outbox;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,7 +53,8 @@ public static class AccountsModule
     }
 
     public static void ConfigureConsumers(
-        MassTransit.IRegistrationConfigurator registrationConfigurator
+        IRegistrationConfigurator registrationConfigurator,
+        string? redisConnectionString = null
     ) =>
         ModuleRegistrationHelper.ConfigureConsumers(
             AssemblyReference.Assembly,

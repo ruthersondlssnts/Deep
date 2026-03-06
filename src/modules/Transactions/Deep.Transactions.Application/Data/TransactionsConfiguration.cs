@@ -17,6 +17,31 @@ internal sealed class TransactionsConfiguration : IEntityTypeConfiguration<Trans
 
         builder.Property(t => t.ProgramId).IsRequired();
 
+        builder.Property(t => t.ProductSku).IsRequired().HasMaxLength(50);
+
+        builder.Property(t => t.ProductName).IsRequired().HasMaxLength(200);
+
+        builder.Property(t => t.Quantity).IsRequired();
+
+        builder.Property(t => t.UnitPrice).IsRequired().HasPrecision(18, 2);
+
+        builder.Property(t => t.TotalAmount).IsRequired().HasPrecision(18, 2);
+
+        builder.Property(t => t.Status).IsRequired().HasConversion<string>();
+
+        builder.Property(t => t.FailureReason).HasMaxLength(500);
+
+        builder.Property(t => t.PaymentReference).HasMaxLength(100);
+
+        builder.Property(t => t.RefundReference).HasMaxLength(100);
+
+        builder.Property(t => t.CreatedAtUtc).IsRequired();
+
+        builder.HasIndex(t => t.ProgramId);
+        builder.HasIndex(t => t.CustomerId);
+        builder.HasIndex(t => t.Status);
+        builder.HasIndex(t => new { t.ProgramId, t.Status });
+
         builder
             .HasOne<Customer>()
             .WithMany()

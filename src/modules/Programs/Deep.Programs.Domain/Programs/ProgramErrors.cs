@@ -63,4 +63,46 @@ public static class ProgramErrors
         "Programs.InvalidProduct",
         "The product is invalid"
     );
+
+    public static Error InvalidSku = Error.Problem(
+        "Programs.InvalidSku",
+        "The product SKU is invalid"
+    );
+
+    public static Error InvalidUnitPrice = Error.Problem(
+        "Programs.InvalidUnitPrice",
+        "The unit price must be zero or greater"
+    );
+
+    public static Error InvalidStock = Error.Problem(
+        "Programs.InvalidStock",
+        "The stock must be zero or greater"
+    );
+
+    public static Error InvalidQuantity = Error.Problem(
+        "Programs.InvalidQuantity",
+        "The quantity must be greater than zero"
+    );
+
+    public static Error InsufficientStock(string sku, int available, int requested) =>
+        Error.Problem(
+            "Programs.InsufficientStock",
+            $"Insufficient stock for product {sku}. Available: {available}, Requested: {requested}"
+        );
+
+    public static Error InvalidReservedQuantity = Error.Problem(
+        "Programs.InvalidReservedQuantity",
+        "The reserved quantity is invalid"
+    );
+
+    public static Error ProductNotFound(string sku) =>
+        Error.NotFound(
+            "Programs.ProductNotFound",
+            $"The product with SKU {sku} was not found"
+        );
+
+    public static Error ProgramNotActive = Error.Problem(
+        "Programs.ProgramNotActive",
+        "The program is not active and cannot process transactions"
+    );
 }

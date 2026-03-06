@@ -13,17 +13,15 @@ internal sealed class TransactionCreatedIntegrationEventHandler(
 {
     public override async Task Handle(
         TransactionCreatedIntegrationEvent integrationEvent,
-        CancellationToken cancellationToken = default
-    )
+        CancellationToken cancellationToken = default)
     {
         Result<UpsertProgramStatistic.Response> result = await handler.Handle(
             new UpsertProgramStatistic.Command(
                 ProgramId: integrationEvent.ProgramId,
-                TotalTransactions: integrationEvent.TotalTransactions,
-                TotalCustomers: integrationEvent.TotalCustomers
+                TotalTransactions: 1,
+                TotalCustomers: 1
             ),
-            cancellationToken
-        );
+            cancellationToken);
 
         if (result.IsFailure)
         {

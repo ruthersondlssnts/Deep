@@ -11,17 +11,19 @@ builder.Configuration.AddModuleConfiguration(["accounts", "programs", "transacti
 string sql = "deep-db";
 string mongo = "deep-docs";
 string broker = "broker";
+string redis = "redis";
 
 string databaseConnectionString = builder.Configuration.GetConnectionString(sql)!;
 string mqConnectionString = builder.Configuration.GetConnectionString(broker)!;
+string? redisConnectionString = builder.Configuration.GetConnectionString(redis);
 
 builder
     .Services.AddOpenApiAndSwagger()
     .AddExceptionAndProblemDetails()
     .AddHangfireInternal(builder.Configuration)
-    .AddModules(databaseConnectionString, mqConnectionString, builder.Configuration);
+    .AddModules(databaseConnectionString, mqConnectionString, redisConnectionString, builder.Configuration);
 
-builder.ApplyAspire(sql, mongo, broker);
+builder.ApplyAspire(sql, mongo, broker, redis);
 
 WebApplication app = builder.Build();
 

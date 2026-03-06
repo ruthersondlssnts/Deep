@@ -15,7 +15,11 @@ public class ProgramTests
         // Arrange
         string name = "Test Program";
         string description = "Test Description";
-        string[] productNames = new[] { "Product1", "Product2" };
+        ProductInput[] products =
+        [
+            new ProductInput("SKU001", "Product1", 10.00m, 100),
+            new ProductInput("SKU002", "Product2", 20.00m, 50)
+        ];
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
@@ -24,7 +28,7 @@ public class ProgramTests
             description,
             FutureStartDate,
             FutureEndDate,
-            productNames,
+            products,
             OwnerId,
             assignments
         );
@@ -45,7 +49,8 @@ public class ProgramTests
     {
         // Arrange
         DateTime startDate = DateTime.UtcNow.AddDays(10);
-        DateTime endDate = DateTime.UtcNow.AddDays(5); // Before start date
+        DateTime endDate = DateTime.UtcNow.AddDays(5);
+        ProductInput[] products = [new ProductInput("SKU001", "Product1", 10.00m, 100)];
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
@@ -54,7 +59,7 @@ public class ProgramTests
             "Description",
             startDate,
             endDate,
-            ["Product1"],
+            products,
             OwnerId,
             assignments
         );
@@ -69,6 +74,7 @@ public class ProgramTests
     {
         // Arrange
         DateTime pastStartDate = DateTime.UtcNow.AddDays(-1);
+        ProductInput[] products = [new ProductInput("SKU001", "Product1", 10.00m, 100)];
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
@@ -77,7 +83,7 @@ public class ProgramTests
             "Description",
             pastStartDate,
             FutureEndDate,
-            ["Product1"],
+            products,
             OwnerId,
             assignments
         );
@@ -91,7 +97,7 @@ public class ProgramTests
     public void Create_WithNoProducts_ShouldReturnFailure()
     {
         // Arrange
-        string[] emptyProducts = Array.Empty<string>();
+        ProductInput[] emptyProducts = [];
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
@@ -114,6 +120,7 @@ public class ProgramTests
     public void Create_ShouldRaiseProgramCreatedDomainEvent()
     {
         // Arrange
+        ProductInput[] products = [new ProductInput("SKU001", "Product1", 10.00m, 100)];
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
@@ -122,7 +129,7 @@ public class ProgramTests
             "Description",
             FutureStartDate,
             FutureEndDate,
-            ["Product1"],
+            products,
             OwnerId,
             assignments
         );
@@ -137,7 +144,12 @@ public class ProgramTests
     public void Create_WithMultipleProducts_ShouldAddAllProducts()
     {
         // Arrange
-        string[] productNames = new[] { "Product1", "Product2", "Product3" };
+        ProductInput[] products =
+        [
+            new ProductInput("SKU001", "Product1", 10.00m, 100),
+            new ProductInput("SKU002", "Product2", 20.00m, 50),
+            new ProductInput("SKU003", "Product3", 30.00m, 25)
+        ];
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
         // Act
@@ -146,7 +158,7 @@ public class ProgramTests
             "Description",
             FutureStartDate,
             FutureEndDate,
-            productNames,
+            products,
             OwnerId,
             assignments
         );

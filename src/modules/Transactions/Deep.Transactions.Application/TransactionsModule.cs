@@ -3,8 +3,12 @@ using Deep.Common.Application.Database;
 using Deep.Common.Application.Inbox;
 using Deep.Common.Application.Outbox;
 using Deep.Transactions.Application.BackgroundJobs;
+using Deep.Transactions.Application.Consumers;
 using Deep.Transactions.Application.Data;
 using Deep.Transactions.Application.Inbox;
+using Deep.Transactions.Application.Sagas.CancelProgramSaga;
+using Deep.Transactions.Application.Sagas.PurchaseSaga;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -38,11 +42,37 @@ public static class TransactionsModule
     }
 
     public static void ConfigureConsumers(
-        MassTransit.IRegistrationConfigurator registrationConfigurator
-    ) =>
+        IRegistrationConfigurator registrationConfigurator,
+        string? redisConnectionString = null
+    )
+    {
         ModuleRegistrationHelper.ConfigureConsumers(
             AssemblyReference.Assembly,
             registrationConfigurator,
             typeof(TransactionsIntegrationEventConsumer<>)
         );
+
+        registrationConfigurator.AddConsumer<ProcessPaymentConsumer>();
+
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            registrationConfigurator
+                .AddSagaStateMachine<PurchaseSaga, PurchaseSagaState>()
+                .RedisRepository(redisConnectionString);
+
+            registrationConfigurator
+                .AddSagaStateMachine<CancelProgramSaga, CancelProgramSagaState>()
+                .RedisRepository(redisConnectionString);
+        }
+        else
+        {
+            registrationConfigurator
+                .AddSagaStateMachine<PurchaseSaga, PurchaseSagaState>()
+                .InMemoryRepository();
+
+            registrationConfigurator
+                .AddSagaStateMachine<CancelProgramSaga, CancelProgramSagaState>()
+                .InMemoryRepository();
+        }
+    }
 }

@@ -8,11 +8,20 @@ namespace Deep.Transactions.Application.Tests.OutboxInbox;
 public class OutboxIntegrationTests(TransactionsWebApplicationFactory factory)
     : TransactionsIntegrationTestBase(factory)
 {
+    private const string TestSku = "TEST-SKU";
+    private const string TestProductName = "Test Product";
+    private const int TestQuantity = 2;
+    private const decimal TestUnitPrice = 29.99m;
+
     [Fact]
     public async Task CreateTransaction_ShouldInsertOutboxMessage()
     {
         CreateTransaction.Command request = new(
             Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );
@@ -46,6 +55,10 @@ public class OutboxIntegrationTests(TransactionsWebApplicationFactory factory)
     {
         CreateTransaction.Command request = new(
             Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );
@@ -97,6 +110,10 @@ public class OutboxIntegrationTests(TransactionsWebApplicationFactory factory)
     {
         CreateTransaction.Command request = new(
             Guid.CreateVersion7(),
+            TestSku,
+            TestProductName,
+            TestQuantity,
+            TestUnitPrice,
             Faker.Internet.Email(),
             Faker.Name.FullName()
         );

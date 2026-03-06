@@ -43,14 +43,15 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddMassTransit(
         this IServiceCollection services,
         string mqConnectionString,
-        params Action<IRegistrationConfigurator>[] configureConsumers
+        string? redisConnectionString,
+        params Action<IRegistrationConfigurator, string?>[] configureConsumers
     )
     {
         services.AddMassTransit(configurator =>
         {
-            foreach (Action<IRegistrationConfigurator> configureConsumer in configureConsumers)
+            foreach (Action<IRegistrationConfigurator, string?> configureConsumer in configureConsumers)
             {
-                configureConsumer(configurator);
+                configureConsumer(configurator, redisConnectionString);
             }
 
             configurator.SetKebabCaseEndpointNameFormatter();
@@ -58,8 +59,7 @@ public static class ServiceCollectionExtensions
             configurator.UsingRabbitMq(
                 (context, cfg) =>
                 {
-                    string connectionString = mqConnectionString;
-                    cfg.Host(new Uri(connectionString));
+                    cfg.Host(new Uri(mqConnectionString));
                     cfg.ConfigureEndpoints(context);
                 }
             );

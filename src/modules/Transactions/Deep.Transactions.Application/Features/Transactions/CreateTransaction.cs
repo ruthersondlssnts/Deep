@@ -17,11 +17,15 @@ public static class CreateTransaction
 {
     public sealed record Command(
         [Required] Guid ProgramId,
+        [Required] string ProductSku,
+        [Required] string ProductName,
+        [Required, Range(1, int.MaxValue)] int Quantity,
+        [Required, Range(0, double.MaxValue)] decimal UnitPrice,
         [Required, EmailAddress] string CustomerEmail,
         [Required] string CustomerFullName
     );
 
-    public sealed record Response(Guid TransactionId, Guid? CustomerId);
+    public sealed record Response(Guid TransactionId, Guid CustomerId);
 
     public sealed class Handler(TransactionsDbContext context) : IRequestHandler<Command, Response>
     {
@@ -38,12 +42,23 @@ public static class CreateTransaction
                 context.Customers.Add(customer);
             }
 
-            Transaction transaction = Transaction.Create(command.ProgramId, customer.Id).Value;
-            context.Transactions.Add(transaction);
+            Result<Transaction> transactionResult = Transaction.Create(
+                command.ProgramId,
+                customer.Id,
+                command.ProductSku,
+                command.ProductName,
+                command.Quantity,
+                command.UnitPrice);
 
+            if (transactionResult.IsFailure)
+            {
+                return transactionResult.Error;
+            }
+
+            context.Transactions.Add(transactionResult.Value);
             await context.SaveChangesAsync(ct);
 
-            return new Response(transaction.Id, customer.Id);
+            return new Response(transactionResult.Value.Id, customer.Id);
         }
     }
 
@@ -61,11 +76,7 @@ public static class CreateTransaction
                         Result<Response> result = await handler.Handle(command, ct);
 
                         return result.Match(
-                            () =>
-                                Results.Created(
-                                    $"/transactions/{result.Value.TransactionId}",
-                                    result.Value
-                                ),
+                            () => Results.Created($"/transactions/{result.Value.TransactionId}", result.Value),
                             ApiResults.Problem
                         );
                     }

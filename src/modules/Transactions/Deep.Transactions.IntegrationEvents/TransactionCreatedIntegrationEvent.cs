@@ -5,12 +5,17 @@ namespace Deep.Transactions.IntegrationEvents;
 public sealed class TransactionCreatedIntegrationEvent(
     Guid id,
     DateTime occurredAtUtc,
-    int totalTransactions,
-    int totalCustomers,
-    Guid programId
-) : IntegrationEvent(id, occurredAtUtc)
+    Guid transactionId,
+    Guid programId,
+    Guid customerId,
+    string productSku,
+    int quantity,
+    decimal totalAmount) : IntegrationEvent(id, occurredAtUtc)
 {
-    public int TotalTransactions { get; } = totalTransactions;
-    public int TotalCustomers { get; } = totalCustomers;
+    public Guid TransactionId { get; } = transactionId;
     public Guid ProgramId { get; } = programId;
+    public Guid CustomerId { get; } = customerId;
+    public string ProductSku { get; } = productSku;
+    public int Quantity { get; } = quantity;
+    public decimal TotalAmount { get; } = totalAmount;
 }
