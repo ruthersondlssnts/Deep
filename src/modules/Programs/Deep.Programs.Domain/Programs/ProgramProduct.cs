@@ -104,17 +104,6 @@ public class ProgramProduct
         return Result.Success();
     }
 
-    public Result RestoreStock(int quantity)
-    {
-        if (quantity <= 0)
-        {
-            return ProgramErrors.InvalidQuantity;
-        }
-
-        Stock += quantity;
-        return Result.Success();
-    }
-
     internal void UpdateDetails(string productName, decimal unitPrice, int stock)
     {
         ProductName = productName.Trim();

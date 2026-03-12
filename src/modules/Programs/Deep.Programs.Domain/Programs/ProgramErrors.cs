@@ -28,7 +28,6 @@ public static class ProgramErrors
         "Programs.AlreadyCanceled",
         "The program was already canceled"
     );
-
     public static readonly Error AlreadyStarted = Error.Problem(
         "Programs.AlreadyStarted",
         "The program has already started"
@@ -96,10 +95,7 @@ public static class ProgramErrors
     );
 
     public static Error ProductNotFound(string sku) =>
-        Error.NotFound(
-            "Programs.ProductNotFound",
-            $"The product with SKU {sku} was not found"
-        );
+        Error.NotFound("Programs.ProductNotFound", $"The product with SKU {sku} was not found");
 
     public static Error ProgramNotActive = Error.Problem(
         "Programs.ProgramNotActive",

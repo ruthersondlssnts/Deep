@@ -1,17 +1,20 @@
-using Deep.Common.Application.IntegrationEvents;
+﻿using Deep.Common.Application.IntegrationEvents;
 
-namespace Deep.Transactions.IntegrationEvents;
+namespace Deep.Programs.IntegrationEvents;
 
-public sealed class RestoreStockCommand(
+public sealed class StockReservationFailedIntegrationEvent(
     Guid id,
     DateTime occurredAtUtc,
     Guid transactionId,
     Guid programId,
     string productSku,
-    int quantity) : IntegrationEvent(id, occurredAtUtc)
+    int quantity,
+    string reason
+) : IntegrationEvent(id, occurredAtUtc)
 {
     public Guid TransactionId { get; } = transactionId;
     public Guid ProgramId { get; } = programId;
     public string ProductSku { get; } = productSku;
     public int Quantity { get; } = quantity;
+    public string Reason { get; } = reason;
 }

@@ -3,15 +3,15 @@ using Deep.Transactions.IntegrationEvents;
 
 namespace Deep.Transactions.Application.IntegrationEventHandlers;
 
-internal sealed class ProcessPaymentCommandHandler(
-    IEventBus eventBus
-) : IntegrationEventHandler<ProcessPaymentCommand>
+internal sealed class ProcessPaymentIntegrationHandler(IEventBus eventBus)
+    : IntegrationEventHandler<ProcessPaymentIntegrationEvent>
 {
     public override async Task Handle(
-        ProcessPaymentCommand command,
-        CancellationToken cancellationToken = default)
+        ProcessPaymentIntegrationEvent command,
+        CancellationToken cancellationToken = default
+    )
     {
-        await Task.Delay(Random.Shared.Next(100, 500), cancellationToken);
+        await Task.Delay(3000, cancellationToken);
 
         bool paymentSucceeded = Random.Shared.NextDouble() < 0.95;
 
@@ -24,8 +24,10 @@ internal sealed class ProcessPaymentCommandHandler(
                     Guid.CreateVersion7(),
                     DateTime.UtcNow,
                     command.TransactionId,
-                    paymentReference),
-                cancellationToken);
+                    paymentReference
+                ),
+                cancellationToken
+            );
         }
         else
         {
@@ -34,8 +36,10 @@ internal sealed class ProcessPaymentCommandHandler(
                     Guid.CreateVersion7(),
                     DateTime.UtcNow,
                     command.TransactionId,
-                    "Payment declined by provider"),
-                cancellationToken);
+                    "Payment declined by provider"
+                ),
+                cancellationToken
+            );
         }
     }
 }

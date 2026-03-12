@@ -83,12 +83,6 @@ Transaction Created → Reserve Stock → Process Payment → Complete
                       Fail Txn         Release Stock → Fail Txn
 ```
 
-### Cancel Program Saga
-
-```
-Program Cancelled → Refund Transactions → Restore Stock → Complete
-```
-
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -127,7 +121,6 @@ This starts PostgreSQL, MongoDB, RabbitMQ, Redis, and the API.
 | `POST` | `/programs` | Create program |
 | `PUT` | `/programs/{id}` | Update program |
 | `GET` | `/programs` | List programs |
-| `POST` | `/programs/{id}/cancel` | Cancel program (triggers saga) |
 | `POST` | `/transactions` | Create transaction (triggers saga) |
 
 ## 📊 Dashboards

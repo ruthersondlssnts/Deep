@@ -1,0 +1,40 @@
+using Deep.Common.Application.SimpleMediatR;
+using Deep.Common.Domain;
+using Deep.Programs.Application.Data;
+using Deep.Programs.Domain.Programs;
+using Microsoft.EntityFrameworkCore;
+
+namespace Deep.Programs.Application.Features.Programs;
+
+public static class ReleaseStock
+{
+    public sealed record Command(Guid ProgramId, string ProductSku, int Quantity);
+
+    public sealed record Response(bool Released);
+
+    public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
+    {
+        public async Task<Result<Response>> Handle(Command command, CancellationToken ct = default)
+        {
+            Program? program = await context
+                .Programs.Include(p => p.Products)
+                .FirstOrDefaultAsync(p => p.Id == command.ProgramId, ct);
+
+            if (program is null)
+            {
+                return new Response(false);
+            }
+
+            Result result = program.ReleaseReservedStock(command.ProductSku, command.Quantity);
+
+            if (result.IsFailure)
+            {
+                return result.Error;
+            }
+
+            await context.SaveChangesAsync(ct);
+
+            return new Response(true);
+        }
+    }
+}

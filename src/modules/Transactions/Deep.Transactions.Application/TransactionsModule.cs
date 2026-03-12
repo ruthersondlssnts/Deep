@@ -4,9 +4,8 @@ using Deep.Common.Application.Inbox;
 using Deep.Common.Application.Outbox;
 using Deep.Transactions.Application.BackgroundJobs;
 using Deep.Transactions.Application.Data;
+using Deep.Transactions.Application.Features.PurchaseSaga;
 using Deep.Transactions.Application.Inbox;
-using Deep.Transactions.Application.Sagas.CancelProgramSaga;
-using Deep.Transactions.Application.Sagas.PurchaseSaga;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,14 +50,16 @@ public static class TransactionsModule
             typeof(TransactionsIntegrationEventConsumer<>)
         );
 
-        if (!string.IsNullOrWhiteSpace(redisConnectionString))
+        if (string.IsNullOrWhiteSpace(redisConnectionString))
         {
             registrationConfigurator
                 .AddSagaStateMachine<PurchaseSaga, PurchaseSagaState>()
-                .RedisRepository(redisConnectionString);
-
+                .InMemoryRepository();
+        }
+        else
+        {
             registrationConfigurator
-                .AddSagaStateMachine<CancelProgramSaga, CancelProgramSagaState>()
+                .AddSagaStateMachine<PurchaseSaga, PurchaseSagaState>()
                 .RedisRepository(redisConnectionString);
         }
     }

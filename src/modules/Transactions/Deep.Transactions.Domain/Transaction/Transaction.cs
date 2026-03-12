@@ -3,17 +3,6 @@ using Deep.Common.Domain.Auditing;
 
 namespace Deep.Transactions.Domain.Transaction;
 
-public enum TransactionStatus
-{
-    Pending,
-    StockReserved,
-    PaymentProcessing,
-    Completed,
-    Failed,
-    Cancelled,
-    Refunded
-}
-
 [Auditable]
 public sealed class Transaction : Entity
 {
@@ -42,7 +31,8 @@ public sealed class Transaction : Entity
         string productSku,
         string productName,
         int quantity,
-        decimal unitPrice)
+        decimal unitPrice
+    )
     {
         if (quantity <= 0)
         {
@@ -70,7 +60,7 @@ public sealed class Transaction : Entity
             UnitPrice = unitPrice,
             TotalAmount = quantity * unitPrice,
             Status = TransactionStatus.Pending,
-            CreatedAtUtc = DateTime.UtcNow
+            CreatedAtUtc = DateTime.UtcNow,
         };
 
         transaction.RaiseDomainEvent(
@@ -79,38 +69,16 @@ public sealed class Transaction : Entity
                 transaction.ProgramId,
                 transaction.ProductSku,
                 transaction.Quantity,
-                transaction.TotalAmount)
+                transaction.TotalAmount
+            )
         );
 
         return transaction;
     }
 
-    public Result MarkStockReserved()
-    {
-        if (Status != TransactionStatus.Pending)
-        {
-            return TransactionErrors.InvalidStatusTransition(Status, TransactionStatus.StockReserved);
-        }
-
-        Status = TransactionStatus.StockReserved;
-        RaiseDomainEvent(new TransactionStockReservedDomainEvent(Id, ProgramId, ProductSku, Quantity));
-        return Result.Success();
-    }
-
-    public Result MarkPaymentProcessing()
-    {
-        if (Status != TransactionStatus.StockReserved)
-        {
-            return TransactionErrors.InvalidStatusTransition(Status, TransactionStatus.PaymentProcessing);
-        }
-
-        Status = TransactionStatus.PaymentProcessing;
-        return Result.Success();
-    }
-
     public Result Complete(string paymentReference)
     {
-        if (Status != TransactionStatus.PaymentProcessing && Status != TransactionStatus.StockReserved)
+        if (Status != TransactionStatus.Pending)
         {
             return TransactionErrors.InvalidStatusTransition(Status, TransactionStatus.Completed);
         }
@@ -118,8 +86,6 @@ public sealed class Transaction : Entity
         Status = TransactionStatus.Completed;
         PaymentReference = paymentReference;
         CompletedAtUtc = DateTime.UtcNow;
-
-        RaiseDomainEvent(new TransactionCompletedDomainEvent(Id, ProgramId, ProductSku, Quantity, TotalAmount));
         return Result.Success();
     }
 
@@ -133,7 +99,6 @@ public sealed class Transaction : Entity
         Status = TransactionStatus.Failed;
         FailureReason = reason;
 
-        RaiseDomainEvent(new TransactionFailedDomainEvent(Id, ProgramId, ProductSku, Quantity, reason));
         return Result.Success();
     }
 
@@ -153,7 +118,9 @@ public sealed class Transaction : Entity
         FailureReason = reason;
         CancelledAtUtc = DateTime.UtcNow;
 
-        RaiseDomainEvent(new TransactionCancelledDomainEvent(Id, ProgramId, ProductSku, Quantity, reason));
+        RaiseDomainEvent(
+            new TransactionCancelledDomainEvent(Id, ProgramId, ProductSku, Quantity, reason)
+        );
         return Result.Success();
     }
 
@@ -168,7 +135,6 @@ public sealed class Transaction : Entity
         RefundReference = refundReference;
         RefundedAtUtc = DateTime.UtcNow;
 
-        RaiseDomainEvent(new TransactionRefundedDomainEvent(Id, ProgramId, ProductSku, Quantity, TotalAmount, refundReference));
         return Result.Success();
     }
 }

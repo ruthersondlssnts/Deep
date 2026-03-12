@@ -8,6 +8,7 @@ using Deep.Common.Application.Dapper;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Data;
+using Deep.Programs.Domain.ProgramAssignments;
 using Deep.Programs.Domain.Programs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -56,8 +57,8 @@ public static class CreateProgram
                 return ProgramErrors.ProgramUserNotFound;
             }
 
-            var products = c.Products
-                .Select(p => new ProductInput(p.Sku, p.Name, p.UnitPrice, p.Stock))
+            var products = c
+                .Products.Select(p => new ProductInput(p.Sku, p.Name, p.UnitPrice, p.Stock))
                 .ToList();
 
             Result<Program> programResult = Program.Create(
@@ -75,7 +76,16 @@ public static class CreateProgram
                 return programResult.Error;
             }
 
-            context.Programs.Add(programResult.Value);
+            Result<IEnumerable<ProgramAssignment>> programAssignments =
+                ProgramAssignment.CreateRange(programResult.Value.Id, assignments);
+
+            if (programAssignments.IsFailure)
+            {
+                return programAssignments.Error;
+            }
+
+            await context.Programs.AddAsync(programResult.Value);
+            await context.ProgramAssignments.AddRangeAsync(programAssignments.Value);
 
             await context.SaveChangesAsync(ct);
 

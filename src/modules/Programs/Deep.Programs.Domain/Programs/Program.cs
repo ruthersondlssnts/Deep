@@ -17,7 +17,6 @@ public class Program : Entity
     public Guid OwnerId { get; private set; }
     public string? CancellationReason { get; private set; }
     public DateTime? CancelledAtUtc { get; private set; }
-
     private readonly List<ProgramProduct> _products = [];
     public IReadOnlyCollection<ProgramProduct> Products => _products.AsReadOnly();
 
@@ -139,8 +138,6 @@ public class Program : Entity
         CancellationReason = reason;
         CancelledAtUtc = DateTime.UtcNow;
 
-        RaiseDomainEvent(new ProgramCancelledDomainEvent(Id, reason));
-
         return Result.Success();
     }
 
@@ -155,34 +152,70 @@ public class Program : Entity
         return Result.Success();
     }
 
-    public bool IsActive => ProgramStatus == ProgramStatus.InProgress &&
-                           DateTime.UtcNow >= StartsAtUtc &&
-                           DateTime.UtcNow <= EndsAtUtc;
+    public bool IsActive => ProgramStatus == ProgramStatus.InProgress;
 
     public Result<ProgramProduct> GetProduct(string sku)
     {
         ProgramProduct? product = _products.FirstOrDefault(p =>
-            p.Sku.Equals(sku, StringComparison.OrdinalIgnoreCase));
+            p.Sku.Equals(sku, StringComparison.OrdinalIgnoreCase)
+        );
 
-        return product is null
-            ? ProgramErrors.ProductNotFound(sku)
-            : product;
+        return product is null ? ProgramErrors.ProductNotFound(sku) : product;
     }
 
-    public Result ReserveStock(string sku, int quantity)
+    public Result ReserveStock(Guid transactionId, string sku, int quantity)
     {
         if (!IsActive)
         {
+            RaiseDomainEvent(
+                new StockReservationFailedDomainEvent(
+                    transactionId,
+                    Id,
+                    sku,
+                    quantity,
+                    ProgramErrors.ProgramNotActive.Description
+                )
+            );
             return ProgramErrors.ProgramNotActive;
         }
 
         Result<ProgramProduct> productResult = GetProduct(sku);
         if (productResult.IsFailure)
         {
+            RaiseDomainEvent(
+                new StockReservationFailedDomainEvent(
+                    transactionId,
+                    Id,
+                    sku,
+                    quantity,
+                    productResult.Error.Description
+                )
+            );
             return productResult.Error;
         }
 
-        return productResult.Value.ReserveStock(quantity);
+        ProgramProduct product = productResult.Value;
+        Result reserveResult = product.ReserveStock(quantity);
+
+        if (reserveResult.IsFailure)
+        {
+            RaiseDomainEvent(
+                new StockReservationFailedDomainEvent(
+                    transactionId,
+                    Id,
+                    sku,
+                    quantity,
+                    reserveResult.Error.Description
+                )
+            );
+            return reserveResult.Error;
+        }
+
+        RaiseDomainEvent(
+            new StockReservedDomainEvent(transactionId, Id, sku, quantity, product.UnitPrice)
+        );
+
+        return Result.Success();
     }
 
     public Result ConfirmStockReservation(string sku, int quantity)
@@ -204,18 +237,14 @@ public class Program : Entity
             return productResult.Error;
         }
 
-        return productResult.Value.ReleaseReservedStock(quantity);
-    }
+        Result releaseResult = productResult.Value.ReleaseReservedStock(quantity);
 
-    public Result RestoreStock(string sku, int quantity)
-    {
-        Result<ProgramProduct> productResult = GetProduct(sku);
-        if (productResult.IsFailure)
+        if (releaseResult.IsFailure)
         {
-            return productResult.Error;
+            return releaseResult.Error;
         }
 
-        return productResult.Value.RestoreStock(quantity);
+        return Result.Success();
     }
 
     public static Result ValidateAssignments(
@@ -274,7 +303,12 @@ public class Program : Entity
             else
             {
                 Result<ProgramProduct> productResult = ProgramProduct.Create(
-                    Id, input.Sku, input.Name, input.UnitPrice, input.Stock);
+                    Id,
+                    input.Sku,
+                    input.Name,
+                    input.UnitPrice,
+                    input.Stock
+                );
 
                 if (productResult.IsFailure)
                 {
@@ -293,7 +327,12 @@ public class Program : Entity
     private Result<ProgramProduct> AddProduct(ProductInput input)
     {
         Result<ProgramProduct> productResult = ProgramProduct.Create(
-            Id, input.Sku, input.Name, input.UnitPrice, input.Stock);
+            Id,
+            input.Sku,
+            input.Name,
+            input.UnitPrice,
+            input.Stock
+        );
 
         if (productResult.IsFailure)
         {
