@@ -12,14 +12,14 @@ using Microsoft.Extensions.Options;
 
 namespace Deep.Common.Application.Outbox;
 
-public abstract class ProcessOutboxJobBase(
+public abstract class OutboxProcessorBase(
     IDbConnectionFactory connectionFactory,
     IServiceScopeFactory serviceScopeFactory,
     IOptions<OutboxOptions> options,
     ILogger logger,
     string schema,
     Assembly applicationAssembly
-)
+) : IOutboxProcessor
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
     private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
@@ -33,7 +33,7 @@ public abstract class ProcessOutboxJobBase(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public async Task ProcessAsync(CancellationToken cancellationToken = default)
+    public async Task<int> ProcessAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Starting outbox processing for schema {Schema}", _schema);
 
@@ -54,7 +54,7 @@ public abstract class ProcessOutboxJobBase(
             {
                 _logger.LogDebug("No outbox messages to process for schema {Schema}", _schema);
                 await transaction.CommitAsync(cancellationToken);
-                return;
+                return 0;
             }
 
             _logger.LogInformation(
@@ -63,13 +63,30 @@ public abstract class ProcessOutboxJobBase(
                 _schema
             );
 
+            List<ProcessedOutboxMessage> processedMessages = [];
+
             foreach (OutboxMessageData message in messages)
             {
-                await ProcessMessageAsync(message, connection, transaction, cancellationToken);
+                string? error = await ProcessMessageAsync(message, cancellationToken);
+                processedMessages.Add(new ProcessedOutboxMessage(message.Id, error));
             }
 
+            await UpdateMessagesAsync(
+                processedMessages,
+                connection,
+                transaction,
+                cancellationToken
+            );
+
             await transaction.CommitAsync(cancellationToken);
-            _logger.LogInformation("Completed outbox processing for schema {Schema}", _schema);
+
+            _logger.LogInformation(
+                "Completed outbox processing for schema {Schema}. Processed {Count} messages",
+                _schema,
+                messages.Count
+            );
+
+            return messages.Count;
         }
         catch (Exception ex)
         {
@@ -102,15 +119,11 @@ public abstract class ProcessOutboxJobBase(
         return messages.ToList();
     }
 
-    private async Task ProcessMessageAsync(
+    private async Task<string?> ProcessMessageAsync(
         OutboxMessageData message,
-        DbConnection connection,
-        DbTransaction transaction,
         CancellationToken cancellationToken
     )
     {
-        string? error = null;
-
         try
         {
             Type? domainEventType = DomainEventHandlersFactory.GetDomainEventType(
@@ -122,29 +135,31 @@ public abstract class ProcessOutboxJobBase(
 
             if (domainEventType is null)
             {
-                error = $"Domain event type not found: {message.Type}";
                 _logger.LogWarning("Domain event type not found: {Type}", message.Type);
+                return $"Domain event type not found: {message.Type}";
             }
-            else if (
-                JsonSerializer.Deserialize(message.Content, domainEventType, JsonSerializerOptions)
-                is IDomainEvent domainEvent
-            )
+
+            object? deserialized = JsonSerializer.Deserialize(
+                message.Content,
+                domainEventType,
+                JsonSerializerOptions
+            );
+
+            if (deserialized is not IDomainEvent domainEvent)
             {
-                await ExecuteHandlersAsync(domainEvent, domainEventType, cancellationToken);
-            }
-            else
-            {
-                error = $"Failed to deserialize domain event: {message.Type}";
                 _logger.LogWarning("Failed to deserialize domain event: {Type}", message.Type);
+                return $"Failed to deserialize domain event: {message.Type}";
             }
+
+            await ExecuteHandlersAsync(domainEvent, domainEventType, cancellationToken);
+
+            return null;
         }
         catch (Exception ex)
         {
-            error = ex.Message;
             _logger.LogError(ex, "Error processing outbox message {MessageId}", message.Id);
+            return ex.ToString();
         }
-
-        await UpdateMessageAsync(message.Id, error, connection, transaction);
     }
 
     private async Task ExecuteHandlersAsync(
@@ -155,42 +170,54 @@ public abstract class ProcessOutboxJobBase(
     {
         using IServiceScope scope = _serviceScopeFactory.CreateScope();
 
-        IEnumerable<IDomainEventHandler> handlers = DomainEventHandlersFactory.GetHandlers(
-            domainEventType,
-            scope.ServiceProvider,
-            _applicationAssembly
-        );
+        var handlers = DomainEventHandlersFactory
+            .GetHandlers(domainEventType, scope.ServiceProvider, _applicationAssembly)
+            .ToList();
 
-        foreach (IDomainEventHandler handler in handlers)
+        if (handlers.Count == 0)
         {
-            await handler.Handle(domainEvent, cancellationToken);
+            return;
         }
+
+        Task[] tasks = handlers
+            .Select(handler => handler.Handle(domainEvent, cancellationToken))
+            .ToArray();
+
+        await Task.WhenAll(tasks);
     }
 
-    private async Task UpdateMessageAsync(
-        Guid messageId,
-        string? error,
+    private async Task UpdateMessagesAsync(
+        IReadOnlyCollection<ProcessedOutboxMessage> messages,
         DbConnection connection,
-        DbTransaction transaction
+        DbTransaction transaction,
+        CancellationToken cancellationToken
     )
     {
+        DateTime processedAtUtc = DateTime.UtcNow;
+
         string sql = $"""
             UPDATE {_schema}.outbox_messages
-            SET processed_at_utc = @ProcessedAtUtc, error = @Error
+            SET processed_at_utc = @ProcessedAtUtc,
+                error = @Error
             WHERE id = @Id;
             """;
 
         await connection.ExecuteAsync(
-            sql,
-            new
-            {
-                Id = messageId,
-                ProcessedAtUtc = DateTime.UtcNow,
-                Error = error,
-            },
-            transaction
+            new CommandDefinition(
+                sql,
+                messages.Select(message => new
+                {
+                    message.Id,
+                    ProcessedAtUtc = processedAtUtc,
+                    message.Error,
+                }),
+                transaction,
+                cancellationToken: cancellationToken
+            )
         );
     }
 
     private sealed record OutboxMessageData(Guid Id, string Type, string Content);
+
+    private sealed record ProcessedOutboxMessage(Guid Id, string? Error);
 }

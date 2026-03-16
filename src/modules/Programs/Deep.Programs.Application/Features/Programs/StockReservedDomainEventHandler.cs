@@ -5,13 +5,13 @@ using Deep.Programs.IntegrationEvents;
 
 namespace Deep.Programs.Application.Features.Programs;
 
-internal sealed class StockReservedDomainEventHandler(
-    IEventBus eventBus
-) : DomainEventHandler<StockReservedDomainEvent>
+internal sealed class StockReservedDomainEventHandler(IEventBus eventBus)
+    : DomainEventHandler<StockReservedDomainEvent>
 {
     public override async Task Handle(
         StockReservedDomainEvent domainEvent,
-        CancellationToken cancellationToken = default) =>
+        CancellationToken cancellationToken = default
+    ) =>
         await eventBus.PublishAsync(
             new StockReservedIntegrationEvent(
                 Guid.CreateVersion7(),
@@ -20,6 +20,8 @@ internal sealed class StockReservedDomainEventHandler(
                 domainEvent.ProgramId,
                 domainEvent.ProductSku,
                 domainEvent.Quantity,
-                domainEvent.UnitPrice),
-            cancellationToken);
+                domainEvent.UnitPrice
+            ),
+            cancellationToken
+        );
 }

@@ -3,17 +3,20 @@ using System.Text.Json;
 using Dapper;
 using Deep.Common.Application.Dapper;
 using Deep.Common.Application.IntegrationEvents;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace Deep.Common.Application.Inbox;
 
-public abstract class InboxWriterBase(
-    IDbConnectionFactory connectionFactory,
+public abstract class IntegrationEventConsumerBase<TIntegrationEvent>(
+    IDbConnectionFactory dbConnectionFactory,
     ILogger logger,
-    string schema
-)
+    string schema,
+    IInboxNotifier inboxNotifier
+) : IConsumer<TIntegrationEvent>
+    where TIntegrationEvent : class, IIntegrationEvent
 {
-    private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
+    private readonly IDbConnectionFactory _dbConnectionFactory = dbConnectionFactory;
     private readonly ILogger _logger = logger;
     private readonly string _schema = schema;
 
@@ -23,10 +26,11 @@ public abstract class InboxWriterBase(
         WriteIndented = false,
     };
 
-    public async Task WriteAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent)
-        where TIntegrationEvent : IIntegrationEvent
+    public async Task Consume(ConsumeContext<TIntegrationEvent> context)
     {
-        await using DbConnection connection = await _connectionFactory.OpenConnectionAsync();
+        TIntegrationEvent integrationEvent = context.Message;
+
+        await using DbConnection connection = await _dbConnectionFactory.OpenConnectionAsync();
 
         string sql = $"""
             INSERT INTO {_schema}.inbox_messages (id, type, content, occurred_at_utc)
@@ -39,7 +43,7 @@ public abstract class InboxWriterBase(
             new
             {
                 integrationEvent.Id,
-                Type = integrationEvent.GetType().AssemblyQualifiedName,
+                Type = integrationEvent.GetType().Name,
                 Content = JsonSerializer.Serialize(
                     integrationEvent,
                     integrationEvent.GetType(),
@@ -51,9 +55,11 @@ public abstract class InboxWriterBase(
 
         if (affectedRows > 0)
         {
+            inboxNotifier.Notify();
+
             _logger.LogDebug(
                 "Wrote integration event {EventType} with Id {EventId} to inbox in schema {Schema}",
-                integrationEvent.GetType().Name,
+                typeof(TIntegrationEvent).Name,
                 integrationEvent.Id,
                 _schema
             );
@@ -62,7 +68,7 @@ public abstract class InboxWriterBase(
         {
             _logger.LogDebug(
                 "Integration event {EventType} with Id {EventId} already exists in inbox in schema {Schema}",
-                integrationEvent.GetType().Name,
+                typeof(TIntegrationEvent).Name,
                 integrationEvent.Id,
                 _schema
             );

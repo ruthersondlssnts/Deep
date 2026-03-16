@@ -6,6 +6,7 @@ using Deep.Common.Application.Inbox;
 using Deep.Common.Application.IntegrationEvents;
 using Deep.Common.Application.Outbox;
 using MassTransit;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
@@ -20,19 +21,6 @@ public static class ModuleRegistrationHelper
     )
     {
         services.AddEndpointExtension(assembly);
-        return services;
-    }
-
-    public static IServiceCollection AddOutboxInboxJobs<TOutboxJob, TInboxJob, TInboxWriter>(
-        this IServiceCollection services
-    )
-        where TOutboxJob : ProcessOutboxJobBase
-        where TInboxJob : ProcessInboxJobBase
-        where TInboxWriter : InboxWriterBase
-    {
-        services.AddScoped<TOutboxJob>();
-        services.AddScoped<TInboxJob>();
-        services.AddScoped<TInboxWriter>();
         return services;
     }
 
@@ -51,16 +39,19 @@ public static class ModuleRegistrationHelper
         return services;
     }
 
-    public static IServiceCollection AddPostgresDbContext<TDbContext>(
+    public static IServiceCollection AddPostgresDbContext<TDbContext, TOutboxInterceptor>(
         this IServiceCollection services,
         string schema,
         IConfiguration configuration
     )
         where TDbContext : Microsoft.EntityFrameworkCore.DbContext
+        where TOutboxInterceptor : IInterceptor
     {
         services.AddDbContext<TDbContext>(
-            (sp, options) => Postgres.ConfigureOptions(options, configuration, schema, sp)
+            (sp, options) =>
+                Postgres.ConfigureOptions<TOutboxInterceptor>(options, configuration, schema, sp)
         );
+
         return services;
     }
 

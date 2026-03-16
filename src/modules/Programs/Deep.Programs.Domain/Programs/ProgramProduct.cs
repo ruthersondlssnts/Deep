@@ -21,7 +21,8 @@ public class ProgramProduct
         string sku,
         string productName,
         decimal unitPrice,
-        int stock)
+        int stock
+    )
     {
         if (string.IsNullOrWhiteSpace(productName))
         {
@@ -51,7 +52,7 @@ public class ProgramProduct
             ProductName = productName.Trim(),
             UnitPrice = unitPrice,
             Stock = stock,
-            ReservedStock = 0
+            ReservedStock = 0,
         };
     }
 

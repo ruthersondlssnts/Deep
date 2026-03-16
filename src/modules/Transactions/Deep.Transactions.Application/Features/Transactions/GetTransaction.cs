@@ -16,7 +16,8 @@ public static class GetTransaction
         Guid CustomerId,
         string ProductSku,
         int Quantity,
-        decimal TotalAmount);
+        decimal TotalAmount
+    );
 
     public sealed class Handler(TransactionsDbContext context) : IRequestHandler<Query, Response>
     {
@@ -38,7 +39,8 @@ public static class GetTransaction
                 transaction.CustomerId,
                 transaction.ProductSku,
                 transaction.Quantity,
-                transaction.TotalAmount);
+                transaction.TotalAmount
+            );
         }
     }
 }

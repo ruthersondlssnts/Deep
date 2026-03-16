@@ -6,7 +6,8 @@ public sealed class PaymentCompletedIntegrationEvent(
     Guid id,
     DateTime occurredAtUtc,
     Guid transactionId,
-    string paymentReference) : IntegrationEvent(id, occurredAtUtc)
+    string paymentReference
+) : IntegrationEvent(id, occurredAtUtc)
 {
     public Guid TransactionId { get; } = transactionId;
     public string PaymentReference { get; } = paymentReference;

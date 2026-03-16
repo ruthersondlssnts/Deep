@@ -1,6 +1,5 @@
 using Deep.Api.Extensions;
 using Deep.Common.Application.Api.Endpoints;
-using Deep.Common.Application.BackgroundJobs;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -20,8 +19,12 @@ string? redisConnectionString = builder.Configuration.GetConnectionString(redis)
 builder
     .Services.AddOpenApiAndSwagger()
     .AddExceptionAndProblemDetails()
-    .AddHangfireInternal(builder.Configuration)
-    .AddModules(databaseConnectionString, mqConnectionString, redisConnectionString, builder.Configuration);
+    .AddModules(
+        databaseConnectionString,
+        mqConnectionString,
+        redisConnectionString,
+        builder.Configuration
+    );
 
 builder.ApplyAspire(sql, mongo, broker, redis);
 
@@ -33,15 +36,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.ApplyMigrations();
     await app.SeedDevelopmentDataAsync();
-    app.UseHangfireInternal(enableDashboard: true);
 }
 else
 {
-    app.UseHangfireInternal(enableDashboard: false);
     app.UseExceptionHandler();
 }
 
-app.UseInboxOutboxJobs();
 app.MapDefaultEndpoints();
 app.UseHttpsRedirection();
 app.UseAuthentication();

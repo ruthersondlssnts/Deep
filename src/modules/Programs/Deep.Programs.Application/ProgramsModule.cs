@@ -2,9 +2,9 @@ using Deep.Common.Application;
 using Deep.Common.Application.Database;
 using Deep.Common.Application.Inbox;
 using Deep.Common.Application.Outbox;
-using Deep.Programs.Application.BackgroundJobs;
 using Deep.Programs.Application.Data;
 using Deep.Programs.Application.Inbox;
+using Deep.Programs.Application.Outbox;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +27,10 @@ public static class ProgramsModule
             .AddValidation()
             .AddDomainEventHandlers(AssemblyReference.Assembly, Schemas.Programs)
             .AddIntegrationEventHandlers(AssemblyReference.Assembly, Schemas.Programs)
-            .AddPostgresDbContext<ProgramsDbContext>(Schemas.Programs, configuration)
+            .AddPostgresDbContext<ProgramsDbContext, ProgramsInsertOutboxMessagesInterceptor>(
+                Schemas.Programs,
+                configuration
+            )
             .AddEndpoints(AssemblyReference.Assembly)
             .AddMongoDb<MongoDbContext>(
                 "deep",
@@ -36,11 +39,8 @@ public static class ProgramsModule
                         new GuidSerializer(GuidRepresentation.Standard)
                     )
             )
-            .AddOutboxInboxJobs<
-                ProgramsProcessOutboxJob,
-                ProgramsProcessInboxJob,
-                ProgramsInboxWriter
-            >();
+            .AddProgramsOutbox()
+            .AddProgramsInbox();
 
         services.Configure<OutboxOptions>(configuration.GetSection("Programs:Outbox"));
         services.Configure<InboxOptions>(configuration.GetSection("Programs:Inbox"));
@@ -57,4 +57,23 @@ public static class ProgramsModule
             registrationConfigurator,
             typeof(ProgramsIntegrationEventConsumer<>)
         );
+
+    public static IServiceCollection AddProgramsOutbox(this IServiceCollection services)
+    {
+        services.AddSingleton<ProgramsOutboxNotifier>();
+        services.AddScoped<ProgramsOutboxProcessor>();
+        services.AddScoped<ProgramsInsertOutboxMessagesInterceptor>();
+        services.AddHostedService<ProgramsOutboxBackgroundService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddProgramsInbox(this IServiceCollection services)
+    {
+        services.AddSingleton<ProgramsInboxNotifier>();
+        services.AddScoped<ProgramsInboxProcessor>();
+        services.AddHostedService<ProgramsInboxBackgroundService>();
+
+        return services;
+    }
 }

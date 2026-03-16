@@ -9,7 +9,8 @@ public sealed class TransactionFailedIntegrationEvent(
     Guid programId,
     string productSku,
     int quantity,
-    string reason) : IntegrationEvent(id, occurredAtUtc)
+    string reason
+) : IntegrationEvent(id, occurredAtUtc)
 {
     public Guid TransactionId { get; } = transactionId;
     public Guid ProgramId { get; } = programId;

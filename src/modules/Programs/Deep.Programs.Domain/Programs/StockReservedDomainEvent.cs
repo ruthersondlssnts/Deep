@@ -7,7 +7,8 @@ public sealed class StockReservedDomainEvent(
     Guid programId,
     string productSku,
     int quantity,
-    decimal unitPrice) : DomainEvent
+    decimal unitPrice
+) : DomainEvent
 {
     public Guid TransactionId { get; } = transactionId;
     public Guid ProgramId { get; } = programId;

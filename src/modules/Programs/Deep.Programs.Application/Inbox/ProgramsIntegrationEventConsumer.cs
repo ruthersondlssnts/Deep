@@ -8,6 +8,13 @@ namespace Deep.Programs.Application.Inbox;
 
 public sealed class ProgramsIntegrationEventConsumer<TIntegrationEvent>(
     IDbConnectionFactory dbConnectionFactory,
-    ILogger<ProgramsIntegrationEventConsumer<TIntegrationEvent>> logger
-) : IntegrationEventConsumerBase<TIntegrationEvent>(dbConnectionFactory, logger, Schemas.Programs)
+    ILogger<ProgramsIntegrationEventConsumer<TIntegrationEvent>> logger,
+    ProgramsInboxNotifier inboxNotifier
+)
+    : IntegrationEventConsumerBase<TIntegrationEvent>(
+        dbConnectionFactory,
+        logger,
+        Schemas.Programs,
+        inboxNotifier
+    )
     where TIntegrationEvent : class, IIntegrationEvent;

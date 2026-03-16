@@ -62,8 +62,8 @@ public static class UpdateProgram
                 return ProgramErrors.ProgramUserNotFound;
             }
 
-            var products = c.Products
-                .Select(p => new ProductInput(p.Sku, p.Name, p.UnitPrice, p.Stock))
+            var products = c
+                .Products.Select(p => new ProductInput(p.Sku, p.Name, p.UnitPrice, p.Stock))
                 .ToList();
 
             Result updateResult = program.UpdateDetails(
@@ -151,7 +151,10 @@ public static class UpdateProgram
                     ) =>
                     {
                         Result<Response> result = await handler.Handle(
-                            command with { ProgramId = programId },
+                            command with
+                            {
+                                ProgramId = programId,
+                            },
                             ct
                         );
 

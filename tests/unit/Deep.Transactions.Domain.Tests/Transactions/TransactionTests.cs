@@ -20,7 +20,13 @@ public class TransactionTests
 
         // Act
         Result<TransactionEntity> result = TransactionEntity.Create(
-            programId, customerId, ValidSku, ValidProductName, ValidQuantity, ValidUnitPrice);
+            programId,
+            customerId,
+            ValidSku,
+            ValidProductName,
+            ValidQuantity,
+            ValidUnitPrice
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -44,9 +50,21 @@ public class TransactionTests
 
         // Act
         Result<TransactionEntity> result1 = TransactionEntity.Create(
-            programId, customerId, ValidSku, ValidProductName, ValidQuantity, ValidUnitPrice);
+            programId,
+            customerId,
+            ValidSku,
+            ValidProductName,
+            ValidQuantity,
+            ValidUnitPrice
+        );
         Result<TransactionEntity> result2 = TransactionEntity.Create(
-            programId, customerId, ValidSku, ValidProductName, ValidQuantity, ValidUnitPrice);
+            programId,
+            customerId,
+            ValidSku,
+            ValidProductName,
+            ValidQuantity,
+            ValidUnitPrice
+        );
 
         // Assert
         result1.Value.Id.Should().NotBe(result2.Value.Id);
@@ -61,7 +79,13 @@ public class TransactionTests
 
         // Act
         Result<TransactionEntity> result = TransactionEntity.Create(
-            programId, customerId, ValidSku, ValidProductName, ValidQuantity, ValidUnitPrice);
+            programId,
+            customerId,
+            ValidSku,
+            ValidProductName,
+            ValidQuantity,
+            ValidUnitPrice
+        );
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -82,9 +106,21 @@ public class TransactionTests
 
         // Act
         Result<TransactionEntity> result1 = TransactionEntity.Create(
-            programId, customer1Id, ValidSku, ValidProductName, ValidQuantity, ValidUnitPrice);
+            programId,
+            customer1Id,
+            ValidSku,
+            ValidProductName,
+            ValidQuantity,
+            ValidUnitPrice
+        );
         Result<TransactionEntity> result2 = TransactionEntity.Create(
-            programId, customer2Id, ValidSku, ValidProductName, ValidQuantity, ValidUnitPrice);
+            programId,
+            customer2Id,
+            ValidSku,
+            ValidProductName,
+            ValidQuantity,
+            ValidUnitPrice
+        );
 
         // Assert
         result1.Value.CustomerId.Should().Be(customer1Id);
@@ -101,7 +137,13 @@ public class TransactionTests
 
         // Act
         Result<TransactionEntity> result = TransactionEntity.Create(
-            programId, customerId, ValidSku, ValidProductName, 0, ValidUnitPrice);
+            programId,
+            customerId,
+            ValidSku,
+            ValidProductName,
+            0,
+            ValidUnitPrice
+        );
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -117,7 +159,13 @@ public class TransactionTests
 
         // Act
         Result<TransactionEntity> result = TransactionEntity.Create(
-            programId, customerId, ValidSku, ValidProductName, ValidQuantity, -10.00m);
+            programId,
+            customerId,
+            ValidSku,
+            ValidProductName,
+            ValidQuantity,
+            -10.00m
+        );
 
         // Assert
         result.IsFailure.Should().BeTrue();

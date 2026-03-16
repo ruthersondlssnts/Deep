@@ -6,19 +6,25 @@ using Dapper;
 using Deep.Common.Application.Dapper;
 using Deep.Common.Application.IntegrationEvents;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Deep.Common.Application.Inbox;
 
-public abstract class ProcessInboxJobBase(
+public interface IInboxProcessor
+{
+    Task<int> ProcessAsync(CancellationToken cancellationToken = default);
+}
+
+public abstract class InboxProcessorBase(
     IDbConnectionFactory connectionFactory,
     IServiceScopeFactory serviceScopeFactory,
     IOptions<InboxOptions> options,
     ILogger logger,
     string schema,
     Assembly presentationAssembly
-)
+) : IInboxProcessor
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
     private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
@@ -32,7 +38,7 @@ public abstract class ProcessInboxJobBase(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public async Task ProcessAsync(CancellationToken cancellationToken = default)
+    public async Task<int> ProcessAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Starting inbox processing for schema {Schema}", _schema);
 
@@ -51,28 +57,27 @@ public abstract class ProcessInboxJobBase(
 
             if (messages.Count == 0)
             {
-                _logger.LogDebug("No inbox messages to process for schema {Schema}", _schema);
                 await transaction.CommitAsync(cancellationToken);
-                return;
+                return 0;
             }
 
-            _logger.LogInformation(
-                "Processing {Count} inbox messages for schema {Schema}",
-                messages.Count,
-                _schema
-            );
+            List<(Guid Id, string? Error)> results = [];
 
             foreach (InboxMessageData message in messages)
             {
-                await ProcessMessageAsync(message, connection, transaction, cancellationToken);
+                string? error = await ProcessMessageAsync(message, cancellationToken);
+                results.Add((message.Id, error));
             }
 
+            await UpdateMessagesAsync(results, connection, transaction);
+
             await transaction.CommitAsync(cancellationToken);
-            _logger.LogInformation("Completed inbox processing for schema {Schema}", _schema);
+
+            return messages.Count;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during inbox processing for schema {Schema}", _schema);
+            _logger.LogError(ex, "Inbox processing failed for schema {Schema}", _schema);
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
@@ -101,15 +106,11 @@ public abstract class ProcessInboxJobBase(
         return messages.ToList();
     }
 
-    private async Task ProcessMessageAsync(
+    private async Task<string?> ProcessMessageAsync(
         InboxMessageData message,
-        DbConnection connection,
-        DbTransaction transaction,
         CancellationToken cancellationToken
     )
     {
-        string? error = null;
-
         try
         {
             Type? integrationEventType = IntegrationEventHandlersFactory.GetIntegrationEventType(
@@ -121,37 +122,29 @@ public abstract class ProcessInboxJobBase(
 
             if (integrationEventType is null)
             {
-                error = $"Integration event type not found: {message.Type}";
-                _logger.LogWarning("Integration event type not found: {Type}", message.Type);
+                return $"Integration event type not found: {message.Type}";
             }
-            else if (
-                JsonSerializer.Deserialize(
-                    message.Content,
-                    integrationEventType,
-                    JsonSerializerOptions
-                )
-                is IIntegrationEvent integrationEvent
-            )
+
+            object? deserialized = JsonSerializer.Deserialize(
+                message.Content,
+                integrationEventType,
+                JsonSerializerOptions
+            );
+
+            if (deserialized is not IIntegrationEvent integrationEvent)
             {
-                await ExecuteHandlersAsync(
-                    integrationEvent,
-                    integrationEventType,
-                    cancellationToken
-                );
+                return $"Failed to deserialize integration event: {message.Type}";
             }
-            else
-            {
-                error = $"Failed to deserialize integration event: {message.Type}";
-                _logger.LogWarning("Failed to deserialize integration event: {Type}", message.Type);
-            }
+
+            await ExecuteHandlersAsync(integrationEvent, integrationEventType, cancellationToken);
+
+            return null;
         }
         catch (Exception ex)
         {
-            error = ex.Message;
-            _logger.LogError(ex, "Error processing inbox message {MessageId}", message.Id);
+            _logger.LogError(ex, "Error processing inbox message {Id}", message.Id);
+            return ex.ToString();
         }
-
-        await UpdateMessageAsync(message.Id, error, connection, transaction);
     }
 
     private async Task ExecuteHandlersAsync(
@@ -169,36 +162,97 @@ public abstract class ProcessInboxJobBase(
                 _presentationAssembly
             );
 
-        foreach (IIntegrationEventHandler handler in handlers)
-        {
-            await handler.Handle(integrationEvent, cancellationToken);
-        }
+        Task[] tasks = handlers
+            .Select(handler => handler.Handle(integrationEvent, cancellationToken))
+            .ToArray();
+
+        await Task.WhenAll(tasks);
     }
 
-    private async Task UpdateMessageAsync(
-        Guid messageId,
-        string? error,
+    private async Task UpdateMessagesAsync(
+        IReadOnlyCollection<(Guid Id, string? Error)> messages,
         DbConnection connection,
         DbTransaction transaction
     )
     {
         string sql = $"""
             UPDATE {_schema}.inbox_messages
-            SET processed_at_utc = @ProcessedAtUtc, error = @Error
+            SET processed_at_utc = @ProcessedAtUtc,
+                error = @Error
             WHERE id = @Id;
             """;
 
         await connection.ExecuteAsync(
             sql,
-            new
+            messages.Select(m => new
             {
-                Id = messageId,
+                m.Id,
                 ProcessedAtUtc = DateTime.UtcNow,
-                Error = error,
-            },
+                m.Error,
+            }),
             transaction
         );
     }
 
     private sealed record InboxMessageData(Guid Id, string Type, string Content);
+}
+
+public abstract class InboxBackgroundService<TProcessor>(
+    IServiceScopeFactory scopeFactory,
+    IInboxNotifier notifier,
+    IOptions<InboxOptions> options,
+    ILogger logger,
+    string moduleName
+) : BackgroundService
+    where TProcessor : class, IInboxProcessor
+{
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+    private readonly IInboxNotifier _notifier = notifier;
+    private readonly InboxOptions _options = options.Value;
+    private readonly ILogger _logger = logger;
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Inbox worker started for module {Module}", moduleName);
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                var delayTask = Task.Delay(
+                    TimeSpan.FromSeconds(_options.IntervalInSeconds),
+                    stoppingToken
+                );
+
+                Task signalTask = _notifier.WaitAsync(stoppingToken);
+
+                await Task.WhenAny(delayTask, signalTask);
+
+                await DrainAsync(stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Inbox worker failure");
+
+                await Task.Delay(TimeSpan.FromSeconds(_options.ErrorDelayInSeconds), stoppingToken);
+            }
+        }
+    }
+
+    private async Task DrainAsync(CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            using IServiceScope scope = _scopeFactory.CreateScope();
+
+            TProcessor processor = scope.ServiceProvider.GetRequiredService<TProcessor>();
+
+            int processed = await processor.ProcessAsync(token);
+
+            if (processed == 0)
+            {
+                return;
+            }
+        }
+    }
 }

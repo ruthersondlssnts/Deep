@@ -48,7 +48,8 @@ public static class CreateTransaction
                 command.ProductSku,
                 command.ProductName,
                 command.Quantity,
-                command.UnitPrice);
+                command.UnitPrice
+            );
 
             if (transactionResult.IsFailure)
             {
@@ -76,7 +77,11 @@ public static class CreateTransaction
                         Result<Response> result = await handler.Handle(command, ct);
 
                         return result.Match(
-                            () => Results.Created($"/transactions/{result.Value.TransactionId}", result.Value),
+                            () =>
+                                Results.Created(
+                                    $"/transactions/{result.Value.TransactionId}",
+                                    result.Value
+                                ),
                             ApiResults.Problem
                         );
                     }

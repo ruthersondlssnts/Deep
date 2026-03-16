@@ -49,7 +49,9 @@ public static class ServiceCollectionExtensions
     {
         services.AddMassTransit(configurator =>
         {
-            foreach (Action<IRegistrationConfigurator, string?> configureConsumer in configureConsumers)
+            foreach (
+                Action<IRegistrationConfigurator, string?> configureConsumer in configureConsumers
+            )
             {
                 configureConsumer(configurator, redisConnectionString);
             }

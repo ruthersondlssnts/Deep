@@ -1,8 +1,8 @@
 using Deep.Accounts.Application.Authentication;
 using Deep.Accounts.Application.Authorization;
-using Deep.Accounts.Application.BackgroundJobs;
 using Deep.Accounts.Application.Data;
 using Deep.Accounts.Application.Inbox;
+using Deep.Accounts.Application.Outbox;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Application;
 using Deep.Common.Application.Authorization;
@@ -29,13 +29,13 @@ public static class AccountsModule
             .AddValidation()
             .AddDomainEventHandlers(AssemblyReference.Assembly, Schemas.Accounts)
             .AddIntegrationEventHandlers(AssemblyReference.Assembly, Schemas.Accounts)
-            .AddPostgresDbContext<AccountsDbContext>(Schemas.Accounts, configuration)
+            .AddPostgresDbContext<AccountsDbContext, AccountsInsertOutboxMessagesInterceptor>(
+                Schemas.Accounts,
+                configuration
+            )
             .AddEndpoints(AssemblyReference.Assembly)
-            .AddOutboxInboxJobs<
-                AccountsProcessOutboxJob,
-                AccountsProcessInboxJob,
-                AccountsInboxWriter
-            >();
+            .AddAccountsOutbox()
+            .AddAccountsInbox();
 
         services.Configure<OutboxOptions>(configuration.GetSection("Accounts:Outbox"));
         services.Configure<InboxOptions>(configuration.GetSection("Accounts:Inbox"));
@@ -61,4 +61,23 @@ public static class AccountsModule
             registrationConfigurator,
             typeof(AccountsIntegrationEventConsumer<>)
         );
+
+    public static IServiceCollection AddAccountsOutbox(this IServiceCollection services)
+    {
+        services.AddSingleton<AccountsOutboxNotifier>();
+        services.AddScoped<AccountsOutboxProcessor>();
+        services.AddScoped<AccountsInsertOutboxMessagesInterceptor>();
+        services.AddHostedService<AccountsOutboxBackgroundService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddAccountsInbox(this IServiceCollection services)
+    {
+        services.AddSingleton<AccountsInboxNotifier>();
+        services.AddScoped<AccountsInboxProcessor>();
+        services.AddHostedService<AccountsInboxBackgroundService>();
+
+        return services;
+    }
 }

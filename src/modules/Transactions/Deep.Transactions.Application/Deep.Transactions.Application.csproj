@@ -5,7 +5,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\Deep.Common.Application\Deep.Common.Application.csproj" />
-    <ProjectReference Include="..\..\..\..\Deep.Programs.IntegrationEvents\Deep.Programs.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\Programs\Deep.Programs.IntegrationEvents\Deep.Programs.IntegrationEvents.csproj" />
     <ProjectReference Include="..\Deep.Transactions.Domain\Deep.Transactions.Domain.csproj" />
     <ProjectReference Include="..\Deep.Transactions.IntegrationEvents\Deep.Transactions.IntegrationEvents.csproj" />
   </ItemGroup>

@@ -7,8 +7,8 @@ using Deep.Common.Application.Database;
 using Deep.Common.Application.IntegrationEvents;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
-using Deep.Transactions.Application.BackgroundJobs;
-using Deep.Transactions.Application.Data;
+using Deep.Transactions.Application.Inbox;
+using Deep.Transactions.Application.Outbox;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Transactions.Application.Tests;
@@ -60,8 +60,8 @@ public abstract class TransactionsIntegrationTestBase
     protected async Task ProcessOutboxAsync()
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        TransactionsProcessOutboxJob job =
-            scope.ServiceProvider.GetRequiredService<TransactionsProcessOutboxJob>();
+        TransactionsOutboxProcessor job =
+            scope.ServiceProvider.GetRequiredService<TransactionsOutboxProcessor>();
         await job.ProcessAsync();
     }
 
@@ -126,8 +126,8 @@ public abstract class TransactionsIntegrationTestBase
     protected async Task ProcessInboxAsync()
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        TransactionsProcessInboxJob job =
-            scope.ServiceProvider.GetRequiredService<TransactionsProcessInboxJob>();
+        TransactionsInboxProcessor job =
+            scope.ServiceProvider.GetRequiredService<TransactionsInboxProcessor>();
         await job.ProcessAsync();
     }
 

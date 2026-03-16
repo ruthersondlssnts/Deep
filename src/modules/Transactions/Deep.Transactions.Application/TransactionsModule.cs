@@ -2,10 +2,10 @@ using Deep.Common.Application;
 using Deep.Common.Application.Database;
 using Deep.Common.Application.Inbox;
 using Deep.Common.Application.Outbox;
-using Deep.Transactions.Application.BackgroundJobs;
 using Deep.Transactions.Application.Data;
 using Deep.Transactions.Application.Features.PurchaseSaga;
 using Deep.Transactions.Application.Inbox;
+using Deep.Transactions.Application.Outbox;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,13 +25,13 @@ public static class TransactionsModule
             .AddValidation()
             .AddDomainEventHandlers(AssemblyReference.Assembly, Schemas.Transactions)
             .AddIntegrationEventHandlers(AssemblyReference.Assembly, Schemas.Transactions)
-            .AddPostgresDbContext<TransactionsDbContext>(Schemas.Transactions, configuration)
+            .AddPostgresDbContext<
+                TransactionsDbContext,
+                TransactionsInsertOutboxMessagesInterceptor
+            >(Schemas.Transactions, configuration)
             .AddEndpoints(AssemblyReference.Assembly)
-            .AddOutboxInboxJobs<
-                TransactionsProcessOutboxJob,
-                TransactionsProcessInboxJob,
-                TransactionsInboxWriter
-            >();
+            .AddTransactionsInbox()
+            .AddTransactionsOutbox();
 
         services.Configure<OutboxOptions>(configuration.GetSection("Transactions:Outbox"));
         services.Configure<InboxOptions>(configuration.GetSection("Transactions:Inbox"));
@@ -62,5 +62,24 @@ public static class TransactionsModule
                 .AddSagaStateMachine<PurchaseSaga, PurchaseSagaState>()
                 .RedisRepository(redisConnectionString);
         }
+    }
+
+    public static IServiceCollection AddTransactionsOutbox(this IServiceCollection services)
+    {
+        services.AddSingleton<TransactionsOutboxNotifier>();
+        services.AddScoped<TransactionsOutboxProcessor>();
+        services.AddScoped<TransactionsInsertOutboxMessagesInterceptor>();
+        services.AddHostedService<TransactionsOutboxBackgroundService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddTransactionsInbox(this IServiceCollection services)
+    {
+        services.AddSingleton<TransactionsInboxNotifier>();
+        services.AddScoped<TransactionsInboxProcessor>();
+        services.AddHostedService<TransactionsInboxBackgroundService>();
+
+        return services;
     }
 }

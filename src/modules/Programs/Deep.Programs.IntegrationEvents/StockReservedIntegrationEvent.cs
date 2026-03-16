@@ -1,4 +1,4 @@
-using Deep.Common.Application.IntegrationEvents;
+﻿using Deep.Common.Application.IntegrationEvents;
 
 namespace Deep.Programs.IntegrationEvents;
 
@@ -9,7 +9,8 @@ public sealed class StockReservedIntegrationEvent(
     Guid programId,
     string productSku,
     int quantity,
-    decimal unitPrice) : IntegrationEvent(id, occurredAtUtc)
+    decimal unitPrice
+) : IntegrationEvent(id, occurredAtUtc)
 {
     public Guid TransactionId { get; } = transactionId;
     public Guid ProgramId { get; } = programId;

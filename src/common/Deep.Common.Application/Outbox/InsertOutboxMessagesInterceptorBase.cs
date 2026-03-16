@@ -5,8 +5,13 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Deep.Common.Application.Outbox;
 
-public sealed class InsertOutboxMessagesInterceptor : SaveChangesInterceptor
+public abstract class InsertOutboxMessagesInterceptorBase(IOutboxNotifier outboxNotifier)
+    : SaveChangesInterceptor
 {
+    private readonly IOutboxNotifier _outboxNotifier = outboxNotifier;
+
+    private bool _hasMessages;
+
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -21,13 +26,27 @@ public sealed class InsertOutboxMessagesInterceptor : SaveChangesInterceptor
     {
         if (eventData.Context is not null)
         {
-            InsertOutboxMessages(eventData.Context);
+            _hasMessages = InsertOutboxMessages(eventData.Context);
         }
 
         return await base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    private static void InsertOutboxMessages(DbContext context)
+    public override ValueTask<int> SavedChangesAsync(
+        SaveChangesCompletedEventData eventData,
+        int result,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (_hasMessages)
+        {
+            _outboxNotifier.Notify();
+        }
+
+        return base.SavedChangesAsync(eventData, result, cancellationToken);
+    }
+
+    private static bool InsertOutboxMessages(DbContext context)
     {
         var outboxMessages = context
             .ChangeTracker.Entries<Entity>()
@@ -55,9 +74,10 @@ public sealed class InsertOutboxMessagesInterceptor : SaveChangesInterceptor
 
         if (outboxMessages.Count == 0)
         {
-            return;
+            return false;
         }
 
         context.Set<OutboxMessage>().AddRange(outboxMessages);
+        return true;
     }
 }

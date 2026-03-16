@@ -7,7 +7,8 @@ public sealed class TransactionCancelledDomainEvent(
     Guid programId,
     string productSku,
     int quantity,
-    string reason) : DomainEvent
+    string reason
+) : DomainEvent
 {
     public Guid TransactionId { get; } = transactionId;
     public Guid ProgramId { get; } = programId;

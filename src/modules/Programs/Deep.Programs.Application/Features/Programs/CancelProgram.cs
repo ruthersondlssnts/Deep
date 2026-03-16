@@ -20,8 +20,10 @@ public static class CancelProgram
     {
         public async Task<Result<bool>> Handle(Command command, CancellationToken ct = default)
         {
-            Program? program = await context.Programs
-                .FirstOrDefaultAsync(p => p.Id == command.ProgramId, ct);
+            Program? program = await context.Programs.FirstOrDefaultAsync(
+                p => p.Id == command.ProgramId,
+                ct
+            );
 
             if (program is null)
             {
@@ -54,7 +56,9 @@ public static class CancelProgram
                     ) =>
                     {
                         Result<bool> result = await handler.Handle(
-                            new Command(programId, request.Reason), ct);
+                            new Command(programId, request.Reason),
+                            ct
+                        );
 
                         return result.Match(
                             () => Results.Ok(new { message = "Program cancelled successfully" }),

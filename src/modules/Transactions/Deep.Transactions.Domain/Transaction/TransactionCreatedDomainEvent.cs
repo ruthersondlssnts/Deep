@@ -7,7 +7,8 @@ public sealed class TransactionCreatedDomainEvent(
     Guid programId,
     string productSku,
     int quantity,
-    decimal totalAmount) : DomainEvent
+    decimal totalAmount
+) : DomainEvent
 {
     public Guid TransactionId { get; } = transactionId;
     public Guid ProgramId { get; } = programId;

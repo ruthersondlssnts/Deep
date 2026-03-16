@@ -1,6 +1,6 @@
 using Deep.Common.Application.Auditing;
-using Deep.Common.Application.Outbox;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,12 +9,13 @@ namespace Deep.Common.Application.Database;
 
 public static class Postgres
 {
-    public static void ConfigureOptions(
+    public static void ConfigureOptions<TOutboxInterceptor>(
         DbContextOptionsBuilder options,
         IConfiguration configuration,
         string schema,
         IServiceProvider serviceProvider
-    ) =>
+    )
+        where TOutboxInterceptor : IInterceptor =>
         options
             .UseNpgsql(
                 configuration.GetConnectionString("deep-db")!,
@@ -22,7 +23,7 @@ public static class Postgres
             )
             .UseSnakeCaseNamingConvention()
             .AddInterceptors(
-                serviceProvider.GetRequiredService<InsertOutboxMessagesInterceptor>(),
+                serviceProvider.GetRequiredService<TOutboxInterceptor>(),
                 serviceProvider.GetRequiredService<WriteAuditLogInterceptor>()
             );
 }

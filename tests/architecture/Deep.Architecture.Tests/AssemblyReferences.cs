@@ -24,7 +24,7 @@ public static class AssemblyReferences
     public static readonly Assembly ProgramsApplication =
         typeof(Programs.Application.AssemblyReference).Assembly;
     public static readonly Assembly ProgramsIntegrationEvents =
-        typeof(Programs.IntegrationEvents.UserRegisteredIntegrationEvent).Assembly;
+        typeof(Programs.IntegrationEvents.StockReservationFailedIntegrationEvent).Assembly;
 
     // Transactions Module
     public static readonly Assembly TransactionsDomain = typeof(Transaction).Assembly;

@@ -10,7 +10,8 @@ public sealed class TransactionCreatedIntegrationEvent(
     Guid customerId,
     string productSku,
     int quantity,
-    decimal totalAmount) : IntegrationEvent(id, occurredAtUtc)
+    decimal totalAmount
+) : IntegrationEvent(id, occurredAtUtc)
 {
     public Guid TransactionId { get; } = transactionId;
     public Guid ProgramId { get; } = programId;

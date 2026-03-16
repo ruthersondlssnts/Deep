@@ -3,9 +3,10 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Bogus;
 using Dapper;
-using Deep.Accounts.Application.BackgroundJobs;
 using Deep.Accounts.Application.Data;
 using Deep.Accounts.Application.Features.Accounts;
+using Deep.Accounts.Application.Inbox;
+using Deep.Accounts.Application.Outbox;
 using Deep.Common.Application.Dapper;
 using Deep.Common.Application.Database;
 using Deep.Common.Application.IntegrationEvents;
@@ -109,8 +110,8 @@ public abstract class AccountsIntegrationTestBase
     protected async Task ProcessOutboxAsync()
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        AccountsProcessOutboxJob job =
-            scope.ServiceProvider.GetRequiredService<AccountsProcessOutboxJob>();
+        AccountsOutboxProcessor job =
+            scope.ServiceProvider.GetRequiredService<AccountsOutboxProcessor>();
         await job.ProcessAsync();
     }
 
@@ -188,8 +189,8 @@ public abstract class AccountsIntegrationTestBase
     protected async Task ProcessInboxAsync()
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        AccountsProcessInboxJob job =
-            scope.ServiceProvider.GetRequiredService<AccountsProcessInboxJob>();
+        AccountsInboxProcessor job =
+            scope.ServiceProvider.GetRequiredService<AccountsInboxProcessor>();
         await job.ProcessAsync();
     }
 

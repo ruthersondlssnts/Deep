@@ -16,54 +16,23 @@ public static class DevelopmentDataSeederExtensions
     {
         using IServiceScope scope = app.ApplicationServices.CreateScope();
 
-        AccountsDbContext accountsDbContext = scope.ServiceProvider.GetRequiredService<AccountsDbContext>();
-        ProgramsDbContext programsDbContext = scope.ServiceProvider.GetRequiredService<ProgramsDbContext>();
-        IPasswordHasher<Account> passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<Account>>();
+        AccountsDbContext accountsDbContext =
+            scope.ServiceProvider.GetRequiredService<AccountsDbContext>();
+        ProgramsDbContext programsDbContext =
+            scope.ServiceProvider.GetRequiredService<ProgramsDbContext>();
+        IPasswordHasher<Account> passwordHasher = scope.ServiceProvider.GetRequiredService<
+            IPasswordHasher<Account>
+        >();
 
         SeedUser[] seedUsers =
         [
-            new(
-                "Admin",
-                "User",
-                "admin@deep.local",
-                [RoleNames.ItAdmin]
-            ),
-            new(
-                "Manager",
-                "User",
-                "manager@deep.local",
-                [RoleNames.Manager]
-            ),
-            new(
-                "Program",
-                "Owner",
-                "owner@deep.local",
-                [RoleNames.ProgramOwner]
-            ),
-            new(
-                "Brand",
-                "Ambassador",
-                "ba@deep.local",
-                [RoleNames.BrandAmbassador]
-            ),
-            new(
-                "Coordinator",
-                "One",
-                "coordinator1@deep.local",
-                [RoleNames.Coordinator]
-            ),
-            new(
-                "Coordinator",
-                "Two",
-                "coordinator2@deep.local",
-                [RoleNames.Coordinator]
-            ),
-            new(
-                "Coordinator",
-                "Three",
-                "coordinator3@deep.local",
-                [RoleNames.Coordinator]
-            ),
+            new("Admin", "User", "admin@deep.local", [RoleNames.ItAdmin]),
+            new("Manager", "User", "manager@deep.local", [RoleNames.Manager]),
+            new("Program", "Owner", "owner@deep.local", [RoleNames.ProgramOwner]),
+            new("Brand", "Ambassador", "ba@deep.local", [RoleNames.BrandAmbassador]),
+            new("Coordinator", "One", "coordinator1@deep.local", [RoleNames.Coordinator]),
+            new("Coordinator", "Two", "coordinator2@deep.local", [RoleNames.Coordinator]),
+            new("Coordinator", "Three", "coordinator3@deep.local", [RoleNames.Coordinator]),
         ];
 
         AttachKnownAccountRoles(accountsDbContext);
@@ -129,18 +98,23 @@ public static class DevelopmentDataSeederExtensions
     {
         dbContext.Attach(Deep.Accounts.Domain.Accounts.Role.ItAdmin).State = EntityState.Unchanged;
         dbContext.Attach(Deep.Accounts.Domain.Accounts.Role.Manager).State = EntityState.Unchanged;
-        dbContext.Attach(Deep.Accounts.Domain.Accounts.Role.ProgramOwner).State = EntityState.Unchanged;
-        dbContext.Attach(Deep.Accounts.Domain.Accounts.Role.Coordinator).State = EntityState.Unchanged;
-        dbContext.Attach(Deep.Accounts.Domain.Accounts.Role.BrandAmbassador).State = EntityState.Unchanged;
+        dbContext.Attach(Deep.Accounts.Domain.Accounts.Role.ProgramOwner).State =
+            EntityState.Unchanged;
+        dbContext.Attach(Deep.Accounts.Domain.Accounts.Role.Coordinator).State =
+            EntityState.Unchanged;
+        dbContext.Attach(Deep.Accounts.Domain.Accounts.Role.BrandAmbassador).State =
+            EntityState.Unchanged;
     }
 
     private static void AttachKnownProgramRoles(ProgramsDbContext dbContext)
     {
         dbContext.Attach(Deep.Programs.Domain.Users.Role.ItAdmin).State = EntityState.Unchanged;
         dbContext.Attach(Deep.Programs.Domain.Users.Role.Manager).State = EntityState.Unchanged;
-        dbContext.Attach(Deep.Programs.Domain.Users.Role.ProgramOwner).State = EntityState.Unchanged;
+        dbContext.Attach(Deep.Programs.Domain.Users.Role.ProgramOwner).State =
+            EntityState.Unchanged;
         dbContext.Attach(Deep.Programs.Domain.Users.Role.Coordinator).State = EntityState.Unchanged;
-        dbContext.Attach(Deep.Programs.Domain.Users.Role.BrandAmbassador).State = EntityState.Unchanged;
+        dbContext.Attach(Deep.Programs.Domain.Users.Role.BrandAmbassador).State =
+            EntityState.Unchanged;
     }
 
     private sealed record SeedUser(

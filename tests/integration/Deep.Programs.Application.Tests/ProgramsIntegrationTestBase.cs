@@ -7,8 +7,8 @@ using Deep.Common.Application.Database;
 using Deep.Common.Application.IntegrationEvents;
 using Deep.Common.Application.SimpleMediatR;
 using Deep.Common.Domain;
-using Deep.Programs.Application.BackgroundJobs;
-using Deep.Programs.Application.Data;
+using Deep.Programs.Application.Inbox;
+using Deep.Programs.Application.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -61,9 +61,9 @@ public abstract class ProgramsIntegrationTestBase
     protected async Task<Guid> SeedTestUserAsync(string roleName)
     {
         var userId = Guid.CreateVersion7();
-        var email = Faker.Internet.Email();
-        var firstName = Faker.Name.FirstName();
-        var lastName = Faker.Name.LastName();
+        string email = Faker.Internet.Email();
+        string firstName = Faker.Name.FirstName();
+        string lastName = Faker.Name.LastName();
 
         await using DbConnection connection = await OpenConnectionAsync();
 
@@ -101,8 +101,8 @@ public abstract class ProgramsIntegrationTestBase
     protected async Task ProcessOutboxAsync()
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        ProgramsProcessOutboxJob job =
-            scope.ServiceProvider.GetRequiredService<ProgramsProcessOutboxJob>();
+        ProgramsOutboxProcessor job =
+            scope.ServiceProvider.GetRequiredService<ProgramsOutboxProcessor>();
         await job.ProcessAsync();
     }
 
@@ -167,8 +167,8 @@ public abstract class ProgramsIntegrationTestBase
     protected async Task ProcessInboxAsync()
     {
         await using AsyncServiceScope scope = CreateAsyncScope();
-        ProgramsProcessInboxJob job =
-            scope.ServiceProvider.GetRequiredService<ProgramsProcessInboxJob>();
+        ProgramsInboxProcessor job =
+            scope.ServiceProvider.GetRequiredService<ProgramsInboxProcessor>();
         await job.ProcessAsync();
     }
 

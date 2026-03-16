@@ -18,7 +18,7 @@ public class ProgramTests
         ProductInput[] products =
         [
             new ProductInput("SKU001", "Product1", 10.00m, 100),
-            new ProductInput("SKU002", "Product2", 20.00m, 50)
+            new ProductInput("SKU002", "Product2", 20.00m, 50),
         ];
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 
@@ -148,7 +148,7 @@ public class ProgramTests
         [
             new ProductInput("SKU001", "Product1", 10.00m, 100),
             new ProductInput("SKU002", "Product2", 20.00m, 50),
-            new ProductInput("SKU003", "Product3", 30.00m, 25)
+            new ProductInput("SKU003", "Product3", 30.00m, 25),
         ];
         IReadOnlyCollection<(Guid UserId, string RoleName)> assignments = CreateValidAssignments();
 

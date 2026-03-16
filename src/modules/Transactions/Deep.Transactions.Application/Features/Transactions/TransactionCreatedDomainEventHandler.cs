@@ -27,7 +27,7 @@ internal sealed class TransactionCreatedDomainEventHandler(
             throw new DeepException(nameof(GetTransaction), result.Error);
         }
 
-        var transaction = result.Value;
+        GetTransaction.Response transaction = result.Value;
 
         await eventBus.PublishAsync(
             new TransactionCreatedIntegrationEvent(
