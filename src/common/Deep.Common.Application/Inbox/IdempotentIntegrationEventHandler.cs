@@ -22,9 +22,11 @@ public sealed class IdempotentIntegrationEventHandler<TIntegrationEvent>(
         string consumerName = decorated.GetType().Name;
 
         await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         int affectedRows = await InsertInboxConsumerAsync(
             connection,
+            transaction,
             schema,
             integrationEvent.Id,
             consumerName
@@ -46,11 +48,22 @@ public sealed class IdempotentIntegrationEventHandler<TIntegrationEvent>(
             consumerName
         );
 
-        await decorated.Handle(integrationEvent, cancellationToken);
+        try
+        {
+            await decorated.Handle(integrationEvent, cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     private static async Task<int> InsertInboxConsumerAsync(
         DbConnection connection,
+        DbTransaction transaction,
         string schema,
         Guid inboxMessageId,
         string name
@@ -64,7 +77,8 @@ public sealed class IdempotentIntegrationEventHandler<TIntegrationEvent>(
 
         return await connection.ExecuteAsync(
             sql,
-            new { InboxMessageId = inboxMessageId, Name = name }
+            new { InboxMessageId = inboxMessageId, Name = name },
+            transaction
         );
     }
 }

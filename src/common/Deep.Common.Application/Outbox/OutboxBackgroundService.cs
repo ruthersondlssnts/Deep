@@ -32,6 +32,8 @@ public abstract class OutboxBackgroundService<TProcessor>(
         {
             try
             {
+                await DrainUntilEmptyAsync(stoppingToken);
+
                 var delayTask = Task.Delay(
                     TimeSpan.FromSeconds(_options.IntervalInSeconds),
                     stoppingToken
@@ -47,8 +49,6 @@ public abstract class OutboxBackgroundService<TProcessor>(
                         : "Outbox worker woke up by polling for module {ModuleName}",
                     _moduleName
                 );
-
-                await DrainUntilEmptyAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

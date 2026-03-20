@@ -23,9 +23,11 @@ public sealed class IdempotentDomainEventHandler<TDomainEvent>(
         string consumerName = decorated.GetType().Name;
 
         await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         int affectedRows = await InsertOutboxConsumerAsync(
             connection,
+            transaction,
             schema,
             domainEvent.Id,
             consumerName
@@ -38,6 +40,8 @@ public sealed class IdempotentDomainEventHandler<TDomainEvent>(
                 domainEvent.Id,
                 consumerName
             );
+
+            await transaction.RollbackAsync(cancellationToken);
             return;
         }
 
@@ -47,11 +51,22 @@ public sealed class IdempotentDomainEventHandler<TDomainEvent>(
             consumerName
         );
 
-        await decorated.Handle(domainEvent, cancellationToken);
+        try
+        {
+            await decorated.Handle(domainEvent, cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     private static async Task<int> InsertOutboxConsumerAsync(
         DbConnection connection,
+        DbTransaction transaction,
         string schema,
         Guid outboxMessageId,
         string name
@@ -65,7 +80,8 @@ public sealed class IdempotentDomainEventHandler<TDomainEvent>(
 
         return await connection.ExecuteAsync(
             sql,
-            new { OutboxMessageId = outboxMessageId, Name = name }
+            new { OutboxMessageId = outboxMessageId, Name = name },
+            transaction
         );
     }
 }

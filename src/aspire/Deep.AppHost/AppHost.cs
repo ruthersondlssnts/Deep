@@ -29,7 +29,7 @@ IResourceBuilder<RabbitMQServerResource> rabbitmq = builder
     .WithLifetime(ContainerLifetime.Persistent);
 
 IResourceBuilder<RedisResource> redis = builder
-    .AddRedis("redis")
+    .AddRedis("cache")
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent);
 
@@ -48,4 +48,4 @@ builder
     .WaitFor(rabbitmq)
     .WaitFor(redis);
 
-builder.Build().Run();
+await builder.Build().RunAsync();

@@ -41,12 +41,12 @@ public static class ReserveStock
                 command.Quantity
             );
 
+            await context.SaveChangesAsync(ct);
+
             if (reserveResult.IsFailure)
             {
                 return reserveResult.Error;
             }
-
-            await context.SaveChangesAsync(ct);
 
             return new Response(true);
         }

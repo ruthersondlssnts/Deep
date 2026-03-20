@@ -44,24 +44,15 @@ public static class TransactionsModule
         string? redisConnectionString = null
     )
     {
+        registrationConfigurator
+            .AddSagaStateMachine<PurchaseSaga, PurchaseSagaState>()
+            .RedisRepository(redisConnectionString);
+
         ModuleRegistrationHelper.ConfigureConsumers(
             AssemblyReference.Assembly,
             registrationConfigurator,
             typeof(TransactionsIntegrationEventConsumer<>)
         );
-
-        if (string.IsNullOrWhiteSpace(redisConnectionString))
-        {
-            registrationConfigurator
-                .AddSagaStateMachine<PurchaseSaga, PurchaseSagaState>()
-                .InMemoryRepository();
-        }
-        else
-        {
-            registrationConfigurator
-                .AddSagaStateMachine<PurchaseSaga, PurchaseSagaState>()
-                .RedisRepository(redisConnectionString);
-        }
     }
 
     public static IServiceCollection AddTransactionsOutbox(this IServiceCollection services)

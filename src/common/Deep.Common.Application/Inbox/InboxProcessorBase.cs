@@ -6,7 +6,6 @@ using Dapper;
 using Deep.Common.Application.Dapper;
 using Deep.Common.Application.IntegrationEvents;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -195,64 +194,4 @@ public abstract class InboxProcessorBase(
     }
 
     private sealed record InboxMessageData(Guid Id, string Type, string Content);
-}
-
-public abstract class InboxBackgroundService<TProcessor>(
-    IServiceScopeFactory scopeFactory,
-    IInboxNotifier notifier,
-    IOptions<InboxOptions> options,
-    ILogger logger,
-    string moduleName
-) : BackgroundService
-    where TProcessor : class, IInboxProcessor
-{
-    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
-    private readonly IInboxNotifier _notifier = notifier;
-    private readonly InboxOptions _options = options.Value;
-    private readonly ILogger _logger = logger;
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _logger.LogInformation("Inbox worker started for module {Module}", moduleName);
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                var delayTask = Task.Delay(
-                    TimeSpan.FromSeconds(_options.IntervalInSeconds),
-                    stoppingToken
-                );
-
-                Task signalTask = _notifier.WaitAsync(stoppingToken);
-
-                await Task.WhenAny(delayTask, signalTask);
-
-                await DrainAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Inbox worker failure");
-
-                await Task.Delay(TimeSpan.FromSeconds(_options.ErrorDelayInSeconds), stoppingToken);
-            }
-        }
-    }
-
-    private async Task DrainAsync(CancellationToken token)
-    {
-        while (!token.IsCancellationRequested)
-        {
-            using IServiceScope scope = _scopeFactory.CreateScope();
-
-            TProcessor processor = scope.ServiceProvider.GetRequiredService<TProcessor>();
-
-            int processed = await processor.ProcessAsync(token);
-
-            if (processed == 0)
-            {
-                return;
-            }
-        }
-    }
 }

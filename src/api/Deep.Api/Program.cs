@@ -10,7 +10,7 @@ builder.Configuration.AddModuleConfiguration(["accounts", "programs", "transacti
 string sql = "deep-db";
 string mongo = "deep-docs";
 string broker = "broker";
-string redis = "redis";
+string redis = "cache";
 
 string databaseConnectionString = builder.Configuration.GetConnectionString(sql)!;
 string mqConnectionString = builder.Configuration.GetConnectionString(broker)!;
