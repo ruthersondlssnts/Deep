@@ -9,7 +9,7 @@ public sealed class NamingConventionTests : BaseTest
         Types
             .InAssemblies(AssemblyReferences.AllApplicationAssemblies)
             .That()
-            .HaveNameEndingWith("Command")
+            .HaveNameEndingWith("Command", StringComparison.Ordinal)
             .And()
             .AreClasses()
             .Should()
@@ -22,7 +22,7 @@ public sealed class NamingConventionTests : BaseTest
         Types
             .InAssemblies(AssemblyReferences.AllApplicationAssemblies)
             .That()
-            .HaveNameEndingWith("Query")
+            .HaveNameEndingWith("Query", StringComparison.Ordinal)
             .And()
             .AreClasses()
             .Should()
@@ -35,7 +35,7 @@ public sealed class NamingConventionTests : BaseTest
         Types
             .InAssemblies(AssemblyReferences.AllApplicationAssemblies)
             .That()
-            .HaveNameEndingWith("Handler")
+            .HaveNameEndingWith("Handler", StringComparison.Ordinal)
             .And()
             .AreClasses()
             .Should()
@@ -63,7 +63,7 @@ public sealed class NamingConventionTests : BaseTest
             .That()
             .Inherit(typeof(Common.Domain.DomainEvent))
             .Should()
-            .HaveNameEndingWith("DomainEvent")
+            .HaveNameEndingWith("DomainEvent", StringComparison.Ordinal)
             .GetResult()
             .ShouldBeSuccessful();
 
@@ -72,7 +72,7 @@ public sealed class NamingConventionTests : BaseTest
         Types
             .InAssemblies(AssemblyReferences.AllIntegrationEventsAssemblies)
             .That()
-            .HaveNameEndingWith("IntegrationEvent")
+            .HaveNameEndingWith("IntegrationEvent", StringComparison.Ordinal)
             .And()
             .AreClasses()
             .Should()
@@ -89,7 +89,7 @@ public sealed class NamingConventionTests : BaseTest
             .And()
             .ArePublic()
             .Should()
-            .HaveNameEndingWith("IntegrationEvent")
+            .HaveNameEndingWith("IntegrationEvent", StringComparison.Ordinal)
             .GetResult()
             .ShouldBeSuccessful();
 }

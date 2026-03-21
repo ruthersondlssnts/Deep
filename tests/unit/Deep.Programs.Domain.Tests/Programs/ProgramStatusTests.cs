@@ -8,7 +8,8 @@ public class ProgramStatusTests
     public void ProgramStatus_ShouldHaveExpectedValues()
     {
         // Assert
-        Enum.GetValues<ProgramStatus>().Should().HaveCount(4);
+        Enum.GetValues<ProgramStatus>().Should().HaveCount(5);
+        Enum.IsDefined(ProgramStatus.Cancelled).Should().BeTrue();
         Enum.IsDefined(ProgramStatus.Draft).Should().BeTrue();
         Enum.IsDefined(ProgramStatus.New).Should().BeTrue();
         Enum.IsDefined(ProgramStatus.InProgress).Should().BeTrue();

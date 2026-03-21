@@ -289,3 +289,7 @@ dotnet_diagnostic.CA1034.severity = none
 [tests/**/*.cs]
 dotnet_diagnostic.CA1707.severity = none
 
+
+# CA1515: Consider making public types internal
+[tests/**/*.cs]
+dotnet_diagnostic.CA1515.severity = none
