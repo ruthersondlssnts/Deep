@@ -36,7 +36,8 @@ internal sealed class ProgramAssignmentDeactivatedDomainEventHandler(IRequestBus
                     TotalBrandAmbassadors: program.Value.Assignments.Count(a =>
                         a.RoleName == RoleNames.BrandAmbassador
                     )
-                )
+                ),
+                cancellationToken
             );
 
         if (result.IsFailure)

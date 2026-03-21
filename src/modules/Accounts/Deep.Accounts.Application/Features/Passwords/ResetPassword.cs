@@ -28,11 +28,14 @@ public static class ResetPassword
     {
         private const int PasswordHistoryLimit = 5;
 
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
         {
             PasswordResetToken? resetToken = await context.PasswordResetTokens.SingleOrDefaultAsync(
                 prt => prt.Token == c.ResetToken,
-                ct
+                cancellationToken
             );
 
             if (resetToken is null || !resetToken.IsValid)
@@ -42,7 +45,7 @@ public static class ResetPassword
 
             Account? account = await context
                 .Accounts.Include(a => a.Roles)
-                .SingleOrDefaultAsync(acct => acct.Id == resetToken.AccountId, ct);
+                .SingleOrDefaultAsync(acct => acct.Id == resetToken.AccountId, cancellationToken);
 
             if (account is null)
             {
@@ -58,7 +61,7 @@ public static class ResetPassword
                 .PasswordHistories.Where(ph => ph.AccountId == account.Id)
                 .OrderByDescending(ph => ph.ChangedAtUtc)
                 .Take(PasswordHistoryLimit)
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             if (
                 passwordHasher.VerifyHashedPassword(account, account.PasswordHash, c.NewPassword)
@@ -89,7 +92,7 @@ public static class ResetPassword
                 .PasswordHistories.Where(ph => ph.AccountId == account.Id)
                 .OrderByDescending(ph => ph.ChangedAtUtc)
                 .Skip(PasswordHistoryLimit)
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             context.PasswordHistories.RemoveRange(toDelete);
 
@@ -98,7 +101,7 @@ public static class ResetPassword
 
             List<RefreshToken> activeTokens = await context
                 .RefreshTokens.Where(rt => rt.AccountId == account.Id && rt.RevokedAtUtc == null)
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             foreach (RefreshToken token in activeTokens)
             {
@@ -107,7 +110,7 @@ public static class ResetPassword
 
             resetToken.MarkAsUsed();
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(true);
         }
@@ -121,10 +124,10 @@ public static class ResetPassword
                     async (
                         Command command,
                         IRequestHandler<Command, Response> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
-                        Result<Response> result = await handler.Handle(command, ct);
+                        Result<Response> result = await handler.Handle(command, cancellationToken);
 
                         return result.Match(() => Results.Ok(result.Value), ApiResults.Problem);
                     }

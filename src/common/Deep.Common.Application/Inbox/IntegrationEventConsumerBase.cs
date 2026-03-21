@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Deep.Common.Application.Inbox;
 
-public abstract class IntegrationEventConsumerBase<TIntegrationEvent>(
+public abstract partial class IntegrationEventConsumerBase<TIntegrationEvent>(
     IDbConnectionFactory dbConnectionFactory,
     ILogger logger,
     string schema,
@@ -19,6 +19,7 @@ public abstract class IntegrationEventConsumerBase<TIntegrationEvent>(
     private readonly IDbConnectionFactory _dbConnectionFactory = dbConnectionFactory;
     private readonly ILogger _logger = logger;
     private readonly string _schema = schema;
+    private readonly IInboxNotifier _inboxNotifier = inboxNotifier;
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
@@ -43,7 +44,7 @@ public abstract class IntegrationEventConsumerBase<TIntegrationEvent>(
             new
             {
                 integrationEvent.Id,
-                Type = integrationEvent.GetType().Name,
+                Type = typeof(TIntegrationEvent).Name,
                 Content = JsonSerializer.Serialize(
                     integrationEvent,
                     integrationEvent.GetType(),
@@ -55,23 +56,37 @@ public abstract class IntegrationEventConsumerBase<TIntegrationEvent>(
 
         if (affectedRows > 0)
         {
-            inboxNotifier.Notify();
+            _inboxNotifier.Notify();
 
-            _logger.LogDebug(
-                "Wrote integration event {EventType} with Id {EventId} to inbox in schema {Schema}",
-                typeof(TIntegrationEvent).Name,
-                integrationEvent.Id,
-                _schema
-            );
+            LogInserted(_logger, typeof(TIntegrationEvent).Name, integrationEvent.Id, _schema);
         }
         else
         {
-            _logger.LogDebug(
-                "Integration event {EventType} with Id {EventId} already exists in inbox in schema {Schema}",
-                typeof(TIntegrationEvent).Name,
-                integrationEvent.Id,
-                _schema
-            );
+            LogAlreadyExists(_logger, typeof(TIntegrationEvent).Name, integrationEvent.Id, _schema);
         }
     }
+
+    [LoggerMessage(
+        EventId = 6000,
+        Level = LogLevel.Debug,
+        Message = "Wrote integration event {EventType} with Id {EventId} to inbox in schema {Schema}"
+    )]
+    private static partial void LogInserted(
+        ILogger logger,
+        string eventType,
+        Guid eventId,
+        string schema
+    );
+
+    [LoggerMessage(
+        EventId = 6001,
+        Level = LogLevel.Debug,
+        Message = "Integration event {EventType} with Id {EventId} already exists in inbox in schema {Schema}"
+    )]
+    private static partial void LogAlreadyExists(
+        ILogger logger,
+        string eventType,
+        Guid eventId,
+        string schema
+    );
 }

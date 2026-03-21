@@ -39,14 +39,14 @@ public static class SearchProgram
     {
         public async Task<Result<PaginatedResponse<IReadOnlyList<Response>>>> Handle(
             Query query,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
             IQueryable<Program> programsQuery = context.Programs.AsNoTracking();
 
             if (!string.IsNullOrWhiteSpace(query.SearchTerm))
             {
-                string searchTerm = query.SearchTerm.ToLowerInvariant();
+                string searchTerm = query.SearchTerm.ToUpperInvariant();
                 programsQuery = programsQuery.Where(p =>
                     EF.Functions.ILike(p.Name, $"%{searchTerm}%")
                     || EF.Functions.ILike(p.Description, $"%{searchTerm}%")
@@ -85,7 +85,7 @@ public static class SearchProgram
                     p.Products.Select(pp => pp.ProductName).ToList()
                 ));
 
-            return await projectedQuery.ToPaginatedListAsync(query, ct);
+            return await projectedQuery.ToPaginatedListAsync(query, cancellationToken);
         }
     }
 
@@ -102,7 +102,7 @@ public static class SearchProgram
                         DateTime? startsAfter,
                         DateTime? startsBefore,
                         IPaginatedQueryHandler<Query, IReadOnlyList<Response>> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
                         var query = new Query(
@@ -115,7 +115,7 @@ public static class SearchProgram
                         );
 
                         Result<PaginatedResponse<IReadOnlyList<Response>>> result =
-                            await handler.Handle(query, ct);
+                            await handler.Handle(query, cancellationToken);
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

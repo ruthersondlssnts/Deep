@@ -280,3 +280,12 @@ dotnet_diagnostic.CA2327.severity = none
 
 # IDE0046: Convert to conditional expression
 dotnet_diagnostic.IDE0046.severity = none
+
+# apply only to feature folders
+[**/Features/**/*.cs]
+dotnet_diagnostic.CA1034.severity = none
+
+# Disable underscore-in-name rule for all test code
+[tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none
+

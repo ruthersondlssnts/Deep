@@ -19,11 +19,14 @@ public static class UpdateTransactionStatus
 
     public sealed class Handler(TransactionsDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command command, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command command,
+            CancellationToken cancellationToken = default
+        )
         {
             Transaction? transaction = await context.Transactions.FirstOrDefaultAsync(
                 t => t.Id == command.TransactionId,
-                ct
+                cancellationToken
             );
 
             if (transaction is null)
@@ -54,7 +57,7 @@ public static class UpdateTransactionStatus
                 return new Response(false);
             }
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(true);
         }

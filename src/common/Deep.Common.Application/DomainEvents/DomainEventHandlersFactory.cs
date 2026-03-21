@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Reflection;
-using Deep.Common.Domain;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Common.Application.DomainEvents;

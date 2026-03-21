@@ -22,7 +22,10 @@ public sealed class TransactionsOutboxProcessor(
         AssemblyReference.Assembly
     );
 
-public sealed class TransactionsOutboxNotifier : OutboxNotifier;
+public sealed class TransactionsOutboxNotifier : OutboxNotifier
+{
+    public TransactionsOutboxNotifier() { }
+}
 
 public sealed class TransactionsInsertOutboxMessagesInterceptor(
     TransactionsOutboxNotifier outboxNotifier

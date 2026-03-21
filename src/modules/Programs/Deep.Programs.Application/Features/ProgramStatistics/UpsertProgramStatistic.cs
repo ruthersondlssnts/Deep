@@ -27,7 +27,10 @@ public static class UpsertProgramStatistic
 
     public sealed class Handler(MongoDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command request, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command request,
+            CancellationToken cancellationToken = default
+        )
         {
             UpdateDefinitionBuilder<ProgramStatistic> u = Builders<ProgramStatistic>.Update;
             var updates = new List<UpdateDefinition<ProgramStatistic>>();
@@ -114,36 +117,10 @@ public static class UpsertProgramStatistic
                 x => x.ProgramId == request.ProgramId,
                 u.Combine(updates),
                 new UpdateOptions { IsUpsert = true },
-                ct
+                cancellationToken
             );
 
             return new Response(request.ProgramId);
         }
     }
-
-    //public sealed class Endpoint : IEndpoint
-    //{
-    //    public void MapEndpoint(IEndpointRouteBuilder app) =>
-    //        app.MapPost(
-    //                "/program-statistics/{programId:guid}",
-    //                async (
-    //                    Guid programId,
-    //                    Command command,
-    //                    IRequestHandler<Command, Response> handler,
-    //                    CancellationToken ct
-    //                ) =>
-    //                {
-    //                    Result<Response> result = await handler.Handle(
-    //                        command with
-    //                        {
-    //                            ProgramId = programId,
-    //                        },
-    //                        ct
-    //                    );
-
-    //                    return result.Match(() => Results.NoContent(), ApiResults.Problem);
-    //                }
-    //            )
-    //            .WithTags("ProgramStatistics");
-    //}
 }

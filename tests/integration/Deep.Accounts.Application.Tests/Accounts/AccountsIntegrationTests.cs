@@ -1,13 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
-using Deep.Accounts.Application.Data;
 using Deep.Accounts.Application.Features.Accounts;
 using Deep.Accounts.Application.Features.Authentication;
 using Deep.Accounts.Application.Features.Passwords;
 using Deep.Accounts.Domain.Accounts;
 using Deep.Common.Domain;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Deep.Accounts.Application.Tests.Accounts;
 

@@ -22,11 +22,14 @@ public static class ForgotPassword
     {
         private static readonly TimeSpan ResetTokenLifetime = TimeSpan.FromMinutes(15);
 
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
         {
             Account? account = await context
                 .Accounts.Include(a => a.Roles)
-                .SingleOrDefaultAsync(acct => acct.Email == c.Email, ct);
+                .SingleOrDefaultAsync(acct => acct.Email == c.Email, cancellationToken);
 
             if (account is null)
             {
@@ -42,7 +45,7 @@ public static class ForgotPassword
                 .PasswordResetTokens.Where(prt =>
                     prt.AccountId == account.Id && prt.UsedAtUtc == null
                 )
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             foreach (PasswordResetToken token in activeTokens)
             {
@@ -52,7 +55,7 @@ public static class ForgotPassword
             var resetToken = PasswordResetToken.Create(account.Id, ResetTokenLifetime);
             context.PasswordResetTokens.Add(resetToken);
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             // In production, you would send this token via email
             return new Response(resetToken.Token, resetToken.ExpiryDateUtc);
@@ -67,10 +70,10 @@ public static class ForgotPassword
                     async (
                         Command command,
                         IRequestHandler<Command, Response> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
-                        Result<Response> result = await handler.Handle(command, ct);
+                        Result<Response> result = await handler.Handle(command, cancellationToken);
 
                         return result.Match(() => Results.Ok(result.Value), ApiResults.Problem);
                     }

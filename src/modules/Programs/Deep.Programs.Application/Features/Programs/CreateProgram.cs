@@ -46,7 +46,10 @@ public static class CreateProgram
         IHttpContextAccessor httpContextAccessor
     ) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
         {
             Guid currentUserId = httpContextAccessor.HttpContext!.User.GetUserId();
 
@@ -84,17 +87,18 @@ public static class CreateProgram
                 return programAssignments.Error;
             }
 
-            await context.Programs.AddAsync(programResult.Value);
-            await context.ProgramAssignments.AddRangeAsync(programAssignments.Value);
+            await context.Programs.AddAsync(programResult.Value, cancellationToken);
+            await context.ProgramAssignments.AddRangeAsync(
+                programAssignments.Value,
+                cancellationToken
+            );
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(programResult.Value.Id);
         }
 
-        private async Task<bool> ExistWithRolesAsync(
-            IReadOnlyCollection<(Guid UserId, string RoleName)> userRoles
-        )
+        private async Task<bool> ExistWithRolesAsync(List<(Guid UserId, string RoleName)> userRoles)
         {
             if (userRoles.Count == 0)
             {

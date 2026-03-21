@@ -13,7 +13,9 @@ internal sealed class ProcessPaymentIntegrationHandler(IEventBus eventBus)
     {
         await Task.Delay(3000, cancellationToken);
 
+#pragma warning disable CA5394 // Do not use insecure randomness
         bool paymentSucceeded = Random.Shared.NextDouble() < 0.95;
+#pragma warning restore CA5394 // Do not use insecure randomness
 
         if (paymentSucceeded)
         {

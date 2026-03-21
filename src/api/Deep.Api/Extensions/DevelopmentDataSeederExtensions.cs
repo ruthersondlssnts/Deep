@@ -8,13 +8,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Api.Extensions;
 
-public static class DevelopmentDataSeederExtensions
+internal static class DevelopmentDataSeederExtensions
 {
-    private const string SeedPassword = "P@ssword123!";
-
     public static async Task SeedDevelopmentDataAsync(this IApplicationBuilder app)
     {
         using IServiceScope scope = app.ApplicationServices.CreateScope();
+
+        IHostEnvironment env = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+        if (!env.IsDevelopment())
+        {
+            return;
+        }
+
+        IConfiguration configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+        string seedPassword = configuration["Seed:DefaultPassword"]!;
 
         AccountsDbContext accountsDbContext =
             scope.ServiceProvider.GetRequiredService<AccountsDbContext>();
@@ -47,7 +55,7 @@ public static class DevelopmentDataSeederExtensions
 
             if (account is null)
             {
-                string passwordHash = passwordHasher.HashPassword(null!, SeedPassword);
+                string passwordHash = passwordHasher.HashPassword(null!, seedPassword);
                 Result<Account> accountResult = Account.Create(
                     seedUser.FirstName,
                     seedUser.LastName,

@@ -54,7 +54,7 @@ public static class AccountsModule
 
     public static void ConfigureConsumers(
         IRegistrationConfigurator registrationConfigurator,
-        string? redisConnectionString = null
+        string? _ = null
     ) =>
         ModuleRegistrationHelper.ConfigureConsumers(
             AssemblyReference.Assembly,

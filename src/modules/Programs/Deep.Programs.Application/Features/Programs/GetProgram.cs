@@ -37,7 +37,10 @@ public static class GetProgram
 
     public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Query, Response>
     {
-        public async Task<Result<Response>> Handle(Query query, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Query query,
+            CancellationToken cancellationToken = default
+        )
         {
             Response? program = await context
                 .Programs.AsNoTracking()
@@ -71,7 +74,7 @@ public static class GetProgram
                         )
                         .ToList()
                 ))
-                .FirstOrDefaultAsync(ct);
+                .FirstOrDefaultAsync(cancellationToken);
 
             return program is null ? ProgramErrors.NotFound(query.Id) : program;
         }
@@ -85,10 +88,13 @@ public static class GetProgram
                     async (
                         Guid id,
                         IRequestHandler<Query, Response> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
-                        Result<Response> result = await handler.Handle(new Query(id), ct);
+                        Result<Response> result = await handler.Handle(
+                            new Query(id),
+                            cancellationToken
+                        );
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

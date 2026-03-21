@@ -1,5 +1,3 @@
-using System.Net.Http.Json;
-using System.Text.Json;
 using Deep.Accounts.Application.Features.Accounts;
 using Deep.Accounts.Domain.Accounts;
 

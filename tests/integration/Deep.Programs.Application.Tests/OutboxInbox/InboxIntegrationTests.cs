@@ -1,5 +1,4 @@
 using Deep.Accounts.IntegrationEvents;
-using Deep.Common.Application.IntegrationEvents;
 using Deep.Common.Domain;
 
 namespace Deep.Programs.Application.Tests.OutboxInbox;

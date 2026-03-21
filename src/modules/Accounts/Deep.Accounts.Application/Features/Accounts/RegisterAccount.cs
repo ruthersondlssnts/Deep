@@ -41,10 +41,13 @@ public sealed class RegisterAccountHandler
 
     public async Task<Result<RegisterAccountResponse>> Handle(
         RegisterAccountCommand c,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
-        bool emailExists = await _context.Accounts.AnyAsync(a => a.Email == c.Email, ct);
+        bool emailExists = await _context.Accounts.AnyAsync(
+            a => a.Email == c.Email,
+            cancellationToken
+        );
         if (emailExists)
         {
             return AuthErrors.EmailAlreadyExists;
@@ -74,7 +77,7 @@ public sealed class RegisterAccountHandler
 
         _context.Accounts.Add(account);
 
-        await _context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(cancellationToken);
 
         return new RegisterAccountResponse(account.Id);
     }
@@ -88,10 +91,13 @@ public sealed class RegisterAccountEndpoint : IEndpoint
                 async (
                     RegisterAccountCommand command,
                     IRequestHandler<RegisterAccountCommand, RegisterAccountResponse> handler,
-                    CancellationToken ct
+                    CancellationToken cancellationToken
                 ) =>
                 {
-                    Result<RegisterAccountResponse> result = await handler.Handle(command, ct);
+                    Result<RegisterAccountResponse> result = await handler.Handle(
+                        command,
+                        cancellationToken
+                    );
 
                     return result.Match(
                         () => Results.Created($"/accounts/{result.Value.Id}", result.Value),

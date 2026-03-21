@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Deep.Api.Extensions;
 
-public static class MigrationExtensions
+internal static class MigrationExtensions
 {
     internal static void ApplyMigrations(this IApplicationBuilder app)
     {

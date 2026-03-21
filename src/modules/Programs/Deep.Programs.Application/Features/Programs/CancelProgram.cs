@@ -18,11 +18,14 @@ public static class CancelProgram
 
     public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, bool>
     {
-        public async Task<Result<bool>> Handle(Command command, CancellationToken ct = default)
+        public async Task<Result<bool>> Handle(
+            Command command,
+            CancellationToken cancellationToken = default
+        )
         {
             Program? program = await context.Programs.FirstOrDefaultAsync(
                 p => p.Id == command.ProgramId,
-                ct
+                cancellationToken
             );
 
             if (program is null)
@@ -37,7 +40,7 @@ public static class CancelProgram
                 return result.Error;
             }
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return true;
         }

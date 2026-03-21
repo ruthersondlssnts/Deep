@@ -17,7 +17,7 @@ public static class GetAccountPermissions
     {
         public async Task<Result<PermissionsResponse>> Handle(
             Query query,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
             if (!Guid.TryParse(query.IdentityId, out Guid accountId))

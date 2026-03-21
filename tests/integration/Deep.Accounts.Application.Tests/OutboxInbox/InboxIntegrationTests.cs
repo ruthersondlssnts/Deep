@@ -1,5 +1,3 @@
-using System.Text.Json;
-using Deep.Common.Application.Database;
 using Deep.Common.Application.IntegrationEvents;
 
 namespace Deep.Accounts.Application.Tests.OutboxInbox;

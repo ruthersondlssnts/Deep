@@ -21,7 +21,10 @@ public sealed class TransactionsInboxBackgroundService(
         Schemas.Transactions
     );
 
-public sealed class TransactionsInboxNotifier : InboxNotifier;
+public sealed class TransactionsInboxNotifier : InboxNotifier
+{
+    public TransactionsInboxNotifier() { }
+}
 
 public sealed class TransactionsInboxProcessor(
     IDbConnectionFactory connectionFactory,

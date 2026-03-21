@@ -21,7 +21,10 @@ public sealed class ProgramsInboxBackgroundService(
         Schemas.Programs
     );
 
-public sealed class ProgramsInboxNotifier : InboxNotifier;
+public sealed class ProgramsInboxNotifier : InboxNotifier
+{
+    public ProgramsInboxNotifier() { }
+}
 
 public sealed class ProgramsInboxProcessor(
     IDbConnectionFactory connectionFactory,

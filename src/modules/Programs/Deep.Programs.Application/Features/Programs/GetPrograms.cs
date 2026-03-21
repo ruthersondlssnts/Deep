@@ -28,7 +28,7 @@ public static class GetPrograms
     {
         public async Task<Result<IReadOnlyList<Response>>> Handle(
             Query query,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
             List<Response> programs = await context
@@ -41,7 +41,7 @@ public static class GetPrograms
                     p.EndsAtUtc,
                     p.Products.Select(pp => pp.ProductName).ToList()
                 ))
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             return programs;
         }
@@ -54,12 +54,12 @@ public static class GetPrograms
                     "/programs",
                     async (
                         IRequestHandler<Query, IReadOnlyList<Response>> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
                         Result<IReadOnlyList<Response>> result = await handler.Handle(
                             new Query(),
-                            ct
+                            cancellationToken
                         );
 
                         return result.Match(Results.Ok, ApiResults.Problem);

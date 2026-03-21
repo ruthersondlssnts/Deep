@@ -39,7 +39,7 @@ public sealed class WriteAuditLogInterceptor(IAuditingUserProvider userProvider)
         return await base.SavedChangesAsync(eventData, result, cancellationToken);
     }
 
-    private List<AuditEntry> CreateAuditEntries(DbContext context)
+    private static List<AuditEntry> CreateAuditEntries(DbContext context)
     {
         List<AuditEntry> auditEntries = [];
 

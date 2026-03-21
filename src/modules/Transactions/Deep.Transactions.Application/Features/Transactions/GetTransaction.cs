@@ -21,11 +21,14 @@ public static class GetTransaction
 
     public sealed class Handler(TransactionsDbContext context) : IRequestHandler<Query, Response>
     {
-        public async Task<Result<Response>> Handle(Query query, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Query query,
+            CancellationToken cancellationToken = default
+        )
         {
             Transaction? transaction = await context.Transactions.FirstOrDefaultAsync(
                 t => t.Id == query.TransactionId,
-                ct
+                cancellationToken
             );
 
             if (transaction is null)

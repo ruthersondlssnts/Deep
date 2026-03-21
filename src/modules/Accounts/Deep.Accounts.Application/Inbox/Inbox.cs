@@ -21,7 +21,10 @@ public sealed class AccountsInboxBackgroundService(
         Schemas.Accounts
     );
 
-public sealed class AccountsInboxNotifier : InboxNotifier;
+public sealed class AccountsInboxNotifier : InboxNotifier
+{
+    public AccountsInboxNotifier() { }
+}
 
 public sealed class AccountsInboxProcessor(
     IDbConnectionFactory connectionFactory,

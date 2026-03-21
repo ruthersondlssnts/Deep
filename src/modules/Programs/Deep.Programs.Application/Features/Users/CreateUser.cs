@@ -20,7 +20,10 @@ public static class CreateUser
 
     public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
         {
             User account = User.Create(c.Id, c.FirstName, c.LastName, c.Email, c.Roles);
 
@@ -30,7 +33,7 @@ public static class CreateUser
             }
 
             context.Users.Add(account);
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(account.Id);
         }

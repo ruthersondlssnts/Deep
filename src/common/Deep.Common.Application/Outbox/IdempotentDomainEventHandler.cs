@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Deep.Common.Application.Outbox;
 
-public sealed class IdempotentDomainEventHandler<TDomainEvent>(
+public sealed partial class IdempotentDomainEventHandler<TDomainEvent>(
     IDomainEventHandler<TDomainEvent> decorated,
     IDbConnectionFactory dbConnectionFactory,
     ILogger<IdempotentDomainEventHandler<TDomainEvent>> logger,
@@ -23,7 +23,9 @@ public sealed class IdempotentDomainEventHandler<TDomainEvent>(
         string consumerName = decorated.GetType().Name;
 
         await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        await using DbTransaction transaction = await connection.BeginTransactionAsync(
+            cancellationToken
+        );
 
         int affectedRows = await InsertOutboxConsumerAsync(
             connection,
@@ -35,21 +37,13 @@ public sealed class IdempotentDomainEventHandler<TDomainEvent>(
 
         if (affectedRows == 0)
         {
-            logger.LogDebug(
-                "Domain event {EventId} already processed by handler {Handler}",
-                domainEvent.Id,
-                consumerName
-            );
+            LogAlreadyProcessed(logger, domainEvent.Id, consumerName);
 
             await transaction.RollbackAsync(cancellationToken);
             return;
         }
 
-        logger.LogDebug(
-            "Processing domain event {EventId} with handler {Handler}",
-            domainEvent.Id,
-            consumerName
-        );
+        LogProcessing(logger, domainEvent.Id, consumerName);
 
         try
         {
@@ -84,4 +78,18 @@ public sealed class IdempotentDomainEventHandler<TDomainEvent>(
             transaction
         );
     }
+
+    [LoggerMessage(
+        EventId = 5000,
+        Level = LogLevel.Debug,
+        Message = "Domain event {EventId} already processed by handler {Handler}"
+    )]
+    private static partial void LogAlreadyProcessed(ILogger logger, Guid eventId, string handler);
+
+    [LoggerMessage(
+        EventId = 5001,
+        Level = LogLevel.Debug,
+        Message = "Processing domain event {EventId} with handler {Handler}"
+    )]
+    private static partial void LogProcessing(ILogger logger, Guid eventId, string handler);
 }

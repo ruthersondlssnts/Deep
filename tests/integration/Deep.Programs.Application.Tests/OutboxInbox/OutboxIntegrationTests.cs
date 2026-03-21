@@ -1,6 +1,3 @@
-using Deep.Accounts.IntegrationEvents;
-using Deep.Common.Application.IntegrationEvents;
-
 namespace Deep.Programs.Application.Tests.OutboxInbox;
 
 [Collection(nameof(ProgramsIntegrationCollection))]

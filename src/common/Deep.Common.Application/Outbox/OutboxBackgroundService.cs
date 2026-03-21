@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace Deep.Common.Application.Outbox;
 
-public abstract class OutboxBackgroundService<TProcessor>(
+public abstract partial class OutboxBackgroundService<TProcessor>(
     IServiceScopeFactory serviceScopeFactory,
     IOutboxNotifier notifier,
     IOptions<OutboxOptions> options,
@@ -22,11 +22,7 @@ public abstract class OutboxBackgroundService<TProcessor>(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "Outbox background worker started for module {ModuleName} with polling interval {IntervalInSeconds}s",
-            _moduleName,
-            _options.IntervalInSeconds
-        );
+        LogWorkerStarted(_logger, _moduleName, _options.IntervalInSeconds);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -43,12 +39,14 @@ public abstract class OutboxBackgroundService<TProcessor>(
 
                 Task completedTask = await Task.WhenAny(delayTask, signalTask);
 
-                _logger.LogDebug(
-                    completedTask == signalTask
-                        ? "Outbox worker woke up by signal for module {ModuleName}"
-                        : "Outbox worker woke up by polling for module {ModuleName}",
-                    _moduleName
-                );
+                if (completedTask == signalTask)
+                {
+                    LogWokeUpBySignal(_logger, _moduleName);
+                }
+                else
+                {
+                    LogWokeUpByPolling(_logger, _moduleName);
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -56,20 +54,13 @@ public abstract class OutboxBackgroundService<TProcessor>(
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Unexpected outbox worker error for module {ModuleName}",
-                    _moduleName
-                );
+                LogUnexpectedError(_logger, ex, _moduleName);
 
                 await Task.Delay(TimeSpan.FromSeconds(_options.ErrorDelayInSeconds), stoppingToken);
             }
         }
 
-        _logger.LogInformation(
-            "Outbox background worker stopped for module {ModuleName}",
-            _moduleName
-        );
+        LogWorkerStopped(_logger, _moduleName);
     }
 
     private async Task DrainUntilEmptyAsync(CancellationToken cancellationToken)
@@ -93,4 +84,47 @@ public abstract class OutboxBackgroundService<TProcessor>(
             }
         }
     }
+
+    [LoggerMessage(
+        EventId = 4000,
+        Level = LogLevel.Information,
+        Message = "Outbox background worker started for module {ModuleName} with polling interval {IntervalInSeconds}s"
+    )]
+    private static partial void LogWorkerStarted(
+        ILogger logger,
+        string moduleName,
+        int intervalInSeconds
+    );
+
+    [LoggerMessage(
+        EventId = 4001,
+        Level = LogLevel.Debug,
+        Message = "Outbox worker woke up by signal for module {ModuleName}"
+    )]
+    private static partial void LogWokeUpBySignal(ILogger logger, string moduleName);
+
+    [LoggerMessage(
+        EventId = 4002,
+        Level = LogLevel.Debug,
+        Message = "Outbox worker woke up by polling for module {ModuleName}"
+    )]
+    private static partial void LogWokeUpByPolling(ILogger logger, string moduleName);
+
+    [LoggerMessage(
+        EventId = 4003,
+        Level = LogLevel.Error,
+        Message = "Unexpected outbox worker error for module {ModuleName}"
+    )]
+    private static partial void LogUnexpectedError(
+        ILogger logger,
+        Exception exception,
+        string moduleName
+    );
+
+    [LoggerMessage(
+        EventId = 4004,
+        Level = LogLevel.Information,
+        Message = "Outbox background worker stopped for module {ModuleName}"
+    )]
+    private static partial void LogWorkerStopped(ILogger logger, string moduleName);
 }

@@ -34,11 +34,14 @@ public static class LoginAccount
     {
         private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
         {
             Account? account = await context
                 .Accounts.Include(a => a.Roles)
-                .SingleOrDefaultAsync(acct => acct.Email == c.Email, ct);
+                .SingleOrDefaultAsync(acct => acct.Email == c.Email, cancellationToken);
 
             if (account is null)
             {
@@ -69,7 +72,7 @@ public static class LoginAccount
             );
             context.RefreshTokens.Add(refreshToken);
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(
                 accessToken,
@@ -87,10 +90,10 @@ public static class LoginAccount
                     async (
                         Command command,
                         IRequestHandler<Command, Response> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
-                        Result<Response> result = await handler.Handle(command, ct);
+                        Result<Response> result = await handler.Handle(command, cancellationToken);
 
                         return result.Match(() => Results.Ok(result.Value), ApiResults.Problem);
                     }

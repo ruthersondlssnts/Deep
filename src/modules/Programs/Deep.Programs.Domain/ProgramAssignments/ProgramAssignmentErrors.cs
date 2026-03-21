@@ -21,7 +21,7 @@ public static class ProgramAssignmentErrors
         "The program assignment already exists"
     );
 
-    public static Error InvalidProgramAssignment = Error.Problem(
+    public static readonly Error InvalidProgramAssignment = Error.Problem(
         "ProgramAssignment.InvalidProgramAssignment",
         "The program assignment is invalid"
     );

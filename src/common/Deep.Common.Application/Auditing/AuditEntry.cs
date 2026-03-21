@@ -12,8 +12,8 @@ public sealed class AuditEntry
     public Dictionary<string, object?> PrimaryKey { get; } = [];
     public Dictionary<string, object?> OldValues { get; } = [];
     public Dictionary<string, object?> NewValues { get; } = [];
-    public List<string> ChangedColumns { get; } = [];
-    public List<PropertyEntry> TemporaryProperties { get; } = [];
+    public ICollection<string> ChangedColumns { get; } = [];
+    public ICollection<PropertyEntry> TemporaryProperties { get; } = [];
 
     public AuditEntry(EntityEntry entry) => Entry = entry;
 

@@ -32,13 +32,16 @@ public static class ChangePassword
     {
         private const int PasswordHistoryLimit = 5;
 
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
         {
             Guid accountId = httpContextAccessor.HttpContext!.User.GetUserId();
 
             Account? account = await context
                 .Accounts.Include(a => a.Roles)
-                .SingleOrDefaultAsync(acct => acct.Id == accountId, ct);
+                .SingleOrDefaultAsync(acct => acct.Id == accountId, cancellationToken);
 
             if (account is null)
             {
@@ -60,7 +63,7 @@ public static class ChangePassword
                 .PasswordHistories.Where(ph => ph.AccountId == accountId)
                 .OrderByDescending(ph => ph.ChangedAtUtc)
                 .Take(PasswordHistoryLimit)
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             string newPasswordHash = passwordHasher.HashPassword(account, c.NewPassword);
 
@@ -93,7 +96,7 @@ public static class ChangePassword
                 .PasswordHistories.Where(ph => ph.AccountId == accountId)
                 .OrderByDescending(ph => ph.ChangedAtUtc)
                 .Skip(PasswordHistoryLimit)
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             context.PasswordHistories.RemoveRange(toDelete);
 
@@ -101,14 +104,14 @@ public static class ChangePassword
 
             List<RefreshToken> activeTokens = await context
                 .RefreshTokens.Where(rt => rt.AccountId == accountId && rt.RevokedAtUtc == null)
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             foreach (RefreshToken token in activeTokens)
             {
                 token.Revoke();
             }
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(true);
         }
@@ -122,10 +125,10 @@ public static class ChangePassword
                     async (
                         Command command,
                         IRequestHandler<Command, Response> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
-                        Result<Response> result = await handler.Handle(command, ct);
+                        Result<Response> result = await handler.Handle(command, cancellationToken);
 
                         return result.Match(() => Results.Ok(result.Value), ApiResults.Problem);
                     }

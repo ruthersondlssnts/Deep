@@ -44,11 +44,14 @@ public static class UpdateProgram
     public sealed class Handler(ProgramsDbContext context, IDbConnectionFactory dbConnectionFactory)
         : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
         {
             Program? program = await context
                 .Programs.Include(p => p.Products)
-                .SingleOrDefaultAsync(p => p.Id == c.ProgramId, ct);
+                .SingleOrDefaultAsync(p => p.Id == c.ProgramId, cancellationToken);
 
             if (program is null)
             {
@@ -82,7 +85,7 @@ public static class UpdateProgram
 
             List<ProgramAssignment> existingAssignments = await context
                 .ProgramAssignments.Where(a => a.ProgramId == c.ProgramId)
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             Result<IReadOnlyList<ProgramAssignment>> newAssignmentsResult =
                 ProgramAssignment.UpdateAssignments(c.ProgramId, assignments, existingAssignments);
@@ -97,14 +100,12 @@ public static class UpdateProgram
                 context.ProgramAssignments.AddRange(newAssignmentsResult.Value);
             }
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(program.Id);
         }
 
-        private async Task<bool> ExistWithRolesAsync(
-            IReadOnlyCollection<(Guid UserId, string RoleName)> userRoles
-        )
+        private async Task<bool> ExistWithRolesAsync(List<(Guid UserId, string RoleName)> userRoles)
         {
             if (userRoles.Count == 0)
             {
@@ -147,7 +148,7 @@ public static class UpdateProgram
                         Guid programId,
                         Command command,
                         IRequestHandler<Command, Response> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
                         Result<Response> result = await handler.Handle(
@@ -155,7 +156,7 @@ public static class UpdateProgram
                             {
                                 ProgramId = programId,
                             },
-                            ct
+                            cancellationToken
                         );
 
                         return result.Match(() => Results.Ok(result.Value), ApiResults.Problem);

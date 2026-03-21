@@ -168,7 +168,7 @@ public class ProgramTests
         result.Value.Products.Should().HaveCount(3);
     }
 
-    private static IReadOnlyCollection<(Guid UserId, string RoleName)> CreateValidAssignments() =>
+    private static List<(Guid UserId, string RoleName)> CreateValidAssignments() =>
         new List<(Guid, string)>
         {
             (Guid.CreateVersion7(), RoleNames.Coordinator),

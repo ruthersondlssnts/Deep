@@ -29,11 +29,14 @@ public static class CreateTransaction
 
     public sealed class Handler(TransactionsDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command command, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command command,
+            CancellationToken cancellationToken = default
+        )
         {
             Customer? customer = await context.Customers.FirstOrDefaultAsync(
                 c => c.Email == command.CustomerEmail,
-                ct
+                cancellationToken
             );
 
             if (customer is null)
@@ -57,7 +60,7 @@ public static class CreateTransaction
             }
 
             context.Transactions.Add(transactionResult.Value);
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(transactionResult.Value.Id, customer.Id);
         }
@@ -71,10 +74,10 @@ public static class CreateTransaction
                     async (
                         Command command,
                         IRequestHandler<Command, Response> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
-                        Result<Response> result = await handler.Handle(command, ct);
+                        Result<Response> result = await handler.Handle(command, cancellationToken);
 
                         return result.Match(
                             () =>

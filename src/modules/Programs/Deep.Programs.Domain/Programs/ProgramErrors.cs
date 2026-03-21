@@ -33,52 +33,52 @@ public static class ProgramErrors
         "The program has already started"
     );
 
-    public static Error ProgramUserNotFound = Error.Problem(
+    public static readonly Error ProgramUserNotFound = Error.Problem(
         "Programs.UserNotFound",
         "The program user/s were not found"
     );
 
-    public static Error CoordinatorRequired = Error.Problem(
+    public static readonly Error CoordinatorRequired = Error.Problem(
         "Programs.CoordinatorRequired",
         "At least one program user with the coordinator role is required"
     );
 
-    public static Error BrandAmbassadorRequired = Error.Problem(
+    public static readonly Error BrandAmbassadorRequired = Error.Problem(
         "Programs.BrandAmbassadorRequired",
         "At least one program user with the brand ambassador role is required"
     );
 
-    public static Error TooManyCoOwners = Error.Problem(
+    public static readonly Error TooManyCoOwners = Error.Problem(
         "Programs.TooManyCoOwners",
         "The number of program users with the program owner role exceeds the allowed limit"
     );
 
-    public static Error AtLeastOneProductRequired = Error.Problem(
+    public static readonly Error AtLeastOneProductRequired = Error.Problem(
         "Programs.AtLeastOneProductRequired",
         "At least one product is required"
     );
 
-    public static Error InvalidProduct = Error.Problem(
+    public static readonly Error InvalidProduct = Error.Problem(
         "Programs.InvalidProduct",
         "The product is invalid"
     );
 
-    public static Error InvalidSku = Error.Problem(
+    public static readonly Error InvalidSku = Error.Problem(
         "Programs.InvalidSku",
         "The product SKU is invalid"
     );
 
-    public static Error InvalidUnitPrice = Error.Problem(
+    public static readonly Error InvalidUnitPrice = Error.Problem(
         "Programs.InvalidUnitPrice",
         "The unit price must be zero or greater"
     );
 
-    public static Error InvalidStock = Error.Problem(
+    public static readonly Error InvalidStock = Error.Problem(
         "Programs.InvalidStock",
         "The stock must be zero or greater"
     );
 
-    public static Error InvalidQuantity = Error.Problem(
+    public static readonly Error InvalidQuantity = Error.Problem(
         "Programs.InvalidQuantity",
         "The quantity must be greater than zero"
     );
@@ -89,7 +89,7 @@ public static class ProgramErrors
             $"Insufficient stock for product {sku}. Available: {available}, Requested: {requested}"
         );
 
-    public static Error InvalidReservedQuantity = Error.Problem(
+    public static readonly Error InvalidReservedQuantity = Error.Problem(
         "Programs.InvalidReservedQuantity",
         "The reserved quantity is invalid"
     );
@@ -97,7 +97,7 @@ public static class ProgramErrors
     public static Error ProductNotFound(string sku) =>
         Error.NotFound("Programs.ProductNotFound", $"The product with SKU {sku} was not found");
 
-    public static Error ProgramNotActive = Error.Problem(
+    public static readonly Error ProgramNotActive = Error.Problem(
         "Programs.ProgramNotActive",
         "The program is not active and cannot process transactions"
     );

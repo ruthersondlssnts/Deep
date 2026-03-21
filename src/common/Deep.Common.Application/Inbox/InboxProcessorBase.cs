@@ -16,7 +16,7 @@ public interface IInboxProcessor
     Task<int> ProcessAsync(CancellationToken cancellationToken = default);
 }
 
-public abstract class InboxProcessorBase(
+public abstract partial class InboxProcessorBase(
     IDbConnectionFactory connectionFactory,
     IServiceScopeFactory serviceScopeFactory,
     IOptions<InboxOptions> options,
@@ -39,7 +39,7 @@ public abstract class InboxProcessorBase(
 
     public async Task<int> ProcessAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Starting inbox processing for schema {Schema}", _schema);
+        LogStartProcessing(_logger, _schema);
 
         await using DbConnection connection = await _connectionFactory.OpenConnectionAsync();
         await using DbTransaction transaction = await connection.BeginTransactionAsync(
@@ -76,8 +76,8 @@ public abstract class InboxProcessorBase(
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Inbox processing failed for schema {Schema}", _schema);
             await transaction.RollbackAsync(cancellationToken);
+            LogProcessingFailed(_logger, ex, _schema);
             throw;
         }
     }
@@ -141,7 +141,7 @@ public abstract class InboxProcessorBase(
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing inbox message {Id}", message.Id);
+            LogMessageError(_logger, ex, message.Id);
             return ex.ToString();
         }
     }
@@ -194,4 +194,33 @@ public abstract class InboxProcessorBase(
     }
 
     private sealed record InboxMessageData(Guid Id, string Type, string Content);
+
+    [LoggerMessage(
+        EventId = 2000,
+        Level = LogLevel.Information,
+        Message = "Starting inbox processing for schema {Schema}"
+    )]
+    private static partial void LogStartProcessing(ILogger logger, string schema);
+
+    [LoggerMessage(
+        EventId = 2001,
+        Level = LogLevel.Error,
+        Message = "Inbox processing failed for schema {Schema}"
+    )]
+    private static partial void LogProcessingFailed(
+        ILogger logger,
+        Exception exception,
+        string schema
+    );
+
+    [LoggerMessage(
+        EventId = 2002,
+        Level = LogLevel.Error,
+        Message = "Error processing inbox message {MessageId}"
+    )]
+    private static partial void LogMessageError(
+        ILogger logger,
+        Exception exception,
+        Guid messageId
+    );
 }

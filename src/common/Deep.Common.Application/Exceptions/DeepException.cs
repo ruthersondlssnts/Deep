@@ -2,13 +2,23 @@ using Deep.Common.Domain;
 
 namespace Deep.Common.Application.Exceptions;
 
-public sealed class DeepException(
-    string requestName,
-    Error? error = default,
-    Exception? innerException = default
-) : Exception("Application exception", innerException)
+public sealed class DeepException : Exception
 {
-    public string RequestName { get; } = requestName;
+    public string RequestName { get; } = string.Empty;
+    public Error? Error { get; }
 
-    public Error? Error { get; } = error;
+    public DeepException(string requestName, Error? error, Exception? innerException = null)
+        : base("Application exception", innerException)
+    {
+        RequestName = requestName;
+        Error = error;
+    }
+
+    public DeepException() { }
+
+    public DeepException(string message)
+        : base(message) { }
+
+    public DeepException(string message, Exception innerException)
+        : base(message, innerException) { }
 }

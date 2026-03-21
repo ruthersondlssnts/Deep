@@ -32,11 +32,14 @@ public static class RefreshAccessToken
     {
         private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
         {
             RefreshToken? existingToken = await context.RefreshTokens.SingleOrDefaultAsync(
                 rt => rt.Token == c.RefreshToken,
-                ct
+                cancellationToken
             );
 
             if (existingToken is null || !existingToken.IsActive)
@@ -46,7 +49,10 @@ public static class RefreshAccessToken
 
             Account? account = await context
                 .Accounts.Include(a => a.Roles)
-                .SingleOrDefaultAsync(acct => acct.Id == existingToken.AccountId, ct);
+                .SingleOrDefaultAsync(
+                    acct => acct.Id == existingToken.AccountId,
+                    cancellationToken
+                );
 
             if (account is null)
             {
@@ -71,7 +77,7 @@ public static class RefreshAccessToken
             // Generate new access token
             string accessToken = jwtTokenGenerator.GenerateAccessToken(account);
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(
                 accessToken,
@@ -89,10 +95,10 @@ public static class RefreshAccessToken
                     async (
                         Command command,
                         IRequestHandler<Command, Response> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
-                        Result<Response> result = await handler.Handle(command, ct);
+                        Result<Response> result = await handler.Handle(command, cancellationToken);
 
                         return result.Match(() => Results.Ok(result.Value), ApiResults.Problem);
                     }

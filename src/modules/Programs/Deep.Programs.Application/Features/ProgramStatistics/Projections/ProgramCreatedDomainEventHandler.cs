@@ -38,7 +38,8 @@ internal sealed class ProgramCreatedDomainEventHandler(IRequestBus requestBus)
                     program.Value.OwnerName,
                     program.Value.Assignments.Count(a => a.RoleName == RoleNames.Coordinator),
                     program.Value.Assignments.Count(a => a.RoleName == RoleNames.BrandAmbassador)
-                )
+                ),
+                cancellationToken
             );
 
         if (result.IsFailure)

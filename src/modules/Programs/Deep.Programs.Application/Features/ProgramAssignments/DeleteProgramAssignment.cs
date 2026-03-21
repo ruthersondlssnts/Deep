@@ -21,11 +21,14 @@ public static class DeleteProgramAssignment
 
     public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
         {
             ProgramAssignment? assignment = await context.ProgramAssignments.SingleOrDefaultAsync(
                 pa => pa.Id == c.AssignmentId,
-                ct
+                cancellationToken
             );
 
             if (assignment is null)
@@ -41,7 +44,7 @@ public static class DeleteProgramAssignment
             ProgramStatus? programStatus = await context
                 .Programs.Where(p => p.Id == assignment.ProgramId)
                 .Select(p => (ProgramStatus?)p.ProgramStatus)
-                .FirstOrDefaultAsync(ct);
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (programStatus is null)
             {
@@ -50,7 +53,7 @@ public static class DeleteProgramAssignment
 
             List<ProgramAssignment> currentAssignments = await context
                 .ProgramAssignments.Where(a => a.ProgramId == assignment.ProgramId && a.IsActive)
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             var assignmentsAfterDeactivation = currentAssignments
                 .Where(a => a.Id != c.AssignmentId)
@@ -69,7 +72,7 @@ public static class DeleteProgramAssignment
 
             assignment.Deactivate();
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(assignment.Id);
         }

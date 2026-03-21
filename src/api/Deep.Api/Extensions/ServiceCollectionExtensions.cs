@@ -14,7 +14,7 @@ using Microsoft.OpenApi;
 
 namespace Deep.Api.Extensions;
 
-public static class ServiceCollectionExtensions
+internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddOpenApiAndSwagger(this IServiceCollection services)
     {
@@ -22,7 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(options =>
         {
-            options.CustomSchemaIds(t => t.FullName?.Replace("+", "."));
+            options.CustomSchemaIds(t => t.FullName?.Replace("+", ".", StringComparison.Ordinal));
 
             options.AddSecurityDefinition(
                 "bearer",

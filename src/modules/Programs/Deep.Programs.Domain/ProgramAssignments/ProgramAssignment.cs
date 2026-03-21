@@ -40,11 +40,7 @@ public sealed class ProgramAssignment : Entity
         var assignments = new List<ProgramAssignment>();
         foreach ((Guid userId, string roleName) in userAssignments)
         {
-            Result<ProgramAssignment> result = ProgramAssignment.Create(
-                programId,
-                userId,
-                roleName
-            );
+            Result<ProgramAssignment> result = Create(programId, userId, roleName);
             if (!result.IsSuccess)
             {
                 return result.Error;
@@ -56,11 +52,11 @@ public sealed class ProgramAssignment : Entity
 
     public static Result<IReadOnlyList<ProgramAssignment>> UpdateAssignments(
         Guid programId,
-        List<(Guid UserId, string RoleName)> assignments,
-        List<ProgramAssignment> existingAssignments
+        ICollection<(Guid UserId, string RoleName)> assignments,
+        ICollection<ProgramAssignment> existingAssignments
     )
     {
-        var desired = assignments.Select(a => (a.UserId, a.RoleName)).ToHashSet();
+        var desired = assignments.ToHashSet();
 
         var existing = existingAssignments.ToDictionary(a => (a.UserId, a.RoleName), a => a);
 
@@ -68,10 +64,8 @@ public sealed class ProgramAssignment : Entity
 
         foreach ((Guid UserId, string RoleName) key in desired)
         {
-            if (existing.ContainsKey(key))
+            if (existing.TryGetValue(key, out ProgramAssignment? assignment))
             {
-                ProgramAssignment assignment = existing[key];
-
                 if (!assignment.IsActive)
                 {
                     assignment.SetActive(true);
@@ -79,11 +73,7 @@ public sealed class ProgramAssignment : Entity
             }
             else
             {
-                Result<ProgramAssignment> result = ProgramAssignment.Create(
-                    programId,
-                    key.UserId,
-                    key.RoleName
-                );
+                Result<ProgramAssignment> result = Create(programId, key.UserId, key.RoleName);
 
                 if (result.IsFailure)
                 {
@@ -96,7 +86,9 @@ public sealed class ProgramAssignment : Entity
 
         foreach (ProgramAssignment assignment in existingAssignments)
         {
-            if (assignment.IsActive && !desired.Contains((assignment.UserId, assignment.RoleName)))
+            (Guid UserId, string RoleName) key = (assignment.UserId, assignment.RoleName);
+
+            if (assignment.IsActive && !desired.Contains(key))
             {
                 assignment.SetActive(false);
             }

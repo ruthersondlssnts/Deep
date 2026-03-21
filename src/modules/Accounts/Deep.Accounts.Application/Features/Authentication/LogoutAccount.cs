@@ -20,11 +20,14 @@ public static class LogoutAccount
 
     public sealed class Handler(AccountsDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command c, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
         {
             RefreshToken? existingToken = await context.RefreshTokens.SingleOrDefaultAsync(
                 rt => rt.Token == c.RefreshToken,
-                ct
+                cancellationToken
             );
 
             if (existingToken is null)
@@ -34,7 +37,7 @@ public static class LogoutAccount
 
             existingToken.Revoke();
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(true);
         }

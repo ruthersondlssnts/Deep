@@ -28,7 +28,7 @@ public static class GetUsers
     {
         public async Task<Result<IReadOnlyList<Response>>> Handle(
             Query request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
             IQueryable<User> accountsQuery = context.Users.Include(a => a.Roles).AsQueryable();
@@ -48,7 +48,7 @@ public static class GetUsers
                     a.Email,
                     a.Roles.Select(r => r.Name).ToList()
                 ))
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             return accounts;
         }
@@ -62,12 +62,12 @@ public static class GetUsers
                     async (
                         string? role,
                         IRequestHandler<Query, IReadOnlyList<Response>> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
                         Result<IReadOnlyList<Response>> result = await handler.Handle(
                             new Query(role),
-                            ct
+                            cancellationToken
                         );
 
                         return result.Match(Results.Ok, ApiResults.Problem);

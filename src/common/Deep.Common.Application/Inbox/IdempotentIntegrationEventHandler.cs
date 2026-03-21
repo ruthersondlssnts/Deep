@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Deep.Common.Application.Inbox;
 
-public sealed class IdempotentIntegrationEventHandler<TIntegrationEvent>(
+public sealed partial class IdempotentIntegrationEventHandler<TIntegrationEvent>(
     IIntegrationEventHandler<TIntegrationEvent> decorated,
     IDbConnectionFactory dbConnectionFactory,
     ILogger<IdempotentIntegrationEventHandler<TIntegrationEvent>> logger,
@@ -22,7 +22,9 @@ public sealed class IdempotentIntegrationEventHandler<TIntegrationEvent>(
         string consumerName = decorated.GetType().Name;
 
         await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        await using DbTransaction transaction = await connection.BeginTransactionAsync(
+            cancellationToken
+        );
 
         int affectedRows = await InsertInboxConsumerAsync(
             connection,
@@ -34,19 +36,11 @@ public sealed class IdempotentIntegrationEventHandler<TIntegrationEvent>(
 
         if (affectedRows == 0)
         {
-            logger.LogDebug(
-                "Integration event {EventId} already processed by handler {Handler}",
-                integrationEvent.Id,
-                consumerName
-            );
+            LogAlreadyProcessed(logger, integrationEvent.Id, consumerName);
             return;
         }
 
-        logger.LogDebug(
-            "Processing integration event {EventId} with handler {Handler}",
-            integrationEvent.Id,
-            consumerName
-        );
+        LogProcessing(logger, integrationEvent.Id, consumerName);
 
         try
         {
@@ -81,4 +75,18 @@ public sealed class IdempotentIntegrationEventHandler<TIntegrationEvent>(
             transaction
         );
     }
+
+    [LoggerMessage(
+        EventId = 1000,
+        Level = LogLevel.Information,
+        Message = "Integration event {EventId} already processed by handler {Handler}"
+    )]
+    private static partial void LogAlreadyProcessed(ILogger logger, Guid eventId, string handler);
+
+    [LoggerMessage(
+        EventId = 1001,
+        Level = LogLevel.Information,
+        Message = "Processing integration event {EventId} with handler {Handler}"
+    )]
+    private static partial void LogProcessing(ILogger logger, Guid eventId, string handler);
 }

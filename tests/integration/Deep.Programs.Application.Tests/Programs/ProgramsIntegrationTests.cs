@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using Deep.Common.Domain;
 using Deep.Programs.Application.Features.Programs;
 using Deep.Programs.Application.Features.Users;

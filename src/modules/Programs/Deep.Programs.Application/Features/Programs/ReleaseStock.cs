@@ -14,11 +14,14 @@ public static class ReleaseStock
 
     public sealed class Handler(ProgramsDbContext context) : IRequestHandler<Command, Response>
     {
-        public async Task<Result<Response>> Handle(Command command, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Command command,
+            CancellationToken cancellationToken = default
+        )
         {
             Program? program = await context
                 .Programs.Include(p => p.Products)
-                .FirstOrDefaultAsync(p => p.Id == command.ProgramId, ct);
+                .FirstOrDefaultAsync(p => p.Id == command.ProgramId, cancellationToken);
 
             if (program is null)
             {
@@ -32,7 +35,7 @@ public static class ReleaseStock
                 return result.Error;
             }
 
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new Response(true);
         }

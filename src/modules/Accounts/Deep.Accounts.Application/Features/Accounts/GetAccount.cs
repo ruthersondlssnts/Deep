@@ -25,13 +25,16 @@ public static class GetAccount
 
     public sealed class Handler(AccountsDbContext context) : IRequestHandler<Query, Response>
     {
-        public async Task<Result<Response>> Handle(Query query, CancellationToken ct = default)
+        public async Task<Result<Response>> Handle(
+            Query query,
+            CancellationToken cancellationToken = default
+        )
         {
             Response? user = await context
                 .Accounts.Where(u => u.Id == query.Id)
                 .Include(u => u.Roles)
                 .Select(u => new Response(u.Id, u.FirstName, u.LastName, u.Email, u.Roles))
-                .FirstOrDefaultAsync(ct);
+                .FirstOrDefaultAsync(cancellationToken);
 
             return user is null ? AccountErrors.NotFound(query.Id) : user;
         }
@@ -45,10 +48,13 @@ public static class GetAccount
                     async (
                         Guid id,
                         IRequestHandler<Query, Response> handler,
-                        CancellationToken ct
+                        CancellationToken cancellationToken
                     ) =>
                     {
-                        Result<Response> result = await handler.Handle(new Query(id), ct);
+                        Result<Response> result = await handler.Handle(
+                            new Query(id),
+                            cancellationToken
+                        );
 
                         return result.Match(Results.Ok, ApiResults.Problem);
                     }

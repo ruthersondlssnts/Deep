@@ -22,7 +22,10 @@ public sealed class ProgramsOutboxProcessor(
         AssemblyReference.Assembly
     );
 
-public sealed class ProgramsOutboxNotifier : OutboxNotifier;
+public sealed class ProgramsOutboxNotifier : OutboxNotifier
+{
+    public ProgramsOutboxNotifier() { }
+}
 
 public sealed class ProgramsInsertOutboxMessagesInterceptor(ProgramsOutboxNotifier outboxNotifier)
     : InsertOutboxMessagesInterceptorBase(outboxNotifier);

@@ -22,7 +22,10 @@ public sealed class AccountsOutboxProcessor(
         AssemblyReference.Assembly
     );
 
-public sealed class AccountsOutboxNotifier : OutboxNotifier;
+public sealed class AccountsOutboxNotifier : OutboxNotifier
+{
+    public AccountsOutboxNotifier() { }
+}
 
 public sealed class AccountsInsertOutboxMessagesInterceptor(AccountsOutboxNotifier outboxNotifier)
     : InsertOutboxMessagesInterceptorBase(outboxNotifier);

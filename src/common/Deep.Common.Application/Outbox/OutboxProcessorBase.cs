@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 
 namespace Deep.Common.Application.Outbox;
 
-public abstract class OutboxProcessorBase(
+public abstract partial class OutboxProcessorBase(
     IDbConnectionFactory connectionFactory,
     IServiceScopeFactory serviceScopeFactory,
     IOptions<OutboxOptions> options,
@@ -35,7 +35,7 @@ public abstract class OutboxProcessorBase(
 
     public async Task<int> ProcessAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Starting outbox processing for schema {Schema}", _schema);
+        LogStartingOutboxProcessing(_logger, _schema);
 
         await using DbConnection connection = await _connectionFactory.OpenConnectionAsync();
         await using DbTransaction transaction = await connection.BeginTransactionAsync(
@@ -52,16 +52,12 @@ public abstract class OutboxProcessorBase(
 
             if (messages.Count == 0)
             {
-                _logger.LogDebug("No outbox messages to process for schema {Schema}", _schema);
+                LogNoOutboxMessagesToProcess(_logger, _schema);
                 await transaction.CommitAsync(cancellationToken);
                 return 0;
             }
 
-            _logger.LogInformation(
-                "Processing {Count} outbox messages for schema {Schema}",
-                messages.Count,
-                _schema
-            );
+            LogProcessingOutboxMessages(_logger, messages.Count, _schema);
 
             List<ProcessedOutboxMessage> processedMessages = [];
 
@@ -80,17 +76,12 @@ public abstract class OutboxProcessorBase(
 
             await transaction.CommitAsync(cancellationToken);
 
-            _logger.LogInformation(
-                "Completed outbox processing for schema {Schema}. Processed {Count} messages",
-                _schema,
-                messages.Count
-            );
+            LogCompletedOutboxProcessing(_logger, _schema, messages.Count);
 
             return messages.Count;
         }
-        catch (Exception ex)
+        catch
         {
-            _logger.LogError(ex, "Error during outbox processing for schema {Schema}", _schema);
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
@@ -135,7 +126,7 @@ public abstract class OutboxProcessorBase(
 
             if (domainEventType is null)
             {
-                _logger.LogWarning("Domain event type not found: {Type}", message.Type);
+                LogDomainEventTypeNotFound(_logger, message.Type);
                 return $"Domain event type not found: {message.Type}";
             }
 
@@ -147,7 +138,7 @@ public abstract class OutboxProcessorBase(
 
             if (deserialized is not IDomainEvent domainEvent)
             {
-                _logger.LogWarning("Failed to deserialize domain event: {Type}", message.Type);
+                LogFailedToDeserializeDomainEvent(_logger, message.Type);
                 return $"Failed to deserialize domain event: {message.Type}";
             }
 
@@ -157,7 +148,7 @@ public abstract class OutboxProcessorBase(
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing outbox message {MessageId}", message.Id);
+            LogErrorProcessingOutboxMessage(_logger, ex, message.Id);
             return ex.ToString();
         }
     }
@@ -220,4 +211,65 @@ public abstract class OutboxProcessorBase(
     private sealed record OutboxMessageData(Guid Id, string Type, string Content);
 
     private sealed record ProcessedOutboxMessage(Guid Id, string? Error);
+
+    [LoggerMessage(
+        EventId = 3000,
+        Level = LogLevel.Debug,
+        Message = "Starting outbox processing for schema {Schema}"
+    )]
+    private static partial void LogStartingOutboxProcessing(ILogger logger, string schema);
+
+    [LoggerMessage(
+        EventId = 3001,
+        Level = LogLevel.Debug,
+        Message = "No outbox messages to process for schema {Schema}"
+    )]
+    private static partial void LogNoOutboxMessagesToProcess(ILogger logger, string schema);
+
+    [LoggerMessage(
+        EventId = 3002,
+        Level = LogLevel.Information,
+        Message = "Processing {Count} outbox messages for schema {Schema}"
+    )]
+    private static partial void LogProcessingOutboxMessages(
+        ILogger logger,
+        int count,
+        string schema
+    );
+
+    [LoggerMessage(
+        EventId = 3003,
+        Level = LogLevel.Information,
+        Message = "Completed outbox processing for schema {Schema}. Processed {Count} messages"
+    )]
+    private static partial void LogCompletedOutboxProcessing(
+        ILogger logger,
+        string schema,
+        int count
+    );
+
+    [LoggerMessage(
+        EventId = 3004,
+        Level = LogLevel.Warning,
+        Message = "Domain event type not found: {Type}"
+    )]
+    private static partial void LogDomainEventTypeNotFound(ILogger logger, string type);
+
+    [LoggerMessage(
+        EventId = 3005,
+        Level = LogLevel.Warning,
+        Message = "Failed to deserialize domain event: {Type}"
+    )]
+    private static partial void LogFailedToDeserializeDomainEvent(ILogger logger, string type);
+
+    [LoggerMessage(
+        EventId = 3006,
+        Level = LogLevel.Error,
+        Message = "Error processing outbox message {MessageId}"
+    )]
+    private static partial void LogErrorProcessingOutboxMessage(
+        ILogger logger,
+        Exception exception,
+        Guid messageId
+    );
 }
