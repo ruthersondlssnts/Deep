@@ -1,10 +1,8 @@
 # Deep
 
-**Deep** is a data engagement and extraction platform where businesses create programs that allow customers to purchase products while generating actionable insights from every interaction.
+**Deep** is a data engagement and extraction platform where businesses create programs for customers to purchase products and generate actionable insights.
 
-It is built as a **Modular Monolith** using **.NET 10**, leveraging **Vertical Slice Architecture (VSA)**, **Domain-Driven Design (DDD)**, and the **Saga Pattern** to enable reliable cross-module workflows.
-
-The system is designed with clear module boundaries, asynchronous processing, and event-driven communication, while maintaining development simplicity. Its architecture also supports an **easy migration path to microservices** as the platform evolves.
+Built as a **Modular Monolith** with **.NET 10**, it uses **VSA**, **DDD**, and the **Saga Pattern** to enable scalable, event-driven workflows with a clear path to microservices.
 
 ---
 
