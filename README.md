@@ -1,17 +1,25 @@
 # Deep
 
-A production-grade **Modular Monolith** built with **.NET 10**, implementing **Vertical Slice Architecture (VSA)**, **Domain-Driven Design (DDD)**, and the **Saga Pattern** for distributed transactions.
+A **Modular Monolith** built with **.NET 10**, using **Vertical Slice Architecture (VSA)**, **Domain-Driven Design (DDD)**, and the **Saga Pattern** for reliable cross-module workflows.
+
+It is designed around clear module boundaries, asynchronous processing, and event-driven communication, while keeping development simple. The structure also supports an **easy migration path to microservices** when needed.
+
+---
 
 ## 🏗️ Architecture
 
-| Pattern | Description |
-|---------|-------------|
-| **Modular Monolith** | Independent modules with clear boundaries, single deployment |
-| **Vertical Slice Architecture** | Features organized by use case in single files |
-| **Domain-Driven Design** | Rich domain models with aggregates and value objects |
-| **Saga Pattern** | Orchestrated distributed transactions via MassTransit |
-| **Outbox/Inbox Pattern** | Reliable messaging with exactly-once delivery |
-| **Event-Driven** | Domain events and integration events for module communication |
+| Pattern / Concept | Description |
+|-------------------|-------------|
+| **Modular Monolith** | Single deployable app composed of independent, well-defined modules |
+| **Vertical Slice Architecture** | Organizes code by feature/use case instead of technical layers |
+| **Domain-Driven Design** | Encapsulates business logic using aggregates, entities, and value objects |
+| **Saga Pattern** | Coordinates multi-step workflows with eventual consistency |
+| **Outbox/Inbox Pattern** | Ensures reliable, idempotent message delivery and processing |
+| **Event-Driven Communication** | Modules communicate via events instead of direct dependencies |
+| **Permission-Based Authorization** | Fine-grained access control using permissions over roles |
+| **Microservice-Friendly Boundaries** | Modules are structured for easy extraction into services |
+
+---
 
 ## 🛠️ Tech Stack
 
@@ -21,30 +29,31 @@ A production-grade **Modular Monolith** built with **.NET 10**, implementing **V
 | **API** | ASP.NET Core Minimal APIs |
 | **Database** | PostgreSQL, MongoDB |
 | **Messaging** | RabbitMQ, MassTransit |
-| **Caching** | Redis (Saga state) |
-| **Jobs** | Hangfire |
+| **Caching / State** | Redis |
+| **Background Processing** | .NET Hosted Background Workers |
 | **Cloud Native** | .NET Aspire |
 | **Data Access** | EF Core, Dapper |
-| **Auth** | JWT Bearer |
+| **Auth** | JWT Bearer + Permission-Based Authorization |
 | **Testing** | xUnit, FluentAssertions, Testcontainers |
+
+---
 
 ## 📁 Project Structure
 
-```
+```text
 Deep/
 ├── src/
-│   ├── api/Deep.Api/              # Composition root, endpoints
+│   ├── api/Deep.Api/              # Composition root, endpoints, app configuration
 │   ├── aspire/                    # .NET Aspire orchestration
-│   ├── common/                    # Shared domain & infrastructure
+│   ├── common/                    # Shared domain, infrastructure, building blocks
 │   └── modules/
 │       ├── Accounts/              # Authentication & authorization
 │       ├── Programs/              # Program management & inventory
 │       └── Transactions/          # Orders, payments, sagas
 └── tests/
     ├── unit/                      # Domain tests
-    ├── integration/               # Application tests
+    ├── integration/               # Application/infrastructure tests
     └── architecture/              # Dependency rule tests
-```
 
 ### Module Structure
 
