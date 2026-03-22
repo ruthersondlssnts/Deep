@@ -202,7 +202,7 @@ public class InboxIntegrationTests(AccountsWebApplicationFactory factory)
             .Be(0, "Duplicate consumer record should be rejected (ON CONFLICT DO NOTHING)");
 
         // Verify only one consumer record exists
-        IReadOnlyList<InboxConsumerRow> consumers = await GetInboxConsumersAsync(eventId);
+        IEnumerable<InboxConsumerRow> consumers = await GetInboxConsumersAsync(eventId);
         consumers.Should().ContainSingle();
         consumers.First().Name.Should().Be(consumerName);
     }

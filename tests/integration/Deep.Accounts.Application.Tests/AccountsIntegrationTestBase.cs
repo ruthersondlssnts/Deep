@@ -19,14 +19,8 @@ namespace Deep.Accounts.Application.Tests;
 public abstract class AccountsIntegrationTestBase
 {
     protected static readonly Faker Faker = new();
-    protected readonly AccountsWebApplicationFactory Factory;
-    protected readonly HttpClient HttpClient;
-
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-    };
+    protected AccountsWebApplicationFactory Factory { get; }
+    protected HttpClient HttpClient { get; }
 
     protected AccountsIntegrationTestBase(AccountsWebApplicationFactory factory)
     {
@@ -218,8 +212,7 @@ public abstract class AccountsIntegrationTestBase
                 Type = typeof(TIntegrationEvent).Name,
                 Content = JsonSerializer.Serialize(
                     integrationEvent,
-                    typeof(TIntegrationEvent),
-                    JsonSerializerOptions
+                    JsonSerialization.SerializerOptions
                 ),
                 integrationEvent.OccurredAtUtc,
             }
@@ -392,10 +385,7 @@ public sealed record OutboxMessageRow(
     /// </summary>
     public T? DeserializeContent<T>()
         where T : class =>
-        JsonSerializer.Deserialize<T>(
-            Content,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-        );
+        JsonSerializer.Deserialize<T>(Content, JsonSerialization.SerializerOptions);
 }
 
 /// <summary>
@@ -415,10 +405,7 @@ public sealed record InboxMessageRow(
     /// </summary>
     public T? DeserializeContent<T>()
         where T : class =>
-        JsonSerializer.Deserialize<T>(
-            Content,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-        );
+        JsonSerializer.Deserialize<T>(Content, JsonSerialization.SerializerOptions);
 }
 
 /// <summary>
@@ -427,3 +414,11 @@ public sealed record InboxMessageRow(
 public sealed record InboxConsumerRow(Guid InboxMessageId, string Name);
 
 #endregion
+internal static class JsonSerialization
+{
+    internal static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+    };
+}

@@ -16,14 +16,8 @@ namespace Deep.Transactions.Application.Tests;
 public abstract class TransactionsIntegrationTestBase
 {
     protected static readonly Faker Faker = new();
-    protected readonly TransactionsWebApplicationFactory Factory;
-    protected readonly HttpClient HttpClient;
-
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-    };
+    protected TransactionsWebApplicationFactory Factory { get; }
+    protected HttpClient HttpClient { get; }
 
     protected TransactionsIntegrationTestBase(TransactionsWebApplicationFactory factory)
     {
@@ -152,8 +146,7 @@ public abstract class TransactionsIntegrationTestBase
                 Type = typeof(TIntegrationEvent).Name,
                 Content = JsonSerializer.Serialize(
                     integrationEvent,
-                    typeof(TIntegrationEvent),
-                    JsonSerializerOptions
+                    JsonSerialization.SerializerOptions
                 ),
                 integrationEvent.OccurredAtUtc,
             }
@@ -252,10 +245,7 @@ public sealed record OutboxMessageRow(
 {
     public T? DeserializeContent<T>()
         where T : class =>
-        JsonSerializer.Deserialize<T>(
-            Content,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-        );
+        JsonSerializer.Deserialize<T>(Content, JsonSerialization.SerializerOptions);
 }
 
 public sealed record InboxMessageRow(
@@ -269,10 +259,16 @@ public sealed record InboxMessageRow(
 {
     public T? DeserializeContent<T>()
         where T : class =>
-        JsonSerializer.Deserialize<T>(
-            Content,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-        );
+        JsonSerializer.Deserialize<T>(Content, JsonSerialization.SerializerOptions);
 }
 
 public sealed record InboxConsumerRow(Guid InboxMessageId, string Name);
+
+internal static class JsonSerialization
+{
+    internal static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+    };
+}

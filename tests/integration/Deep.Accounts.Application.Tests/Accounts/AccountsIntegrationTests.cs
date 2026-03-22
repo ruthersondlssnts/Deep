@@ -378,7 +378,9 @@ public class AccountsIntegrationTests(AccountsWebApplicationFactory factory)
         await RegisterTestAccountAsync(Faker.Internet.Email(), "Test1234!");
 
         // Act
-        HttpResponseMessage response = await HttpClient.GetAsync("/accounts");
+        HttpResponseMessage response = await HttpClient.GetAsync(
+            new Uri("/accounts", UriKind.Relative)
+        );
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

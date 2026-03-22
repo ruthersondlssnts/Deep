@@ -12,7 +12,9 @@ public class ProgramsIntegrationTests(ProgramsWebApplicationFactory factory)
     [Fact]
     public async Task GetPrograms_ShouldReturnOk()
     {
-        HttpResponseMessage response = await HttpClient.GetAsync("/programs");
+        HttpResponseMessage response = await HttpClient.GetAsync(
+            new Uri("/programs", UriKind.Relative)
+        );
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 

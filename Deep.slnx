@@ -22,9 +22,9 @@
     <Project Path="src/modules/Accounts/Deep.Accounts.IntegrationEvents/Deep.Accounts.IntegrationEvents.csproj" />
   </Folder>
   <Folder Name="/src/modules/Programs/">
-    <Project Path="src/modules/Programs/Deep.Programs.IntegrationEvents/Deep.Programs.IntegrationEvents.csproj" Id="5f6e8b29-91cf-4f2c-86ff-b5b4be6865d2" />
     <Project Path="src/modules/Programs/Deep.Programs.Application/Deep.Programs.Application.csproj" />
     <Project Path="src/modules/Programs/Deep.Programs.Domain/Deep.Programs.Domain.csproj" />
+    <Project Path="src/modules/Programs/Deep.Programs.IntegrationEvents/Deep.Programs.IntegrationEvents.csproj" Id="5f6e8b29-91cf-4f2c-86ff-b5b4be6865d2" />
   </Folder>
   <Folder Name="/src/modules/Transactions/">
     <Project Path="src/modules/Transactions/Deep.Transactions.Application/Deep.Transactions.Application.csproj" Id="b55fb6b9-5923-4177-8fb7-27cc51b0f7c2" />
@@ -35,7 +35,11 @@
   <Folder Name="/tests/architecture/">
     <Project Path="tests/architecture/Deep.Architecture.Tests/Deep.Architecture.Tests.csproj" />
   </Folder>
-  <Folder Name="/tests/integration/" />
+  <Folder Name="/tests/integration/">
+    <Project Path="tests/integration/Deep.Accounts.Application.Tests/Deep.Accounts.Application.Tests.csproj" />
+    <Project Path="tests/integration/Deep.Programs.Application.Tests/Deep.Programs.Application.Tests.csproj" />
+    <Project Path="tests/integration/Deep.Transactions.Application.Tests/Deep.Transactions.Application.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/unit/">
     <Project Path="tests/unit/Deep.Accounts.Domain.Tests/Deep.Accounts.Domain.Tests.csproj" />
     <Project Path="tests/unit/Deep.Programs.Domain.Tests/Deep.Programs.Domain.Tests.csproj" />

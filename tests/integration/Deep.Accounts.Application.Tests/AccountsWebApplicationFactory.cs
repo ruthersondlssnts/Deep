@@ -1,13 +1,17 @@
 using Deep.Accounts.Application.Data;
+using Deep.Common.Application.Inbox;
 using Deep.Common.Application.IntegrationEvents;
+using Deep.Common.Application.Outbox;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 
 namespace Deep.Accounts.Application.Tests;
 
@@ -18,7 +22,10 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
         .WithUsername("postgres")
         .Build();
 
+    private readonly RedisContainer _redis = new RedisBuilder("redis:latest").Build();
+
     private bool _initialized;
+    private bool _disposed;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -33,6 +40,10 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
         Environment.SetEnvironmentVariable(
             "ConnectionStrings__deep-docs",
             "mongodb://localhost:27017"
+        );
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__cache",
+            _redis.GetConnectionString()
         );
 
         builder.UseEnvironment("Testing");
@@ -54,12 +65,29 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
 
             services.RemoveAll<IEventBus>();
             services.AddSingleton<IEventBus, NoOpEventBus>();
+
+            // Remove outbox/inbox background workers to prevent race conditions in tests
+            foreach (
+                ServiceDescriptor descriptor in services
+                    .Where(d =>
+                        d.ServiceType == typeof(IHostedService)
+                        && d.ImplementationType?.BaseType is { IsGenericType: true } bt
+                        && (
+                            bt.GetGenericTypeDefinition() == typeof(OutboxBackgroundService<>)
+                            || bt.GetGenericTypeDefinition() == typeof(InboxBackgroundService<>)
+                        )
+                    )
+                    .ToList()
+            )
+            {
+                services.Remove(descriptor);
+            }
         });
     }
 
     public async Task InitializeAsync()
     {
-        await _postgres.StartAsync();
+        await Task.WhenAll(_postgres.StartAsync(), _redis.StartAsync());
         await EnsureDatabaseCreatedAsync();
     }
 
@@ -76,11 +104,31 @@ public sealed class AccountsWebApplicationFactory : WebApplicationFactory<Progra
         _initialized = true;
     }
 
-    public new async Task DisposeAsync()
+    protected override void Dispose(bool disposing)
     {
-        await _postgres.StopAsync();
+        if (!_disposed && disposing)
+        {
+            _postgres.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            _redis.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            _disposed = true;
+        }
+
+        base.Dispose(disposing);
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        if (!_disposed)
+        {
+            await _postgres.DisposeAsync();
+            await _redis.DisposeAsync();
+            _disposed = true;
+        }
+
         await base.DisposeAsync();
     }
+
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync().AsTask();
 }
 
 internal sealed class TestDbConnectionFactory(string connectionString)
@@ -96,6 +144,6 @@ internal sealed class TestDbConnectionFactory(string connectionString)
 
 internal sealed class NoOpEventBus : IEventBus
 {
-    public Task PublishAsync<T>(T integrationEvent, CancellationToken ct = default)
+    public Task PublishAsync<T>(T integrationEvent, CancellationToken cancellationToken = default)
         where T : IIntegrationEvent => Task.CompletedTask;
 }
