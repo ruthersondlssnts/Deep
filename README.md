@@ -1,9 +1,10 @@
 # Deep
 
-A **Modular Monolith** built with **.NET 10**, using **Vertical Slice Architecture (VSA)**, **Domain-Driven Design (DDD)**, and the **Saga Pattern** for reliable cross-module workflows.
+**Deep** is a data engagement and extraction platform where businesses create programs that allow customers to purchase products while generating actionable insights from every interaction.
 
-It is designed around clear module boundaries, asynchronous processing, and event-driven communication, while keeping development simple. The structure also supports an **easy migration path to microservices** when needed.
+It is built as a **Modular Monolith** using **.NET 10**, leveraging **Vertical Slice Architecture (VSA)**, **Domain-Driven Design (DDD)**, and the **Saga Pattern** to enable reliable cross-module workflows.
 
+The system is designed with clear module boundaries, asynchronous processing, and event-driven communication, while maintaining development simplicity. Its architecture also supports an **easy migration path to microservices** as the platform evolves.
 ---
 
 ## 🏗️ Architecture
