@@ -5,6 +5,7 @@
 It is built as a **Modular Monolith** using **.NET 10**, leveraging **Vertical Slice Architecture (VSA)**, **Domain-Driven Design (DDD)**, and the **Saga Pattern** to enable reliable cross-module workflows.
 
 The system is designed with clear module boundaries, asynchronous processing, and event-driven communication, while maintaining development simplicity. Its architecture also supports an **easy migration path to microservices** as the platform evolves.
+
 ---
 
 ## 🏗️ Architecture
