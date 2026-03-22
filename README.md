@@ -2,7 +2,7 @@
 
 **Deep** is a data engagement and extraction platform where businesses create programs for customers to purchase products and generate actionable insights.
 
-Built as a **Modular Monolith** with **.NET 10**, it uses **VSA**, **DDD**, and the **Saga Pattern** to enable scalable, event-driven workflows with a clear path to microservices.
+Built as a **Modular Monolith** with **.NET 10**, it uses **VSA**, **DDD**,  **CQRS**, and the **Saga Pattern** to enable scalable, event-driven workflows with a clear path to microservices.
 
 ---
 
@@ -17,6 +17,7 @@ Built as a **Modular Monolith** with **.NET 10**, it uses **VSA**, **DDD**, and 
 | **Outbox/Inbox Pattern** | Ensures reliable, idempotent message delivery and processing |
 | **Event-Driven Communication** | Modules communicate via events instead of direct dependencies |
 | **Permission-Based Authorization** | Fine-grained access control using permissions over roles |
+| **CQRS + Custom Mediator** | Command/query separation with mediator-based dispatching |
 | **Microservice-Friendly Boundaries** | Modules are structured for easy extraction into services |
 
 ---
@@ -28,7 +29,7 @@ Built as a **Modular Monolith** with **.NET 10**, it uses **VSA**, **DDD**, and 
 | **Runtime** | .NET 10, C# 14 |
 | **API** | ASP.NET Core Minimal APIs |
 | **Database** | PostgreSQL, MongoDB |
-| **Messaging** | RabbitMQ, MassTransit |
+| **Messaging** | RabbitMQ, MassTransit, Custom MediatR |
 | **Caching / State** | Redis |
 | **Background Processing** | .NET Hosted Background Workers |
 | **Cloud Native** | .NET Aspire |
