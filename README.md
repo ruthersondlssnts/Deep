@@ -54,21 +54,21 @@ Deep/
     ├── unit/                      # Domain tests
     ├── integration/               # Application/infrastructure tests
     └── architecture/              # Dependency rule tests
-
-### Module Structure
+```
+## Module Structure
 
 Each module follows the same layout:
 
-```
+```text
 Module/
 ├── Deep.{Module}.Domain/              # Aggregates, entities, domain events
 ├── Deep.{Module}.Application/         # Features (VSA), handlers, data access
 └── Deep.{Module}.IntegrationEvents/   # Cross-module event contracts
 ```
-
+---
 ## 📦 Vertical Slice Architecture
 
-Each feature is self-contained in a single file:
+Each feature is self-contained in a single file (and can be split into multiple files within a single folder if needed), enabling fast development, easier maintenance, and clear feature isolation.
 
 ```csharp
 public static class CreateProgram
