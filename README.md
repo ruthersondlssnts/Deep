@@ -118,26 +118,14 @@ This starts PostgreSQL, MongoDB, RabbitMQ, Redis, and the API.
 | `owner@deep.local` | `P@ssword123!` | ProgramOwner |
 | `ba@deep.local` | `P@ssword123!` | BrandAmbassador |
 | `coordinator1@deep.local` | `P@ssword123!` | Coordinator |
-| `coordinator2@deep.local` | `P@ssword123!` | Coordinator |
-| `coordinator3@deep.local` | `P@ssword123!` | Coordinator |
 
-## 📋 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/accounts/register` | Register account |
-| `POST` | `/accounts/login` | Get JWT token |
-| `POST` | `/programs` | Create program |
-| `PUT` | `/programs/{id}` | Update program |
-| `GET` | `/programs` | List programs |
-| `POST` | `/transactions` | Create transaction (triggers saga) |
 
 ## 📊 Dashboards
 
 | Dashboard | URL |
 |-----------|-----|
+| Aspire | `localhost:17169` |
 | Swagger | `/swagger` |
-| Hangfire | `/hangfire` |
 | PgAdmin | `localhost:8001` |
 | Mongo Express | `localhost:8002` |
 | RabbitMQ | `localhost:8003` |
