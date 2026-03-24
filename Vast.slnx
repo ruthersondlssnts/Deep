@@ -1,0 +1,49 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/api/">
+    <Project Path="src/api/Vast.Api/Vast.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/aspire/">
+    <Project Path="src/aspire/Vast.AppHost/Vast.AppHost.csproj" />
+    <Project Path="src/aspire/Vast.ServiceDefaults/Vast.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/src/common/">
+    <Project Path="src/common/Vast.Common.Application/Vast.Common.Application.csproj" Id="98e0a1a2-8819-4096-9d9d-e809df115db9" />
+    <Project Path="src/common/Vast.Common.Domain/Vast.Common.Domain.csproj" Id="8b730430-0b67-48a6-90fc-f14513ae0bf7" />
+  </Folder>
+  <Folder Name="/src/modules/" />
+  <Folder Name="/src/modules/Accounts/">
+    <Project Path="src/modules/Accounts/Vast.Accounts.Application/Vast.Accounts.Application.csproj" Id="c24ece8d-00fd-4474-98cf-747a78a58f33" />
+    <Project Path="src/modules/Accounts/Vast.Accounts.Domain/Vast.Accounts.Domain.csproj" Id="0716c7bb-324c-48ec-926d-fd0720143a39" />
+    <Project Path="src/modules/Accounts/Vast.Accounts.IntegrationEvents/Vast.Accounts.IntegrationEvents.csproj" />
+  </Folder>
+  <Folder Name="/src/modules/Programs/">
+    <Project Path="src/modules/Programs/Vast.Programs.Application/Vast.Programs.Application.csproj" />
+    <Project Path="src/modules/Programs/Vast.Programs.Domain/Vast.Programs.Domain.csproj" />
+    <Project Path="src/modules/Programs/Vast.Programs.IntegrationEvents/Vast.Programs.IntegrationEvents.csproj" Id="5f6e8b29-91cf-4f2c-86ff-b5b4be6865d2" />
+  </Folder>
+  <Folder Name="/src/modules/Transactions/">
+    <Project Path="src/modules/Transactions/Vast.Transactions.Application/Vast.Transactions.Application.csproj" Id="b55fb6b9-5923-4177-8fb7-27cc51b0f7c2" />
+    <Project Path="src/modules/Transactions/Vast.Transactions.Domain/Vast.Transactions.Domain.csproj" Id="edc25060-a3c8-4416-8af5-f45aa96ac9d5" />
+    <Project Path="src/modules/Transactions/Vast.Transactions.IntegrationEvents/Vast.Transactions.IntegrationEvents.csproj" Id="b15cc768-2dba-47b8-8a6a-702dcad895ca" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/architecture/">
+    <Project Path="tests/architecture/Vast.Architecture.Tests/Vast.Architecture.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/integration/">
+    <Project Path="tests/integration/Vast.Accounts.Application.Tests/Vast.Accounts.Application.Tests.csproj" />
+    <Project Path="tests/integration/Vast.Programs.Application.Tests/Vast.Programs.Application.Tests.csproj" />
+    <Project Path="tests/integration/Vast.Transactions.Application.Tests/Vast.Transactions.Application.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/unit/">
+    <Project Path="tests/unit/Vast.Accounts.Domain.Tests/Vast.Accounts.Domain.Tests.csproj" />
+    <Project Path="tests/unit/Vast.Programs.Domain.Tests/Vast.Programs.Domain.Tests.csproj" />
+    <Project Path="tests/unit/Vast.Transactions.Domain.Tests/Vast.Transactions.Domain.Tests.csproj" />
+  </Folder>
+</Solution>

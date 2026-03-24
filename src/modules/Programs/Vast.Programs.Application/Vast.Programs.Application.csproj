@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\Accounts\Vast.Accounts.IntegrationEvents\Vast.Accounts.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\..\common\Vast.Common.Application\Vast.Common.Application.csproj" />
+    <ProjectReference Include="..\Vast.Programs.Domain\Vast.Programs.Domain.csproj" />
+    <ProjectReference Include="..\Vast.Programs.IntegrationEvents\Vast.Programs.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\Transactions\Vast.Transactions.IntegrationEvents\Vast.Transactions.IntegrationEvents.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,126 @@
+using Vast.Common.Application.SimpleMediatR;
+using Vast.Common.Domain;
+using Vast.Programs.Application.Data;
+using Vast.Programs.Domain.Programs;
+using MongoDB.Driver;
+
+namespace Vast.Programs.Application.Features.ProgramStatistics;
+
+public static class UpsertProgramStatistic
+{
+    public sealed record Command(
+        Guid ProgramId,
+        string? Name = null,
+        string? Description = null,
+        ProgramStatus? ProgramStatus = null,
+        DateTime? StartsAtUtc = null,
+        DateTime? EndsAtUtc = null,
+        Guid? OwnerId = null,
+        string? Owner = null,
+        int? TotalCoordinators = null,
+        int? TotalBrandAmbassadors = null,
+        int? TotalTransactions = null,
+        int? TotalCustomers = null
+    );
+
+    public sealed record Response(Guid Id);
+
+    public sealed class Handler(MongoDbContext context) : IRequestHandler<Command, Response>
+    {
+        public async Task<Result<Response>> Handle(
+            Command request,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDefinitionBuilder<ProgramStatistic> u = Builders<ProgramStatistic>.Update;
+            var updates = new List<UpdateDefinition<ProgramStatistic>>();
+
+            if (request.Name is not null)
+            {
+                updates.Add(u.Set(x => x.Name, request.Name));
+            }
+
+            if (request.Description is not null)
+            {
+                updates.Add(u.Set(x => x.Description, request.Description));
+            }
+
+            if (request.ProgramStatus is not null)
+            {
+                updates.Add(u.Set(x => x.ProgramStatus, request.ProgramStatus.Value));
+                updates.Add(
+                    u.Set(x => x.ProgramStatusName, request.ProgramStatus.Value.ToString())
+                );
+            }
+
+            if (request.StartsAtUtc is not null)
+            {
+                updates.Add(u.Set(x => x.StartsAtUtc, request.StartsAtUtc.Value));
+            }
+
+            if (request.EndsAtUtc is not null)
+            {
+                updates.Add(u.Set(x => x.EndsAtUtc, request.EndsAtUtc.Value));
+            }
+
+            if (request.OwnerId is not null)
+            {
+                updates.Add(u.Set(x => x.OwnerId, request.OwnerId.Value));
+            }
+
+            if (request.Owner is not null)
+            {
+                updates.Add(u.Set(x => x.Owner, request.Owner));
+            }
+
+            if (request.TotalCoordinators is not null)
+            {
+                updates.Add(u.Set(x => x.TotalCoordinators, request.TotalCoordinators.Value));
+            }
+
+            if (request.TotalBrandAmbassadors is not null)
+            {
+                updates.Add(
+                    u.Set(x => x.TotalBrandAmbassadors, request.TotalBrandAmbassadors.Value)
+                );
+            }
+
+            if (request.TotalTransactions is not null)
+            {
+                updates.Add(u.Set(x => x.TotalTransactions, request.TotalTransactions.Value));
+            }
+
+            if (request.TotalCustomers is not null)
+            {
+                updates.Add(u.Set(x => x.TotalCustomers, request.TotalCustomers.Value));
+            }
+
+            // defaults on insert
+            updates.Add(u.SetOnInsert(x => x.ProgramId, request.ProgramId));
+
+            if (request.TotalTransactions is null)
+            {
+                updates.Add(u.SetOnInsert(x => x.TotalTransactions, 0));
+            }
+
+            if (request.TotalCustomers is null)
+            {
+                updates.Add(u.SetOnInsert(x => x.TotalCustomers, 0));
+            }
+
+            if (updates.Count == 0)
+            {
+                return new Response(request.ProgramId);
+            }
+
+            await context.ProgramStatistics.UpdateOneAsync(
+                x => x.ProgramId == request.ProgramId,
+                u.Combine(updates),
+                new UpdateOptions { IsUpsert = true },
+                cancellationToken
+            );
+
+            return new Response(request.ProgramId);
+        }
+    }
+}

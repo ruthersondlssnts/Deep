@@ -1,6 +1,6 @@
-# Deep
+# Vast
 
-**Deep** is a data engagement and extraction platform where businesses create programs for customers to purchase products and generate actionable insights.
+**Vast** is a data engagement and extraction platform where businesses create programs for customers to purchase products and generate actionable insights.
 
 Built as a **Modular Monolith** with **.NET 10**, it uses **VSA**, **DDD**, and the **Saga Pattern** to enable scalable, event-driven workflows with a clear path to microservices.
 
@@ -41,9 +41,9 @@ Built as a **Modular Monolith** with **.NET 10**, it uses **VSA**, **DDD**, and 
 ## 📁 Project Structure
 
 ```text
-Deep/
+Vast/
 ├── src/
-│   ├── api/Deep.Api/              # Composition root, endpoints, app configuration
+│   ├── api/Vast.Api/              # Composition root, endpoints, app configuration
 │   ├── aspire/                    # .NET Aspire orchestration
 │   ├── common/                    # Shared domain, infrastructure, building blocks
 │   └── modules/
@@ -61,9 +61,9 @@ Each module follows the same layout:
 
 ```text
 Module/
-├── Deep.{Module}.Domain/              # Aggregates, entities, domain events
-├── Deep.{Module}.Application/         # Features (VSA), handlers, data access
-└── Deep.{Module}.IntegrationEvents/   # Cross-module event contracts
+├── Vast.{Module}.Domain/              # Aggregates, entities, domain events
+├── Vast.{Module}.Application/         # Features (VSA), handlers, data access
+└── Vast.{Module}.IntegrationEvents/   # Cross-module event contracts
 ```
 ---
 ## 📦 Vertical Slice Architecture
@@ -103,7 +103,7 @@ Transaction Created → Reserve Stock → Process Payment → Complete
 
 ```bash
 dotnet workload install aspire
-cd src/aspire/Deep.AppHost
+cd src/aspire/Vast.AppHost
 dotnet run
 ```
 
@@ -113,11 +113,11 @@ This starts PostgreSQL, MongoDB, RabbitMQ, Redis, and the API.
 
 | Email | Password | Role |
 |-------|----------|------|
-| `admin@deep.local` | `P@ssword123!` | ItAdmin |
-| `manager@deep.local` | `P@ssword123!` | Manager |
-| `owner@deep.local` | `P@ssword123!` | ProgramOwner |
-| `ba@deep.local` | `P@ssword123!` | BrandAmbassador |
-| `coordinator1@deep.local` | `P@ssword123!` | Coordinator |
+| `admin@Vast.local` | `P@ssword123!` | ItAdmin |
+| `manager@Vast.local` | `P@ssword123!` | Manager |
+| `owner@Vast.local` | `P@ssword123!` | ProgramOwner |
+| `ba@Vast.local` | `P@ssword123!` | BrandAmbassador |
+| `coordinator1@Vast.local` | `P@ssword123!` | Coordinator |
 
 
 ## 📊 Dashboards

@@ -1,0 +1,103 @@
+using System.ComponentModel.DataAnnotations;
+using Vast.Accounts.Application.Authentication;
+using Vast.Accounts.Application.Data;
+using Vast.Accounts.Domain.Accounts;
+using Vast.Common.Application.Api.ApiResults;
+using Vast.Common.Application.Api.Endpoints;
+using Vast.Common.Application.SimpleMediatR;
+using Vast.Common.Domain;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+
+namespace Vast.Accounts.Application.Features.Authentication;
+
+public static class LoginAccount
+{
+    public sealed record Command([Required, EmailAddress] string Email, [Required] string Password);
+
+    public sealed record Response(
+        string AccessToken,
+        string RefreshToken,
+        DateTime AccessTokenExpiry
+    );
+
+    public sealed class Handler(
+        AccountsDbContext context,
+        IPasswordHasher<Account> passwordHasher,
+        IJwtTokenGenerator jwtTokenGenerator,
+        IOptions<JwtSettings> jwtSettings
+    ) : IRequestHandler<Command, Response>
+    {
+        private readonly JwtSettings _jwtSettings = jwtSettings.Value;
+
+        public async Task<Result<Response>> Handle(
+            Command c,
+            CancellationToken cancellationToken = default
+        )
+        {
+            Account? account = await context
+                .Accounts.Include(a => a.Roles)
+                .SingleOrDefaultAsync(acct => acct.Email == c.Email, cancellationToken);
+
+            if (account is null)
+            {
+                return AuthErrors.InvalidCredentials;
+            }
+
+            if (!account.IsActive)
+            {
+                return AuthErrors.AccountInactive;
+            }
+
+            PasswordVerificationResult verificationResult = passwordHasher.VerifyHashedPassword(
+                account,
+                account.PasswordHash,
+                c.Password
+            );
+
+            if (verificationResult == PasswordVerificationResult.Failed)
+            {
+                return AuthErrors.InvalidCredentials;
+            }
+
+            string accessToken = jwtTokenGenerator.GenerateAccessToken(account);
+
+            var refreshToken = RefreshToken.Create(
+                account.Id,
+                TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays)
+            );
+            context.RefreshTokens.Add(refreshToken);
+
+            await context.SaveChangesAsync(cancellationToken);
+
+            return new Response(
+                accessToken,
+                refreshToken.Token,
+                DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes)
+            );
+        }
+    }
+
+    public sealed class Endpoint : IEndpoint
+    {
+        public void MapEndpoint(IEndpointRouteBuilder app) =>
+            app.MapPost(
+                    "/accounts/login",
+                    async (
+                        Command command,
+                        IRequestHandler<Command, Response> handler,
+                        CancellationToken cancellationToken
+                    ) =>
+                    {
+                        Result<Response> result = await handler.Handle(command, cancellationToken);
+
+                        return result.Match(() => Results.Ok(result.Value), ApiResults.Problem);
+                    }
+                )
+                .WithTags("Accounts");
+    }
+}

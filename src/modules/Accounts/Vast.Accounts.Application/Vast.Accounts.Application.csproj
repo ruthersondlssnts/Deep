@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vast.Accounts.Domain\Vast.Accounts.Domain.csproj" />
+    <ProjectReference Include="..\Vast.Accounts.IntegrationEvents\Vast.Accounts.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\..\common\Vast.Common.Application\Vast.Common.Application.csproj" />
+    <ProjectReference Include="..\..\..\common\Vast.Common.Domain\Vast.Common.Domain.csproj" />
+  </ItemGroup>
+</Project>

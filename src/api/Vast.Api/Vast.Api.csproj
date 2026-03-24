@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\modules\Accounts\Vast.Accounts.Application\Vast.Accounts.Application.csproj" />
+    <ProjectReference Include="..\..\common\Vast.Common.Application\Vast.Common.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Programs\Vast.Programs.Application\Vast.Programs.Application.csproj" />
+    <ProjectReference Include="..\..\aspire\Vast.ServiceDefaults\Vast.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\modules\Transactions\Vast.Transactions.Application\Vast.Transactions.Application.csproj" />
+  </ItemGroup>
+</Project>

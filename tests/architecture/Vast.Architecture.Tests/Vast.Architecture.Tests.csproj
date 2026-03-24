@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" Version="8.8.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+    <PackageReference Include="NetArchTest.Rules" Version="1.3.2" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Common -->
+    <ProjectReference Include="..\..\..\src\common\Vast.Common.Domain\Vast.Common.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\common\Vast.Common.Application\Vast.Common.Application.csproj" />
+
+    <!-- Accounts Module -->
+    <ProjectReference Include="..\..\..\src\modules\Accounts\Vast.Accounts.Domain\Vast.Accounts.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\modules\Accounts\Vast.Accounts.Application\Vast.Accounts.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\modules\Accounts\Vast.Accounts.IntegrationEvents\Vast.Accounts.IntegrationEvents.csproj" />
+
+    <!-- Programs Module -->
+    <ProjectReference Include="..\..\..\src\modules\Programs\Vast.Programs.Domain\Vast.Programs.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\modules\Programs\Vast.Programs.Application\Vast.Programs.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\modules\Programs\Vast.Programs.IntegrationEvents\Vast.Programs.IntegrationEvents.csproj" />
+
+    <!-- Transactions Module -->
+    <ProjectReference Include="..\..\..\src\modules\Transactions\Vast.Transactions.Domain\Vast.Transactions.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\modules\Transactions\Vast.Transactions.Application\Vast.Transactions.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\modules\Transactions\Vast.Transactions.IntegrationEvents\Vast.Transactions.IntegrationEvents.csproj" />
+
+    <!-- API -->
+    <ProjectReference Include="..\..\..\src\api\Vast.Api\Vast.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+    <Using Include="NetArchTest.Rules" />
+  </ItemGroup>
+</Project>

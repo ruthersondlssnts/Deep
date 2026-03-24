@@ -1,0 +1,6 @@
+@Vast.Api_HostAddress = http://localhost:5128
+
+GET {{Vast.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

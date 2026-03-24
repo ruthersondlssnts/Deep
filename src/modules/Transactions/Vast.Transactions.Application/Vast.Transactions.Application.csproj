@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="MassTransit.Redis" Version="8.5.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\common\Vast.Common.Application\Vast.Common.Application.csproj" />
+    <ProjectReference Include="..\..\Programs\Vast.Programs.IntegrationEvents\Vast.Programs.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\Vast.Transactions.Domain\Vast.Transactions.Domain.csproj" />
+    <ProjectReference Include="..\Vast.Transactions.IntegrationEvents\Vast.Transactions.IntegrationEvents.csproj" />
+  </ItemGroup>
+</Project>
